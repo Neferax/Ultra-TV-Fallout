@@ -135,7 +135,7 @@ clock_weather = r'''void renderClockPage() {
                          TC_DATUM, theme.text, FONT_LABEL);
         drawDisplayLabel("OPEN-METEO", 120, 190, 204,
                          TC_DATUM, theme.muted, FONT_INFO);
-    } else if (feedRuntime.weather.lastError[0] != '\\0') {
+    } else if (feedRuntime.weather.lastError[0] != '\0') {
         drawDisplayLabel("WEATHER LINK // ERROR", 120, 174, 204,
                          TC_DATUM, theme.warning, FONT_LABEL);
         drawDisplayLabel(feedRuntime.weather.lastError, 120, 188, 204,
@@ -160,7 +160,7 @@ void renderWeatherPage() {
         tft.drawFastHLine(14, 91, 212, theme.accentSoft);
         drawDisplayLabel("METEOROLOGICAL DATABASE", 120, 77, 204,
                          TC_DATUM, theme.accent, FONT_INFO);
-        if (feedRuntime.weather.lastError[0] != '\\0') {
+        if (feedRuntime.weather.lastError[0] != '\0') {
             drawDisplayLabel("WEATHER LINK // ERROR", 120, 113, 204,
                              TC_DATUM, theme.warning, FONT_LABEL);
             drawDisplayLabel(feedRuntime.weather.lastError, 120, 132, 204,
@@ -178,7 +178,7 @@ void renderWeatherPage() {
     const WeatherData *weather = effectiveWeatherData();
     tft.drawRect(9, 69, 222, 77, theme.accent);
     tft.drawRect(12, 72, 216, 71, theme.accentSoft);
-    drawDisplayLabel(weather->location[0] != '\\0' ? weather->location : "UNKNOWN LOCATION",
+    drawDisplayLabel(weather->location[0] != '\0' ? weather->location : "UNKNOWN LOCATION",
                      120, 76, 204, TC_DATUM, theme.muted, FONT_INFO);
 
     // Current conditions: a compact instrument panel.
@@ -191,7 +191,7 @@ void renderWeatherPage() {
     const int temperatureFonts[] = {FONT_BODY, FONT_LABEL};
     drawAdaptiveText(formatWeatherTemperature(weather->temperature), 157, 98, 132,
                      TC_DATUM, temperatureFonts, 2, theme.text, theme.background);
-    drawDisplayLabel(weather->condition[0] != '\\0' ? weather->condition : "CURRENT CONDITIONS",
+    drawDisplayLabel(weather->condition[0] != '\0' ? weather->condition : "CURRENT CONDITIONS",
                      120, 129, 204, TC_DATUM, theme.accent, FONT_INFO);
 
     drawDisplayLabel("NEXT 3 DAYS // FORECAST", 10, 151, 220,
