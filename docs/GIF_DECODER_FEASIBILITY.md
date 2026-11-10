@@ -67,7 +67,7 @@ und nicht auf Hardware getestet.
 ## Konkreter Speicheransatz für den nächsten Prototyp
 
 Ein möglicher Weg ist, den Decoder nicht dauerhaft im primären DRAM zu halten:
-- `MAX_CODE_SIZE=10` würde die großen LZW-Tabellen-/Pixelpuffer gegenüber dem Standardwert 12 deutlich verkleinern.
+- `MAX_CODE_SIZE=11` würde die großen LZW-Tabellen-/Pixelpuffer gegenüber dem Standardwert 12 deutlich verkleinern.
 - Die GIF-Dateien müssten vorab kontrolliert neu encodiert werden; beliebige GIFs wären nicht mehr garantiert kompatibel.
 - Die Decoder-Instanz könnte testweise nur während der GIF-Seite dynamisch im sekundären IRAM-Heap angelegt werden.
 - Vor jedem Feed-/TLS-Job müsste die Wiedergabe beendet und die Instanz freigegeben sein, da BearSSL denselben sekundären Heap für seine Puffer nutzt.
@@ -97,7 +97,7 @@ Quellstellen geprüft:
 
 Der Header von AnimatedGIF legt die großen Decoder-Puffer direkt in
 `GIFIMAGE` ab, das wiederum Bestandteil der `AnimatedGIF`-Instanz ist.
-Bei `MAX_CODE_SIZE=10` ergeben allein die großen Arrays näherungsweise:
+Bei `MAX_CODE_SIZE=11` ergeben allein die großen Arrays näherungsweise:
 
 | Puffer | Größe |
 |---|---:|
@@ -131,7 +131,7 @@ liegen aber als feste Arrays trotzdem in der Instanz.
 kein garantierter Wert für jeden Bootzustand. Vor einem echten Player müssen
 `sizeof(AnimatedGIF)`, IRAM-Heap-`free` und `largestBlock` im konkreten Build
 protokolliert werden. Der Decoder-Fork muss außerdem tatsächlich mit
-`MAX_CODE_SIZE=10` gebaut werden; das einfache Überschreiben des Makros vor
+`MAX_CODE_SIZE=11` gebaut werden; das einfache Überschreiben des Makros vor
 einem unveränderten Bibliotheksheader reicht nicht.
 
 **Entscheidung:** Noch keine GIF-Player-Integration in `main.cpp` oder
