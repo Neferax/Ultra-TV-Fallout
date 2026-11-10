@@ -265,7 +265,13 @@ bool gifPlayerUploadStart(const char *filename) {
     LittleFS.remove(uploadGifTempPath);
     uploadGifFile = LittleFS.open(uploadGifTempPath, "w");
     uploadGifBytes = 0;
-    return static_cast<bool>(uploadGifFile);
+    if (!uploadGifFile) {
+        LittleFS.remove(uploadGifTempPath);
+        uploadGifPath[0] = '\0';
+        uploadGifTempPath[0] = '\0';
+        return false;
+    }
+    return true;
 }
 
 bool gifPlayerUploadChunk(const uint8_t *data, size_t length) {
@@ -299,4 +305,14 @@ bool gifPlayerUploadEnd() {
     gifFileListDirty = true;
     gifPlayerRefreshFiles();
     return valid;
+}
+
+bool gifPlayerUploadAbort() {
+    if (uploadGifFile) uploadGifFile.close();
+    if (uploadGifTempPath[0] != '\0') LittleFS.remove(uploadGifTempPath);
+    uploadGifPath[0] = '\0';
+    uploadGifTempPath[0] = '\0';
+    uploadGifBytes = 0;
+    gifFileListDirty = true;
+    return true;
 }
