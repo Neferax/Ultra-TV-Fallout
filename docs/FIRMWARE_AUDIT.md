@@ -30,11 +30,11 @@ Das Changelog bestätigt für ältere 9.0.x-Versionen unter anderem GIF-Wiederga
 - [ ] Aktuelle Gerätekonfiguration sichern.
 
 ### 3. Stock-Webinterface und Schnittstellen
-- [ ] Vorhandene Seiten/Display-Modi auflisten.
+- [x] Bildspeicher-Dateiliste am realen V9.0.50-Gerät ausgelesen; weitere Display-Modi noch offen.
 - [ ] Einstellmöglichkeiten je Seite erfassen.
-- [ ] Unterstützte Upload-Formate für Bilder/Animationen ermitteln.
-- [ ] Dokumentierte HTTP-Endpunkte und Authentifizierung prüfen.
-- [ ] Prüfen, ob Seitenlayout, Farben, Fonts und Icons konfigurierbar sind.
+- [ ] Upload-Formate und GIF-Wiedergabe am realen Gerät praktisch verifizieren.
+- [x] Community-dokumentierte Lese-/Bildmodus-Endpunkte erfasst; konkrete Schreiboperationen noch nicht getestet.
+- [ ] Prüfen, ob native Seitenlayout, Farben, Fonts und Icons konfigurierbar sind.
 - [ ] Keine nicht dokumentierten Schreiboperationen ohne Backup testen.
 
 ### 4. Umsetzungsentscheidung
