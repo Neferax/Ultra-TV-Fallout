@@ -234,7 +234,15 @@ diff --git a/src/webserver.cpp b/src/webserver.cpp
  void handleOTAForm() {
      prepareNoStoreHeaders();
      server.sendHeader("Content-Encoding", "gzip");
-@@ -1229,6 +1286,7 @@
+@@ -1054,6 +1111,7 @@
+     HTTPUpload &upload = server.upload();
+ 
+     if (upload.status == UPLOAD_FILE_START) {
++        gifPlayerStop();
+         otaUploadComplete = false;
+         otaUploadError = "";
+         if (feedsBusy() || webserverHasPendingNetworkAction()) {
+@@ -1229,6 +1287,7 @@
      registerProtectedRoute("/feeds/sync", HTTP_POST, handleFeedsSync);
      registerProtectedRoute("/feeds/job", HTTP_GET, handleFeedJob);
      registerProtectedRoute("/feeds/search", HTTP_GET, handleFeedSearch);
@@ -242,7 +250,7 @@ diff --git a/src/webserver.cpp b/src/webserver.cpp
      registerProtectedRoute("/api/update", HTTP_POST, handleApiUpdate);
      registerProtectedRoute("/api/dashboard", HTTP_POST, handleDashboardDataSave);
      registerProtectedRoute("/auth/password", HTTP_POST, handleAuthPasswordChange);
-@@ -1255,6 +1313,16 @@
+@@ -1255,6 +1314,16 @@
                    handleOTAUpload();
                });
  
@@ -259,3 +267,11 @@ diff --git a/src/webserver.cpp b/src/webserver.cpp
      server.onNotFound([]() {
          if (wifiFailsafeMode) {
              server.sendHeader("Location", "http://" + WiFi.softAPIP().toString() + "/");
+@@ -1273,6 +1342,7 @@
+ }
+ 
+ void webserverProcessPendingActions() {
++    if (webserverHasPendingNetworkAction()) gifPlayerStop();
+     if (webserverHasPendingNetworkAction() && feedsBusy()) {
+         feedsCancelJobs();
+         return;
