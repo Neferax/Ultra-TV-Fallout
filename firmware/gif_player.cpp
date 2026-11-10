@@ -72,33 +72,63 @@ int32_t seekGifFile(GIFFILE *gifFile, int32_t position) {
 void drawGifScanline(GIFDRAW *line) {
     if (line == nullptr || targetDisplay == nullptr || line->pPixels == nullptr ||
         line->pPalette == nullptr || unsupportedFrame) return;
-    // Keep every animation inside a dedicated 104x104 artwork viewport.
+
+    // Decode into one small destination scanline, then send contiguous runs
+    // to the TFT in bulk. Per-pixel fillRect() calls made animation far too slow.
     const int16_t sourceY = static_cast<int16_t>(line->iY + line->y);
     if (sourceY < 0 || sourceY >= canvasHeight) return;
-    const int16_t dy0 = static_cast<int16_t>(canvasOriginY + static_cast<int16_t>(sourceY * gifScale));
-    const int16_t dy1 = static_cast<int16_t>(canvasOriginY + static_cast<int16_t>((sourceY + 1) * gifScale));
+
+    const int16_t dy0 = static_cast<int16_t>(canvasOriginY +
+        static_cast<int16_t>(sourceY * gifScale));
+    const int16_t dy1 = static_cast<int16_t>(canvasOriginY +
+        static_cast<int16_t>((sourceY + 1) * gifScale));
     if (dy1 <= dy0) return;
+
+    bool dirty[104] = {false};
+    uint16_t row[104] = {0};
     for (int pixel = 0; pixel < line->iWidth; ++pixel) {
         const int16_t sx = static_cast<int16_t>(line->iX + pixel);
         if (sx < 0 || sx >= canvasWidth) continue;
+
         const uint8_t index = line->pPixels[pixel];
         if (line->ucHasTransparency && index == line->ucTransparent) continue;
+
         const uint16_t source = line->pPalette[index];
         const uint16_t r = static_cast<uint16_t>(((source >> 11) & 0x1F) * 255U / 31U);
         const uint16_t g = static_cast<uint16_t>(((source >> 5) & 0x3F) * 255U / 63U);
-        const uint16_t bl = static_cast<uint16_t>((source & 0x1F) * 255U / 31U);
-        const uint16_t lum = static_cast<uint16_t>((r * 77U + g * 150U + bl * 29U) >> 8);
-        const uint16_t color = static_cast<uint16_t>(((lum * 63U + 127U) / 255U) << 5);
-        const int16_t dx0 = static_cast<int16_t>(canvasOriginX + static_cast<int16_t>(sx * gifScale));
-        const int16_t dx1 = static_cast<int16_t>(canvasOriginX + static_cast<int16_t>((sx + 1) * gifScale));
-        if (dx1 <= dx0 || dx1 <= 0 || dx0 >= kDisplayWidth) continue;
-        const int16_t x = dx0 > 0 ? dx0 : 0;
-        const int16_t y = dy0 > 0 ? dy0 : 0;
-        const int16_t right = dx1 < kDisplayWidth ? dx1 : kDisplayWidth;
-        const int16_t w = right - x;
-        const int16_t bottom = dy1 < kDisplayHeight ? dy1 : kDisplayHeight;
-        const int16_t h = bottom - y;
-        if (w > 0 && h > 0) targetDisplay->fillRect(x, y, w, h, color);
+        const uint16_t b = static_cast<uint16_t>((source & 0x1F) * 255U / 31U);
+        const uint16_t lum = static_cast<uint16_t>((r * 77U + g * 150U + b * 29U) >> 8);
+        const uint16_t phosphor = static_cast<uint16_t>(((lum * 63U + 127U) / 255U) << 5);
+
+        const int16_t dx0 = static_cast<int16_t>(canvasOriginX +
+            static_cast<int16_t>(sx * gifScale));
+        const int16_t dx1 = static_cast<int16_t>(canvasOriginX +
+            static_cast<int16_t>((sx + 1) * gifScale));
+        const int16_t left = dx0 > canvasOriginX ? dx0 : canvasOriginX;
+        const int16_t right = dx1 < canvasOriginX + scaledCanvasWidth
+            ? dx1 : canvasOriginX + scaledCanvasWidth;
+        for (int16_t dx = left; dx < right; ++dx) {
+            const int16_t offset = static_cast<int16_t>(dx - canvasOriginX);
+            if (offset >= 0 && offset < 104) {
+                row[offset] = phosphor;
+                dirty[offset] = true;
+            }
+        }
+    }
+
+    const int16_t top = dy0 > 0 ? dy0 : 0;
+    const int16_t bottom = dy1 < kDisplayHeight ? dy1 : kDisplayHeight;
+    for (int16_t y = top; y < bottom; ++y) {
+        int16_t x = 0;
+        while (x < scaledCanvasWidth) {
+            while (x < scaledCanvasWidth && !dirty[x]) ++x;
+            const int16_t runStart = x;
+            while (x < scaledCanvasWidth && dirty[x]) ++x;
+            if (x > runStart) {
+                targetDisplay->pushImage(canvasOriginX + runStart, y,
+                    static_cast<uint16_t>(x - runStart), 1, &row[runStart]);
+            }
+        }
     }
     yield();
 }
