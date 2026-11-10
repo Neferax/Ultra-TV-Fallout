@@ -25,7 +25,32 @@ diff --git a/src/dashboard.h b/src/dashboard.h
 diff --git a/src/dashboard.cpp b/src/dashboard.cpp
 --- a/src/dashboard.cpp
 +++ b/src/dashboard.cpp
-@@ -390,7 +390,7 @@
+@@ -33,10 +33,13 @@
+     return static_cast<uint16_t>(normalized);
+ }
+ 
+-void enableAllPages() {
++void enableCorePages() {
+     for (uint8_t page = 0; page < DASHBOARD_PAGE_COUNT; ++page) {
+-        dashboardConfig.enabledPages[page] = true;
++        dashboardConfig.enabledPages[page] = false;
+     }
++    dashboardConfig.enabledPages[DASHBOARD_PAGE_CLOCK] = true;
++    dashboardConfig.enabledPages[DASHBOARD_PAGE_WEATHER] = true;
++    dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF] = true;
+ }
+ 
+ bool anyPageEnabled() {
+@@ -151,7 +154,7 @@
+     dashboardConfig.use24Hour = true;
+     dashboardConfig.showSeconds = false;
+     dashboardConfig.showIp = false;
+-    enableAllPages();
++    enableCorePages();
+ }
+ 
+ void setDataDefaults() {
+@@ -390,7 +393,7 @@
      pages["world"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_WORLD];
      pages["event"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_EVENT];
      pages["quote"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_QUOTE];
@@ -34,7 +59,7 @@ diff --git a/src/dashboard.cpp b/src/dashboard.cpp
  }
  
  void fillDataJson(JsonObject root) {
-@@ -473,8 +473,8 @@
+@@ -473,8 +476,8 @@
      if (!pages["quote"].isNull()) {
          dashboardConfig.enabledPages[DASHBOARD_PAGE_QUOTE] = pages["quote"].as<bool>();
      }
@@ -45,7 +70,7 @@ diff --git a/src/dashboard.cpp b/src/dashboard.cpp
      }
  }
  
-@@ -1103,8 +1103,8 @@
+@@ -1103,8 +1106,8 @@
              return "event";
          case DASHBOARD_PAGE_QUOTE:
              return "quote";
