@@ -170,7 +170,7 @@ diff --git a/src/display.h b/src/display.h
 diff --git a/src/display.cpp b/src/display.cpp
 --- a/src/display.cpp
 +++ b/src/display.cpp
-@@ -1862,6 +1862,10 @@
+@@ -1862,4 +1862,8 @@
      }
  }
  
