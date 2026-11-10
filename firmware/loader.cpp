@@ -1,3 +1,4 @@
+#ifdef LOADER_BUILD
 // Minimal OTA trampoline for GeekMagic SmallTV Ultra (ESP8266).
 // Install this small image through the stock /update page. It starts an
 // isolated Wi-Fi AP and exposes the ESP8266 HTTP OTA updater at /update.
@@ -35,3 +36,4 @@ void loop() {
     server.handleClient();
     yield();
 }
+#endif  // LOADER_BUILD
