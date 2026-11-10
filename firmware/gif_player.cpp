@@ -12,8 +12,16 @@ constexpr uint32_t kIramSafetyMargin = 2048;
 
 AnimatedGIF *decoder = nullptr;
 File activeGifFile;
+File uploadGifFile;
 TFT_eSPI *targetDisplay = nullptr;
 uint32_t nextFrameAtMs = 0;
+uint32_t gifStartedAtMs = 0;
+uint32_t uploadGifBytes = 0;
+char uploadGifPath[48] = {0};
+bool gifFileListDirty = true;
+char gifPaths[8][48] = {{0}};
+uint8_t gifPathCount = 0;
+uint8_t nextGifIndex = 0;
 int16_t canvasOriginX = 0;
 int16_t canvasOriginY = 0;
 int16_t canvasWidth = 0;
@@ -131,11 +139,18 @@ bool gifPlayerStart(const char *path, TFT_eSPI &display) {
     canvasOriginY = static_cast<int16_t>((kDisplayHeight - canvasHeight) / 2);
     unsupportedFrame = false;
     nextFrameAtMs = 0;
+    gifStartedAtMs = millis();
     return true;
 }
 
 bool gifPlayerTick(uint32_t nowMs) {
     if (decoder == nullptr) return false;
+    if (nowMs - gifStartedAtMs >= 20000UL) {
+        TFT_eSPI *display = targetDisplay;
+        gifPlayerStop();
+        if (display != nullptr) gifPlayerStartNext(*display);
+        return true;
+    }
     if (static_cast<int32_t>(nowMs - nextFrameAtMs) < 0) return false;
 
     int delayMs = 100;
@@ -165,6 +180,7 @@ void gifPlayerStop() {
     if (activeGifFile) activeGifFile.close();
     targetDisplay = nullptr;
     nextFrameAtMs = 0;
+    gifStartedAtMs = 0;
     canvasOriginX = 0;
     canvasOriginY = 0;
     canvasWidth = 0;
@@ -178,4 +194,93 @@ bool gifPlayerIsActive() {
 
 size_t gifPlayerDecoderBytes() {
     return sizeof(AnimatedGIF);
+}
+
+
+bool gifPlayerRefreshFiles() {
+    gifPathCount = 0;
+    Dir dir = LittleFS.openDir("/gif");
+    while (dir.next() && gifPathCount < 8) {
+        String name = dir.fileName();
+        if (!name.endsWith(".gif") && !name.endsWith(".GIF")) continue;
+        if (dir.fileSize() == 0 || dir.fileSize() > 300UL * 1024UL) continue;
+
+        String path = name.startsWith("/") ? name : String("/gif/") + name;
+        if (path.length() >= sizeof(gifPaths[0])) continue;
+        path.toCharArray(gifPaths[gifPathCount], sizeof(gifPaths[0]));
+        ++gifPathCount;
+    }
+
+    // Keep album order deterministic regardless of LittleFS directory order.
+    for (uint8_t i = 0; i < gifPathCount; ++i) {
+        for (uint8_t j = i + 1; j < gifPathCount; ++j) {
+            if (strcmp(gifPaths[j], gifPaths[i]) < 0) {
+                char swap[48];
+                memcpy(swap, gifPaths[i], sizeof(swap));
+                memcpy(gifPaths[i], gifPaths[j], sizeof(swap));
+                memcpy(gifPaths[j], swap, sizeof(swap));
+            }
+        }
+    }
+    if (nextGifIndex >= gifPathCount) nextGifIndex = 0;
+    gifFileListDirty = false;
+    return gifPathCount > 0;
+}
+
+bool gifPlayerHasFiles() {
+    if (gifFileListDirty) gifPlayerRefreshFiles();
+    return gifPathCount > 0;
+}
+
+bool gifPlayerStartNext(TFT_eSPI &display) {
+    if (gifFileListDirty) gifPlayerRefreshFiles();
+    if (gifPathCount == 0) return false;
+
+    const uint8_t selected = nextGifIndex;
+    nextGifIndex = static_cast<uint8_t>((nextGifIndex + 1) % gifPathCount);
+    return gifPlayerStart(gifPaths[selected], display);
+}
+
+bool gifPlayerUploadStart(const char *filename) {
+    gifPlayerStop();
+    if (filename == nullptr || filename[0] == '\0') return false;
+
+    String name(filename);
+    int slash = max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
+    if (slash >= 0) name = name.substring(slash + 1);
+    if (name.length() == 0 || name.length() > 36 ||
+        (!name.endsWith(".gif") && !name.endsWith(".GIF"))) return false;
+
+    for (size_t i = 0; i < name.length(); ++i) {
+        const char ch = name[i];
+        const bool valid = (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
+                           (ch >= '0' && ch <= '9') || ch == '-' || ch == '_' || ch == '.';
+        if (!valid) return false;
+    }
+
+    LittleFS.mkdir("/gif");
+    snprintf(uploadGifPath, sizeof(uploadGifPath), "/gif/%s", name.c_str());
+    uploadGifFile = LittleFS.open(uploadGifPath, "w");
+    uploadGifBytes = 0;
+    return static_cast<bool>(uploadGifFile);
+}
+
+bool gifPlayerUploadChunk(const uint8_t *data, size_t length) {
+    if (!uploadGifFile || data == nullptr || length == 0) return false;
+    if (uploadGifBytes + length > 300UL * 1024UL) return false;
+    const size_t written = uploadGifFile.write(data, length);
+    uploadGifBytes += written;
+    return written == length;
+}
+
+bool gifPlayerUploadEnd() {
+    if (!uploadGifFile) return false;
+    uploadGifFile.close();
+    const bool valid = uploadGifBytes > 0 && LittleFS.exists(uploadGifPath);
+    if (!valid) LittleFS.remove(uploadGifPath);
+    uploadGifPath[0] = '\0';
+    uploadGifBytes = 0;
+    gifFileListDirty = true;
+    gifPlayerRefreshFiles();
+    return valid;
 }
