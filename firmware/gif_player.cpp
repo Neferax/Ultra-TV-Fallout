@@ -21,7 +21,7 @@ uint32_t uploadGifBytes = 0;
 char uploadGifPath[48] = {0};
 char uploadGifTempPath[56] = {0};
 bool gifFileListDirty = true;
-char gifPaths[8][48] = {{0}};
+char gifPaths[12][48] = {{0}};
 uint8_t gifPathCount = 0;
 uint8_t nextGifIndex = 0;
 int16_t canvasOriginX = 0;
@@ -202,7 +202,7 @@ size_t gifPlayerDecoderBytes() {
 bool gifPlayerRefreshFiles() {
     gifPathCount = 0;
     Dir dir = LittleFS.openDir("/gif");
-    while (dir.next() && gifPathCount < 8) {
+    while (dir.next() && gifPathCount < 12) {
         String name = dir.fileName();
         if (!name.endsWith(".gif") && !name.endsWith(".GIF")) continue;
         if (dir.fileSize() == 0 || dir.fileSize() > 300UL * 1024UL) continue;
@@ -259,6 +259,18 @@ bool gifPlayerUploadStart(const char *filename) {
                            (ch >= '0' && ch <= '9') || ch == '-' || ch == '_' || ch == '.';
         if (!valid) return false;
     }
+
+    gifPlayerRefreshFiles();
+    bool replacingExisting = false;
+    for (uint8_t i = 0; i < gifPathCount; ++i) {
+        const char *storedName = strrchr(gifPaths[i], '/');
+        storedName = storedName != nullptr ? storedName + 1 : gifPaths[i];
+        if (name.equals(storedName)) {
+            replacingExisting = true;
+            break;
+        }
+    }
+    if (gifPathCount >= 12 && !replacingExisting) return false;
 
     LittleFS.mkdir("/gif");
     snprintf(uploadGifPath, sizeof(uploadGifPath), "/gif/%s", name.c_str());
