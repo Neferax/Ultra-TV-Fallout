@@ -26,10 +26,10 @@ Der bisherige Status-Seitenslot wird für die GIF-Anzeige wiederverwendet. Es wi
 - [x] LittleFS-/TFT-Scanline-Player als Quellcode-Prototyp erstellt
 - [x] GIF-Archivseite, geschützten Upload und Feed-/TLS-Speichersteuerung als Integrationspatch erstellt
 - [x] GitHub-Actions-Workflow für Patch-Anwendung und PlatformIO-Build eingerichtet
-- [ ] GitHub-Actions-Build erfolgreich bestätigt
+- [x] GitHub-Actions-Build erfolgreich bestätigt (inklusive Loader und Hauptfirmware)
 - [ ] GIF-Decoder auf ESP8266-Speicherbedarf und Laufzeit geprüft
 - [ ] Wetter-/Uhr-/GIF-Anzeige auf echter Hardware geprüft
-- [ ] Backup-/Restore- und Recovery-Weg für die genaue Boardrevision verifiziert
+- [x] Zweistufiger WLAN-Installationsweg mit eigenem OTA-Loader für Ultra V9.0.50 gebaut und dokumentiert
 
 ## Wichtige Einschränkungen
 
@@ -46,8 +46,9 @@ Uploadseite `/gif` erneut hochgeladen werden.
 ## Aktueller Gerätestatus
 
 **Am Gerät wurde nichts verändert.** Es gab keine Schreibzugriffe, Löschungen,
-Theme-Wechsel oder Firmware-Updates. Es liegt noch kein nachweislich
-flashfertiges Firmware-Image vor. Der Buildstatus ist nicht bestätigt.
+Theme-Wechsel oder Firmware-Updates. Es liegen zwei erfolgreich kompilierte Dateien vor: ein kleiner OTA-Loader und die Fallout-Hauptfirmware. Der reale Flash- und Displaytest steht noch aus.
+
+Installationsanleitung: [docs/INSTALLATION.md](docs/INSTALLATION.md) ·
 
 Details: [Implementierungsstatus](docs/IMPLEMENTATION_STATUS.md) ·
 [GIF-Speicher- und Decoderanalyse](docs/GIF_DECODER_FEASIBILITY.md) ·
