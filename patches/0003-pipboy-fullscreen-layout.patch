@@ -21,7 +21,7 @@ diff --git a/src/display.cpp b/src/display.cpp
 -        drawHeroText(formatWeatherTemperature(weather->temperature), 153, 34, theme.text, 2);
 -        drawDisplayLabel(weather->condition[0] != '\0' ? weather->condition : "WEATHER",
 -                         120, 187, 210, TC_DATUM, theme.muted, FONT_INFO);
--    } else if ( weatherWaitingForSync()) {
+-    } else if (weatherWaitingForSync()) {
 -        drawDisplayLabel("ENVIRONMENTAL MONITOR", 8, 145, 224, TL_DATUM, theme.accent, FONT_INFO);
 -        drawDisplayLabel("ACQUIRING DATA...", 8, 169, 224, TL_DATUM, theme.muted, FONT_BODY);
 -    } else if (message != nullptr) {
