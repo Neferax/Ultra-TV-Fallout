@@ -1,53 +1,52 @@
 # Ultra-TV-Fallout
 
-Fallout-/RobCo-inspiriertes UI-Projekt für die GeekMagic SmallTV Ultra.
+Fallout-/RobCo-inspiriertes Anpassungsprojekt für die GeekMagic SmallTV Ultra.
 
-**Zielgerät:** GeekMagic SmallTV Ultra  
-**Gemeldete Firmware:** Ultra-V9.0.50  
-**Designziel:** eigenständige Pip-Boy-inspirierte Ansichten auf dem vorhandenen Display, mit Erhalt der bestehenden Gerätefunktionen.
+**Gerät:** GeekMagic SmallTV Ultra  
+**Firmware:** Ultra-V9.0.50  
+**Geräte-IP:** 192.168.178.70  
+**Designziel:** Pip-Boy-3000-Mark-IV-Anmutung mit schwarzem Hintergrund, Phosphorgrün und gut lesbaren Originaldaten.
 
-## Projektstatus
+## Tatsächliche Displaystruktur
 
-Bestandsaufnahme und Layout-Prototypen. Es wurden keine Firmwareänderungen vorgenommen und es gibt noch keinen flashbaren Build.
+Die vorhandene Struktur bleibt erhalten:
+- eine Wetterseite
+- eine Uhrseite
+- dazwischen die vorhandenen GIF-Anzeigen
 
-## Aktueller technischer Ansatz
+Es werden keine unnötigen neuen Seiten gebaut. Wetter- und Uhrseite sollen direkt angepasst werden; die vorhandenen GIFs werden schrittweise durch kompakte Fallout-inspirierte Animationen ersetzt.
 
-**Stock-Firmware zuerst – kein Flashen geplant.**
+## Status
 
-Ein unabhängiges Projekt dokumentiert, dass sich bei der SmallTV-Ultra-Stock-Firmware eigene 240×240-Bilder und GIFs über die lokale HTTP-Schnittstelle hochladen und im Photo-Album-Modus anzeigen lassen. Damit könnten wir eigene Fallout-Ansichten umsetzen, ohne die Firmware zu ersetzen.
+- [x] Gerät und Firmwarestand dokumentiert
+- [x] Speicherstand und vorhandene GIFs erfasst
+- [x] Erste 80×80-GIF erstellt: 9 Frames, 180 ms, ca. 14 KB
+- [x] Austauschdatei heißt `spaceman.gif`
+- [x] Installationspaket vorbereitet
+- [ ] GIF am Gerät hochladen und Anzeige prüfen
+- [ ] Wetterseite im vorhandenen Theme anpassen
+- [ ] Uhrseite im vorhandenen Theme anpassen
+- [ ] übrige GIFs einzeln ersetzen
 
-Achtung: Die dokumentierte Referenz wurde auf Ultra-V9.0.51 getestet. Unser Gerät meldet Ultra-V9.0.50. Die API muss deshalb auf unserer Version erst mit vorsichtigen Tests bestätigt werden.
+**Wichtig:** Am Gerät wurden bislang keine Schreibzugriffe, Löschungen, Theme-Wechsel oder Firmware-Updates ausgeführt. Die lokale Upload-/Overwrite-Schnittstelle für `/gif` und die Schreibschnittstellen für die beiden Seiten sind auf Ultra-V9.0.50 noch nicht verifiziert. Deshalb wird nichts blind automatisiert.
 
-- [Strategie: Stock-Firmware-Bildmodus](docs/STOCK_FIRMWARE_IMAGE_MODE.md)
-- [Referenzprojekt mit dokumentierten Endpunkten](https://github.com/MacheteFlow/GeekMagic-AI-Status)
+## Asset
 
-## Designziel
-
-Die Hauptübersicht und die Wettervorhersage bekommen eigenständige Layouts innerhalb einer gemeinsamen Fallout-/RobCo-Bildsprache.
-
-- **STAT:** Uhr, Datum, Standort und aktuelle Wetter-/Messwerte.
-- **DATA / ATMOS:** mehrtägige Wettervorhersage als kompakte Datenansicht.
-- Weitere Ansichten erst nach Erfassung der tatsächlich vorhandenen Firmwarefunktionen.
-
-## Erste Layout-Mockups (240 × 240)
-
-- [STAT – Hauptübersicht](assets/mockups/stat-overview.svg)
-- [DATA / ATMOS – Wettervorhersage](assets/mockups/data-weather.svg)
-
-Die Mockups sind statische Layoutstudien mit Platzhalterwerten, keine Firmware und keine Live-Daten.
+Die erste Animation ist ein eigens erstelltes Retro-Terminal-Maskottchen, Fallout-inspiriert, aber kein offizieller Bethesda-/Vault-Boy-Asset. Sie liegt im vorbereiteten Paket unter `gif/spaceman.gif`.
 
 ## Dokumentation
 
-- [Projektplan](docs/PROJECT_PLAN.md)
 - [Display-Konzept](docs/DISPLAY_CONCEPT.md)
-- [Firmware-Audit-Checkliste](docs/FIRMWARE_AUDIT.md)
+- [GIF-Implementierung und API-Hinweise](docs/FALLOUT_GIF_IMPLEMENTATION.md)
+- [Speicher- und Theme-Befunde](docs/DEVICE_STORAGE_AND_THEME_FINDINGS.md)
+- [Implementierungsstatus](docs/IMPLEMENTATION_STATUS.md)
 
 ## Sicherheitsregeln
 
-- Keine Firmware flashen, solange der Stock-Ansatz nicht geprüft wurde.
-- Vor Änderungen vorhandene Bilder und Einstellungen sichern.
-- Erst lesende API-Abfragen, danach ein einzelner reversibler Bildtest.
-- Keine unnötigen Uploads: Bilder cachen, um Flash-Schreibvorgänge zu begrenzen.
-- Gerät nicht aus dem Internet erreichbar machen; die lokale HTTP-Schnittstelle ist unverschlüsselt und kann ohne Authentifizierung arbeiten.
+- Stock-Firmware beibehalten; kein Flashen.
+- Vorhandene Originaldateien sichern.
+- GIFs einzeln und reversibel ersetzen.
+- Keine unbestätigten API-Aufrufe und keine Löschung ohne Backup.
+- Gerät nicht aus dem Internet erreichbar machen.
 
-Fallout, Pip-Boy, RobCo und Vault-Tec sind Marken bzw. geschützte Inhalte ihrer jeweiligen Rechteinhaber. Dieses Projekt ist ein unabhängiges Fanprojekt und keine offizielle Bethesda-Veröffentlichung.
+Fallout, Pip-Boy, RobCo und Vault-Tec sind Marken bzw. geschützte Inhalte ihrer jeweiligen Rechteinhaber. Dieses Projekt ist ein unabhängiges Fanprojekt.
