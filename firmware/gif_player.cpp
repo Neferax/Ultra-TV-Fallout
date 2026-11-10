@@ -137,6 +137,11 @@ bool gifPlayerStart(const char *path, TFT_eSPI &display) {
 
     canvasWidth = static_cast<int16_t>(decoder->getCanvasWidth());
     canvasHeight = static_cast<int16_t>(decoder->getCanvasHeight());
+    if (canvasWidth <= 0 || canvasHeight <= 0 ||
+        canvasWidth > kDisplayWidth || canvasHeight > kDisplayHeight) {
+        gifPlayerStop();
+        return false;
+    }
     canvasOriginX = static_cast<int16_t>((kDisplayWidth - canvasWidth) / 2);
     canvasOriginY = static_cast<int16_t>((kDisplayHeight - canvasHeight) / 2);
     unsupportedFrame = false;
