@@ -11,6 +11,7 @@ It does **not** yet contain a verified flash-ready binary.
 - Live NTP time and Open-Meteo weather data paths are retained.
 - The built-in Terminal theme (theme ID 2) is selected by default and provides the green-on-dark baseline. The default page rotation interval is 20 seconds.
 - Open-Meteo weather is enabled by default for postal area 47239 Duisburg (Rumeln-Kaldenhausen).
+- The default clock zone is Europe/Berlin with automatic CET/CEST daylight-saving changes; other fixed offsets remain configurable.
 - The existing Status page slot is reused as the GIF archive page immediately
   after Weather. No extra dashboard page is added.
 - Only Clock, Weather and GIF are enabled by default.
