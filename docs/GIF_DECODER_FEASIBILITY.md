@@ -62,3 +62,14 @@ Recovery für die genaue Hardwarevariante nachgewiesen sind.
 
 **Status:** Analyse abgeschlossen, Decoder noch nicht integriert, nicht kompiliert
 und nicht auf Hardware getestet.
+
+
+## Konkreter Speicheransatz für den nächsten Prototyp
+
+Ein möglicher Weg ist, den Decoder nicht dauerhaft im primären DRAM zu halten:
+- `MAX_CODE_SIZE=10` würde die großen LZW-Tabellen-/Pixelpuffer gegenüber dem Standardwert 12 deutlich verkleinern.
+- Die GIF-Dateien müssten vorab kontrolliert neu encodiert werden; beliebige GIFs wären nicht mehr garantiert kompatibel.
+- Die Decoder-Instanz könnte testweise nur während der GIF-Seite dynamisch im sekundären IRAM-Heap angelegt werden.
+- Vor jedem Feed-/TLS-Job müsste die Wiedergabe beendet und die Instanz freigegeben sein, da BearSSL denselben sekundären Heap für seine Puffer nutzt.
+
+[Schlussfolgerung] Mit dem in der Hardwaremessung protokollierten IRAM-Freiraum von rund 18.8 KB könnte eine reduzierte Decoder-Instanz grundsätzlich in Frage kommen. Das ist noch kein Nachweis: `sizeof(AnimatedGIF)`, tatsächliche IRAM-Allokation, größter freier Block und Verhalten beim Wechsel zwischen GIF und TLS müssen auf dem echten Build gemessen werden. Bei zu wenig IRAM wird die GIF-Seite deaktiviert statt den Netzwerkbetrieb zu riskieren.
