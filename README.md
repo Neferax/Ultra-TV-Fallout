@@ -8,7 +8,7 @@ Fallout-/RobCo-inspiriertes UI-Projekt für die GeekMagic SmallTV Ultra.
 
 ## Projektstatus
 
-<PRIVATE_PERSON> Das Projekt befindet sich in der Bestandsaufnahme und Konzeptphase. Es wurden noch keine Firmwareänderungen vorgenommen und es gibt noch keinen flashbaren Build.
+Das Projekt befindet sich in der Bestandsaufnahme und Konzeptphase. Es wurden noch keine Firmwareänderungen vorgenommen und es gibt noch keinen flashbaren Build.
 
 ## Leitidee
 
