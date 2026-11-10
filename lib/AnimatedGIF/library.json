@@ -1,7 +1,7 @@
 {
   "name": "AnimatedGIF-ESP8266-LowRAM",
   "version": "1.0.0",
-  "description": "Vendored AnimatedGIF decoder configured for controlled 240px, 10-bit LZW animations on ESP8266",
+  "description": "Vendored AnimatedGIF decoder configured for controlled 240px, 11-bit LZW animations on ESP8266",
   "keywords": ["gif", "decoder", "esp8266"],
   "build": {
     "srcDir": "src",
