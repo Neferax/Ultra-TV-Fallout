@@ -37,6 +37,13 @@ jobs:
         working-directory: firmware
         run: git apply --check ../fallout/patches/0001-fallout-pipboy-renderers.patch && git apply ../fallout/patches/0001-fallout-pipboy-renderers.patch
 
+      - name: Add constrained GIF decoder compile probe
+        working-directory: firmware
+        run: |
+          mkdir -p lib/AnimatedGIF
+          cp -R ../fallout/lib/AnimatedGIF/* lib/AnimatedGIF/
+          cp ../fallout/firmware/gif_decoder_probe.cpp src/gif_decoder_probe.cpp
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
