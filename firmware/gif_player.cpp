@@ -1,6 +1,7 @@
 #include "gif_player.h"
 
 #include <LittleFS.h>
+#include <ESP8266WiFi.h>
 #include <umm_heap_select.h>
 #include <new>
 #include <AnimatedGIF.h>
