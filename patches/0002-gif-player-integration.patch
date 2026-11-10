@@ -1,7 +1,7 @@
 diff --git a/src/dashboard.h b/src/dashboard.h
 --- a/src/dashboard.h
 +++ b/src/dashboard.h
-@@ -7,11 +7,12 @@
+@@ -7,18 +7,18 @@
  #define DASHBOARD_WORLD_CLOCK_COUNT 2
  #define DASHBOARD_CONFIG_PATH "/dashboard-config.json"
  #define DASHBOARD_DATA_PATH "/dashboard-data.json"
@@ -15,31 +15,42 @@ diff --git a/src/dashboard.h b/src/dashboard.h
      DASHBOARD_PAGE_MARKETS,
      DASHBOARD_PAGE_HOME,
      DASHBOARD_PAGE_FOCUS,
+     DASHBOARD_PAGE_WORLD,
+     DASHBOARD_PAGE_EVENT,
+     DASHBOARD_PAGE_QUOTE,
+-    DASHBOARD_PAGE_STATUS,
+     DASHBOARD_PAGE_COUNT
+ };
+ 
 diff --git a/src/dashboard.cpp b/src/dashboard.cpp
 --- a/src/dashboard.cpp
 +++ b/src/dashboard.cpp
-@@ -391,6 +391,7 @@
+@@ -390,7 +390,7 @@
+     pages["world"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_WORLD];
      pages["event"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_EVENT];
      pages["quote"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_QUOTE];
-     pages["status"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_STATUS];
+-    pages["status"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_STATUS];
 +    pages["gif"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF];
  }
  
  void fillDataJson(JsonObject root) {
-@@ -476,6 +477,9 @@
-     if (!pages["status"].isNull()) {
-         dashboardConfig.enabledPages[DASHBOARD_PAGE_STATUS] = pages["status"].as<bool>();
+@@ -473,8 +473,8 @@
+     if (!pages["quote"].isNull()) {
+         dashboardConfig.enabledPages[DASHBOARD_PAGE_QUOTE] = pages["quote"].as<bool>();
      }
+-    if (!pages["status"].isNull()) {
+-        dashboardConfig.enabledPages[DASHBOARD_PAGE_STATUS] = pages["status"].as<bool>();
 +    if (!pages["gif"].isNull()) {
 +        dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF] = pages["gif"].as<bool>();
-+    }
+     }
  }
  
- bool writeJsonToFile(const char *path, JsonDocument &doc) {
-@@ -1105,6 +1109,8 @@
+@@ -1103,8 +1103,8 @@
+             return "event";
+         case DASHBOARD_PAGE_QUOTE:
              return "quote";
-         case DASHBOARD_PAGE_STATUS:
-             return "status";
+-        case DASHBOARD_PAGE_STATUS:
+-            return "status";
 +        case DASHBOARD_PAGE_GIF:
 +            return "gif";
          default:
@@ -56,19 +67,34 @@ diff --git a/src/display.cpp b/src/display.cpp
  #include "logger.h"
  #include <ESP8266WiFi.h>
  #include <time.h>
-@@ -1099,6 +1100,8 @@
+@@ -1097,8 +1098,8 @@
+             return hasEventContent();
+         case DASHBOARD_PAGE_QUOTE:
              return hasQuoteContent();
-         case DASHBOARD_PAGE_STATUS:
-             return hasStatusContent();
+-        case DASHBOARD_PAGE_STATUS:
+-            return hasStatusContent();
 +        case DASHBOARD_PAGE_GIF:
 +            return gifPlayerHasFiles();
          default:
              return false;
      }
-@@ -1735,6 +1738,16 @@
-         case DASHBOARD_PAGE_STATUS:
-             renderStatusPage();
+@@ -1314,9 +1315,7 @@
+             hashCString(hash, dashboardData.quote.text);
+             hashCString(hash, dashboardData.quote.author);
              break;
+-        case DASHBOARD_PAGE_STATUS:
+-            hashCString(hash, dashboardData.status.line1);
+-            hashCString(hash, dashboardData.status.line2);
++        case DASHBOARD_PAGE_GIF:
+             break;
+         default:
+             break;
+@@ -1732,9 +1731,16 @@
+         case DASHBOARD_PAGE_QUOTE:
+             renderQuotePage();
+             break;
+-        case DASHBOARD_PAGE_STATUS:
+-            renderStatusPage();
 +        case DASHBOARD_PAGE_GIF: {
 +            const ThemePalette &theme = activeTheme();
 +            drawScreenChrome("ROBCO // VISUAL ARCHIVE");
@@ -77,12 +103,12 @@ diff --git a/src/display.cpp b/src/display.cpp
 +                             TC_DATUM, theme.accent, FONT_INFO);
 +            drawDisplayLabel("DECODING FRAME STREAM...", 120, 190, 220,
 +                             TC_DATUM, theme.muted, FONT_INFO);
-+            break;
+             break;
 +        }
          default:
              renderClockPage();
              break;
-@@ -1792,7 +1805,7 @@
+@@ -1792,7 +1798,7 @@
          updateDashboardDynamicArea(pageId);
          renderCache.dynamicHash = dynamicHash;
      }
