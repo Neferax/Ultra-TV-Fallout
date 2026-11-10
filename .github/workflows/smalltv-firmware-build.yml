@@ -43,6 +43,8 @@ jobs:
           mkdir -p lib/AnimatedGIF
           cp -R ../fallout/lib/AnimatedGIF/* lib/AnimatedGIF/
           cp ../fallout/firmware/gif_decoder_probe.cpp src/gif_decoder_probe.cpp
+          cp ../fallout/firmware/gif_player.cpp src/gif_player.cpp
+          cp ../fallout/firmware/gif_player.h src/gif_player.h
 
       - name: Set up Python
         uses: actions/setup-python@v5
