@@ -123,7 +123,7 @@ feeds_cpp.write_text(s, encoding="utf-8")
 display_cpp = root / "src/display.cpp"
 s = display_cpp.read_text(encoding="utf-8")
 start = s.find("void hashWeatherData(uint32_t &hash) {")
-end = s.find("\\nvoid hashMarketData(", start)
+end = s.find("\nvoid hashMarketData(", start)
 if start < 0 or end < 0:
     raise SystemExit("Could not locate weather render-cache hash")
 hash_function = r'''void hashWeatherData(uint32_t &hash) {
