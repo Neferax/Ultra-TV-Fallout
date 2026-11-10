@@ -411,7 +411,7 @@ diff --git a/src/feeds.h b/src/feeds.h
 diff --git a/src/feeds.cpp b/src/feeds.cpp
 --- a/src/feeds.cpp
 +++ b/src/feeds.cpp
-@@ -2030,7 +2030,11 @@
+@@ -2030,6 +2030,10 @@
  void applyConfigObject(JsonObjectConst root) {
      applyProvidersObject(root["providers"].as<JsonObjectConst>());
 -    applyWeatherObject(root["weather"].as<JsonObjectConst>());
