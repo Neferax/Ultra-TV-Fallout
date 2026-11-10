@@ -16,3 +16,4 @@ bool gifPlayerStartNext(TFT_eSPI &display);
 bool gifPlayerUploadStart(const char *filename);
 bool gifPlayerUploadChunk(const uint8_t *data, size_t length);
 bool gifPlayerUploadEnd();
+bool gifPlayerUploadAbort();
