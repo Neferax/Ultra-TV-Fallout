@@ -18,6 +18,13 @@ Die vorhandenen Displayseiten sollen zuerst untersucht und – soweit die Stock-
 - **DATA / ATMOS:** mehrtägige Wettervorhersage als kompakte Datenansicht.
 - Weitere Ansichten erst nach Erfassung der tatsächlich vorhandenen Firmwareseiten.
 
+## Erste Layout-Mockups (240 × 240)
+
+- [STAT – Hauptübersicht](assets/mockups/stat-overview.svg)
+- [DATA / ATMOS – Wettervorhersage](assets/mockups/data-weather.svg)
+
+Die Mockups sind erste statische Layoutstudien mit Platzhalterwerten, noch keine Firmware und keine Live-Daten.
+
 ## Dokumentation
 
 - [Projektplan](docs/PROJECT_PLAN.md)
