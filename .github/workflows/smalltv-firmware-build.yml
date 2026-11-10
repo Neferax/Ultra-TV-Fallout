@@ -1,0 +1,58 @@
+name: SmallTV Ultra Fallout firmware build
+
+on:
+  push:
+    branches:
+      - planning/initial-architecture
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Fallout patch repository
+        uses: actions/checkout@v4
+        with:
+          path: fallout
+
+      - name: Checkout verified SmallTV Ultra upstream
+        uses: actions/checkout@v4
+        with:
+          repository: iodn/geekmagic-tv-esp8266
+          path: firmware
+          fetch-depth: 1
+
+      - name: Verify expected upstream renderer
+        working-directory: firmware
+        run: |
+          ACTUAL="$(git rev-parse HEAD:src/display.cpp)"
+          EXPECTED="ef482ea3cc556eb414fff6178fcc7a4d136563a9"
+          echo "display.cpp blob: $ACTUAL"
+          test "$ACTUAL" = "$EXPECTED"
+
+      - name: Apply Fallout clock and weather renderer patch
+        working-directory: firmware
+        run: git apply --check ../fallout/patches/0001-fallout-pipboy-renderers.patch && git apply ../fallout/patches/0001-fallout-pipboy-renderers.patch
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PlatformIO
+        run: python -m pip install --upgrade platformio
+
+      - name: Compile ESP8266 firmware
+        working-directory: firmware
+        run: pio run -e nodemcuv2
+
+      - name: Upload firmware build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: smalltv-ultra-fallout-esp8266
+          path: firmware/.pio/build/nodemcuv2/firmware.bin
+          if-no-files-found: error
+          retention-days: 14
