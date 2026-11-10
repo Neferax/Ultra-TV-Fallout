@@ -2,7 +2,7 @@ diff --git a/src/display.cpp b/src/display.cpp
 index ef482ea..fallout01 100644
 --- a/src/display.cpp
 +++ b/src/display.cpp
-@@ -1609,37 +1609,81 @@ void renderClockPage() {
+@@ -1609,43 +1609,67 @@ void renderClockPage() {
      const ThemePalette &theme = activeTheme();
 -    drawScreenChrome("Clock");
 +    drawScreenChrome("ROBCO INDUSTRIES");
