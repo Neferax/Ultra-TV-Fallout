@@ -3,7 +3,7 @@
 This is a vendored copy of bitbank2/AnimatedGIF, licensed under Apache-2.0.
 It is deliberately configured for this 240x240 ESP8266 target:
 
-- `MAX_CODE_SIZE=10`: GIF files must be specially encoded to stay within 10-bit LZW codes.
+- `MAX_CODE_SIZE=11`: GIF files must be specially encoded to stay within 11-bit LZW codes.
 - `MAX_WIDTH=240`: larger GIF canvases are rejected.
 
 Do not replace this copy with an unmodified upstream version without repeating
