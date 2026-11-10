@@ -31,13 +31,32 @@ pio run
 The patch was authored against upstream `src/display.cpp` blob
 `ef482ea3cc556eb414fff6178fcc7a4d136563a9`.
 
-## Not implemented yet
+## GIF support: current finding
+
+The current upstream source does **not** contain a GIF player. More importantly,
+its October 2026 change history records removal of JPEG display, picture uploads,
+picture routes, dashboard controls, and the JPEG decoder dependency to recover
+RAM. The upstream README still contains older image-upload wording; that wording
+does not describe the current source tree.
+
+A GIF player therefore needs to be added as a separate feature. The candidate
+AnimatedGIF library can stream decoded scanlines through callbacks without a
+full 240x240 RGB565 framebuffer, but its standard decoder object is about 22.5 KB
+of RAM. That is a serious fit risk on this firmware: its hardware verification
+reports only about 18.5 KB free primary DRAM after normal startup, and the
+network/TLS path needs additional reserved headroom.
+
+A safe implementation needs a constrained decoder build, GIF files re-encoded
+to a known maximum LZW code size, scanline-only drawing, LittleFS file callbacks,
+and a scheduler that pauses animation during feed/TLS work. The user's original
+GIF files must first be backed up outside the device before any replacement
+firmware is flashed. None of that is implemented yet.
+
+## Not implemented / not verified
 
 - Animated GIF carousel / stock SmallTV album compatibility.
 - Automatic migration of existing stock firmware settings and stored GIFs.
 - Device-specific first-flash/recovery procedure for the user's exact board revision.
+- Patch application, compile, runtime memory profiling, or screen verification.
 
-The upstream firmware currently documents temporary JPEG image rendering and
-clears `/image/` on boot. Therefore this patch must **not** be treated as a
-replacement that already preserves the stock GIF album. No device flash has
-been performed, and this patch has not been compiled or hardware-tested.
+No device flash or storage modification has been performed.
