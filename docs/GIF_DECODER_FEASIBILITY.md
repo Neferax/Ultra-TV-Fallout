@@ -73,3 +73,69 @@ Ein möglicher Weg ist, den Decoder nicht dauerhaft im primären DRAM zu halten:
 - Vor jedem Feed-/TLS-Job müsste die Wiedergabe beendet und die Instanz freigegeben sein, da BearSSL denselben sekundären Heap für seine Puffer nutzt.
 
 [Schlussfolgerung] Mit dem in der Hardwaremessung protokollierten IRAM-Freiraum von rund 18.8 KB könnte eine reduzierte Decoder-Instanz grundsätzlich in Frage kommen. Das ist noch kein Nachweis: `sizeof(AnimatedGIF)`, tatsächliche IRAM-Allokation, größter freier Block und Verhalten beim Wechsel zwischen GIF und TLS müssen auf dem echten Build gemessen werden. Bei zu wenig IRAM wird die GIF-Seite deaktiviert statt den Netzwerkbetrieb zu riskieren.
+
+## Zusätzliche Prüfung: tatsächlicher Hauptloop und Heap-Auswahl
+
+Die aktuelle Upstream-Implementierung wurde zusätzlich direkt in den relevanten
+Quellstellen geprüft:
+
+- `src/main.cpp`: `feedsLoop()` wird im Hauptloop aufgerufen; danach kann
+  `displayUpdate()` weiterhin laufen. Ein GIF-Player darf daher nicht einfach
+  im Renderpfad Speicher belegen, während ein Feed-Worker aktiv ist.
+- `src/feeds.cpp`: BearSSL verwendet explizit `HeapSelectIram` für TLS-Puffer.
+  Die HTTPS-Freigabe prüft mindestens 20 KB freien DRAM-Heap und einen
+  kombinierten freien Heap von 38 KB; zusätzlich muss ein ausreichend großer
+  zusammenhängender Block für den TLS-Empfangspuffer verfügbar sein.
+- `src/display.cpp`: Es existiert bereits `displaySuspendDynamicResources()`
+  für die dynamischen Clock-Sprite-Ressourcen. Das ist ein vorhandener
+  Integrationsmechanismus, ersetzt aber keine GIF-spezifische Speicherverwaltung.
+- `src/dashboard.h`: Die Seitenrotation ist auf die vorhandenen Dashboard-IDs
+  ausgelegt. Ein GIF-Karussell ist keine bereits vorhandene Seite und muss
+  ausdrücklich in Seitenverfügbarkeit, Rotation und Rendering integriert werden.
+
+### Konsequenz für den Decoder-Prototyp
+
+Der Header von AnimatedGIF legt die großen Decoder-Puffer direkt in
+`GIFIMAGE` ab, das wiederum Bestandteil der `AnimatedGIF`-Instanz ist.
+Bei `MAX_CODE_SIZE=10` ergeben allein die großen Arrays näherungsweise:
+
+| Puffer | Größe |
+|---|---:|
+| Datei-/LZW-Pixelstack | 1.024 B |
+| globale + lokale Palette | 1.536 B |
+| LZW-Chunkpuffer | 1.530 B |
+| Turbo-LZW-Tabelle | 2.048 B |
+| Turbo-Pixelpuffer | 2.048 B |
+| Zeilenpuffer | 495 B |
+| **Summe der Arrays** | **8.681 B** |
+
+Hinzu kommen Strukturfelder und Zeiger. Das ist eine Größenabschätzung aus den
+Header-Arrays, kein gemessener `sizeof(AnimatedGIF)`-Wert. Die Turbo-Puffer
+werden in RAW-Scanline-Wiedergabe nicht als zusätzlicher Framebuffer angefordert,
+liegen aber als feste Arrays trotzdem in der Instanz.
+
+### Erforderliche Ablaufsteuerung
+
+1. Vor dem Start eines Feed-/TLS-Jobs GIF-Datei schließen, Decoder-Instanz
+   freigeben und IRAM-Heap-Auswahl sauber zurücksetzen.
+2. GIF-Player nur starten, wenn kein Feed-Job und keine Netzwerkaktion läuft.
+3. Während eines GIF-Frames regelmäßig `yield()` ausführen und die
+   Frame-Wartezeit nicht blockierend über `millis()` verwalten.
+4. Feed-Jobs erhalten Vorrang; nach Ende des Jobs darf der GIF-Player auf der
+   aktuellen Albumposition wieder starten.
+5. Bei fehlender IRAM-Blockgröße oder Allokationsfehler die GIF-Seite überspringen,
+   nicht in den DRAM-Fallback wechseln.
+
+**Wichtige offene Messung:** Die Upstream-Hardware-Auditwerte nennen rund
+18.8 KB freien IRAM-Heap nach dem Start. Das ist ein historischer Messwert und
+kein garantierter Wert für jeden Bootzustand. Vor einem echten Player müssen
+`sizeof(AnimatedGIF)`, IRAM-Heap-`free` und `largestBlock` im konkreten Build
+protokolliert werden. Der Decoder-Fork muss außerdem tatsächlich mit
+`MAX_CODE_SIZE=10` gebaut werden; das einfache Überschreiben des Makros vor
+einem unveränderten Bibliotheksheader reicht nicht.
+
+**Entscheidung:** Noch keine GIF-Player-Integration in `main.cpp` oder
+`display.cpp`. Zuerst ist ein isolierter Decoder-Prototyp mit gemessener
+IRAM-Allokation und LittleFS-Callbacks nötig. Erst danach wird die zusätzliche
+Dashboard-Seite angelegt. So bleibt die funktionierende Uhr-/Wetter-/TLS-Basis
+unangetastet.
