@@ -314,7 +314,14 @@ bool gifPlayerStartNext(TFT_eSPI &display) {
 
     const uint8_t selected = nextGifIndex;
     nextGifIndex = static_cast<uint8_t>((nextGifIndex + 1) % gifPathCount);
-    return gifPlayerStart(gifPaths[selected], display);
+    if (gifPlayerStart(gifPaths[selected], display)) return true;
+
+    // An incompatible or damaged album entry must not leave RADIO blank.
+    targetDisplay = &display;
+    fallbackAnimationActive = true;
+    fallbackFrameAtMs = 0;
+    gifStartedAtMs = millis();
+    return true;
 }
 
 bool gifPlayerUploadStart(const char *filename) {
