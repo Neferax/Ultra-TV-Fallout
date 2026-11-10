@@ -33,6 +33,11 @@ bool unsupportedFrame = false;
 bool fallbackAnimationActive = false;
 uint32_t fallbackFrameAtMs = 0;
 uint16_t scanline565[kDisplayWidth];
+constexpr int16_t kGifViewportWidth = 104;
+constexpr int16_t kGifViewportHeight = 104;
+float gifScale = 1.0f;
+int16_t scaledCanvasWidth = 0;
+int16_t scaledCanvasHeight = 0;
 
 void *openGifFile(const char *path, int32_t *fileSize) {
     if (activeGifFile) activeGifFile.close();
@@ -67,44 +72,31 @@ int32_t seekGifFile(GIFFILE *gifFile, int32_t position) {
 void drawGifScanline(GIFDRAW *line) {
     if (line == nullptr || targetDisplay == nullptr || line->pPixels == nullptr ||
         line->pPalette == nullptr || unsupportedFrame) return;
-
-    // Real GIFs commonly update only a small frame rectangle. The old code
-    // rejected every such frame and accepted only full-canvas animations.
-    // Keep transparent pixels untouched so the decoder can composite frames.
-    const int16_t x = static_cast<int16_t>(canvasOriginX + line->iX);
-    const int16_t y = static_cast<int16_t>(canvasOriginY + line->iY + line->y);
-    if (y < 0 || y >= kDisplayHeight) return;
-
-    int16_t runStart = -1;
-    int16_t runLength = 0;
+    // Keep every animation inside a dedicated 104x104 artwork viewport.
+    const int16_t sourceY = static_cast<int16_t>(line->iY + line->y);
+    if (sourceY < 0 || sourceY >= canvasHeight) return;
+    const int16_t dy0 = static_cast<int16_t>(canvasOriginY + floorf(sourceY * gifScale));
+    const int16_t dy1 = static_cast<int16_t>(canvasOriginY + floorf((sourceY + 1) * gifScale));
+    if (dy1 <= dy0) return;
     for (int pixel = 0; pixel < line->iWidth; ++pixel) {
-        const int16_t screenX = static_cast<int16_t>(x + pixel);
-        const uint8_t paletteIndex = line->pPixels[pixel];
-        const bool transparent = line->ucHasTransparency && paletteIndex == line->ucTransparent;
-        if (transparent || screenX < 0 || screenX >= kDisplayWidth) {
-            if (runLength > 0) {
-                targetDisplay->pushImage(static_cast<int16_t>(x + runStart), y,
-                                          runLength, 1, &scanline565[runStart]);
-                runLength = 0;
-                runStart = -1;
-            }
-            continue;
-        }
-
-        const uint16_t source = line->pPalette[paletteIndex];
-        const uint16_t red8 = static_cast<uint16_t>(((source >> 11) & 0x1F) * 255U / 31U);
-        const uint16_t green8 = static_cast<uint16_t>(((source >> 5) & 0x3F) * 255U / 63U);
-        const uint16_t blue8 = static_cast<uint16_t>((source & 0x1F) * 255U / 31U);
-        const uint16_t luminance = static_cast<uint16_t>(
-            (red8 * 77U + green8 * 150U + blue8 * 29U) >> 8);
-        const uint16_t phosphor = static_cast<uint16_t>((luminance * 63U + 127U) / 255U);
-        scanline565[pixel] = static_cast<uint16_t>(phosphor << 5);
-        if (runLength == 0) runStart = static_cast<int16_t>(pixel);
-        ++runLength;
-    }
-    if (runLength > 0) {
-        targetDisplay->pushImage(static_cast<int16_t>(x + runStart), y,
-                                  runLength, 1, &scanline565[runStart]);
+        const int16_t sx = static_cast<int16_t>(line->iX + pixel);
+        if (sx < 0 || sx >= canvasWidth) continue;
+        const uint8_t index = line->pPixels[pixel];
+        if (line->ucHasTransparency && index == line->ucTransparent) continue;
+        const uint16_t source = line->pPalette[index];
+        const uint16_t r = static_cast<uint16_t>(((source >> 11) & 0x1F) * 255U / 31U);
+        const uint16_t g = static_cast<uint16_t>(((source >> 5) & 0x3F) * 255U / 63U);
+        const uint16_t bl = static_cast<uint16_t>((source & 0x1F) * 255U / 31U);
+        const uint16_t lum = static_cast<uint16_t>((r * 77U + g * 150U + bl * 29U) >> 8);
+        const uint16_t color = static_cast<uint16_t>(((lum * 63U + 127U) / 255U) << 5);
+        const int16_t dx0 = static_cast<int16_t>(canvasOriginX + floorf(sx * gifScale));
+        const int16_t dx1 = static_cast<int16_t>(canvasOriginX + floorf((sx + 1) * gifScale));
+        if (dx1 <= dx0 || dx1 <= 0 || dx0 >= kDisplayWidth) continue;
+        const int16_t x = max<int16_t>(0, dx0);
+        const int16_t y = max<int16_t>(0, dy0);
+        const int16_t w = min<int16_t>(kDisplayWidth, dx1) - x;
+        const int16_t h = min<int16_t>(kDisplayHeight, dy1) - y;
+        if (w > 0 && h > 0) targetDisplay->fillRect(x, y, w, h, color);
     }
     yield();
 }
@@ -152,12 +144,17 @@ bool gifPlayerStart(const char *path, TFT_eSPI &display) {
     canvasHeight = static_cast<int16_t>(decoder->getCanvasHeight());
     if (canvasWidth <= 0 || canvasHeight <= 0 ||
         canvasWidth > kDisplayWidth || canvasHeight > kDisplayHeight) {
-        Serial.println(F("GIF skipped: canvas exceeds 240x240"));
+        Serial.println(F("GIF skipped: invalid canvas dimensions"));
         gifPlayerStop();
         return false;
     }
-    canvasOriginX = static_cast<int16_t>((kDisplayWidth - canvasWidth) / 2);
-    canvasOriginY = static_cast<int16_t>((kDisplayHeight - canvasHeight) / 2);
+    const float sx = static_cast<float>(kGifViewportWidth) / canvasWidth;
+    const float sy = static_cast<float>(kGifViewportHeight) / canvasHeight;
+    gifScale = min(sx, sy);
+    scaledCanvasWidth = max<int16_t>(1, static_cast<int16_t>(canvasWidth * gifScale));
+    scaledCanvasHeight = max<int16_t>(1, static_cast<int16_t>(canvasHeight * gifScale));
+    canvasOriginX = static_cast<int16_t>((kDisplayWidth - scaledCanvasWidth) / 2);
+    canvasOriginY = static_cast<int16_t>(76 + (104 - scaledCanvasHeight) / 2);
     unsupportedFrame = false;
     nextFrameAtMs = 0;
     gifStartedAtMs = millis();
@@ -262,6 +259,9 @@ void gifPlayerStop() {
     canvasOriginY = 0;
     canvasWidth = 0;
     canvasHeight = 0;
+    gifScale = 1.0f;
+    scaledCanvasWidth = 0;
+    scaledCanvasHeight = 0;
     unsupportedFrame = false;
 }
 
