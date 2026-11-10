@@ -174,38 +174,34 @@ bool gifPlayerTick(uint32_t nowMs) {
         const uint16_t dim = 0x03E0;
         const uint16_t pale = 0xAFE5;
         const bool blink = ((nowMs / 110UL) % 19UL) == 0;
-        const int scanY = 72 + static_cast<int>((nowMs / 45UL) % 112UL);
-
-        // Native animated power-armour helmet fallback. This keeps the RADIO
-        // page alive even before the user uploads compatible GIF artwork.
-        display.fillRect(12, 61, 216, 142, TFT_BLACK);
-        display.drawRoundRect(69, 75, 102, 111, 18, dim);
-        display.fillRoundRect(73, 79, 94, 103, 16, 0x0100);
-        display.drawFastHLine(83, 86, 74, phosphor);
-        display.drawRect(85, 93, 70, 12, dim);
-        display.fillRoundRect(88, 108, 64, 35, 7, dim);
-        display.drawRoundRect(88, 108, 64, 35, 7, phosphor);
-        display.fillRect(96, 118, 20, blink ? 3 : 8, blink ? dim : pale);
-        display.fillRect(124, 118, 20, blink ? 3 : 8, blink ? dim : pale);
-        display.drawFastHLine(99, 151, 42, phosphor);
-        display.drawLine(105, 155, 120, 166, dim);
-        display.drawLine(135, 155, 120, 166, dim);
-        display.fillRoundRect(54, 112, 17, 42, 5, 0x0100);
-        display.drawRoundRect(54, 112, 17, 42, 5, phosphor);
-        display.fillRoundRect(169, 112, 17, 42, 5, 0x0100);
-        display.drawRoundRect(169, 112, 17, 42, 5, phosphor);
-        display.drawCircle(62, 132, 3, pale);
-        display.drawCircle(178, 132, 3, pale);
-        display.drawFastHLine(18, scanY, 204, dim);
-        display.drawFastHLine(18, 201, 204, dim);
+        const int scanY = 87 + static_cast<int>((nowMs / 45UL) % 78UL);
+        // Fallback artwork uses the same compact 104x104 viewport as uploaded GIFs.
+        display.fillRect(68, 76, 104, 104, TFT_BLACK);
+        display.drawRect(68, 76, 104, 104, dim);
+        display.drawRoundRect(99, 84, 42, 78, 9, dim);
+        display.fillRoundRect(102, 87, 36, 72, 8, 0x0100);
+        display.drawFastHLine(106, 93, 28, phosphor);
+        display.drawRect(106, 99, 28, 7, dim);
+        display.fillRoundRect(106, 110, 28, 23, 4, dim);
+        display.drawRoundRect(106, 110, 28, 23, 4, phosphor);
+        display.fillRect(110, 117, 8, blink ? 2 : 5, blink ? dim : pale);
+        display.fillRect(122, 117, 8, blink ? 2 : 5, blink ? dim : pale);
+        display.drawFastHLine(111, 139, 18, phosphor);
+        display.drawLine(114, 142, 120, 149, dim);
+        display.drawLine(126, 142, 120, 149, dim);
+        display.fillRoundRect(90, 113, 8, 30, 3, 0x0100);
+        display.drawRoundRect(90, 113, 8, 30, 3, phosphor);
+        display.fillRoundRect(142, 113, 8, 30, 3, 0x0100);
+        display.drawRoundRect(142, 113, 8, 30, 3, phosphor);
+        display.drawCircle(94, 128, 2, pale);
+        display.drawCircle(146, 128, 2, pale);
+        display.drawFastHLine(72, scanY, 96, dim);
         display.setTextDatum(TC_DATUM);
         display.setTextFont(1);
         display.setTextColor(phosphor, TFT_BLACK);
-        display.drawString("ROBCO // VISUAL ARCHIVE", 120, 63, 1);
+        display.drawString("ROBCO // ARCHIVE", 120, 78, 1);
         display.setTextColor(pale, TFT_BLACK);
-        display.drawString("PIP-BOY SYSTEM ANIMATION", 120, 190, 1);
-        display.setTextColor(dim, TFT_BLACK);
-        display.drawString("UPLOAD GIFs AT /GIF", 120, 211, 1);
+        display.drawString("PIP-BOY", 120, 165, 1);
         yield();
         return true;
     }
