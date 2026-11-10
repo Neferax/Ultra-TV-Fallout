@@ -114,7 +114,7 @@ bool gifPlayerStart(const char *path, TFT_eSPI &display) {
 
     const size_t required = sizeof(AnimatedGIF) + kIramSafetyMargin;
     if (iramLargest < required || iramFree < required) {
-        Serial.printf("GIF skipped: IRAM free=%u largest=%u need=%u\\n",
+        Serial.printf("GIF skipped: IRAM free=%u largest=%u need=%u\n",
                       static_cast<unsigned int>(iramFree),
                       static_cast<unsigned int>(iramLargest),
                       static_cast<unsigned int>(required));
@@ -134,7 +134,7 @@ bool gifPlayerStart(const char *path, TFT_eSPI &display) {
     targetDisplay = &display;
     decoder->begin(GIF_PALETTE_RGB565_LE);
     if (!decoder->open(path, openGifFile, closeGifFile, readGifFile, seekGifFile, drawGifScanline)) {
-        Serial.printf("GIF skipped: decoder open failed (%d)\\n", decoder->getLastError());
+        Serial.printf("GIF skipped: decoder open failed (%d)\n", decoder->getLastError());
         gifPlayerStop();
         return false;
     }
@@ -168,7 +168,7 @@ bool gifPlayerTick(uint32_t nowMs) {
     int delayMs = 100;
     const int result = decoder->playFrame(false, &delayMs, nullptr);
     if (result < 0 || unsupportedFrame) {
-        Serial.printf("GIF skipped: frame decode failed (%d), unsupported=%u\\n",
+        Serial.printf("GIF skipped: frame decode failed (%d), unsupported=%u\n",
                       result, unsupportedFrame ? 1U : 0U);
         if (targetDisplay != nullptr) targetDisplay->fillScreen(TFT_BLACK);
         gifPlayerStop();
