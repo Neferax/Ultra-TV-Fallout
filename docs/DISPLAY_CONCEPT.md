@@ -1,47 +1,68 @@
-# Display-Konzept – Fallout / RobCo
+# Display-Konzept – Fallout 4 / Pip-Boy / RobCo
 
-## Verbindliche Bestandsstruktur
+## Verbindliche Seitenstruktur
 
-Das Gerät hat eine vorhandene Wetterseite, eine vorhandene Uhrseite und GIF-Anzeigen dazwischen. Diese Struktur bleibt bestehen. Keine zusätzlichen Seiten und kein unnötiger Firmware-Neubau.
+Die Anzeige soll genau drei Seitentypen verwenden:
+1. Clock
+2. Weather
+3. GIF-Archiv
+
+Die GIF-Anzeige verwendet den vorhandenen Status-Seitenslot der alternativen
+Firmware. Die Gesamtzahl der Dashboard-Seiten wird nicht erhöht. Clock, Weather
+und GIF sind die einzigen standardmäßig aktivierten Seiten. Die Rotation steht
+standardmäßig auf 20 Sekunden.
 
 ## Gemeinsame Bildsprache
 
-- Referenz: Fallout 4 / Pip-Boy 3000 Mark IV
+- Referenz: Fallout 4 / Pip-Boy 3000 Mark IV / RobCo
 - tiefschwarzer Hintergrund
-- monochromes Phosphorgrün mit wenigen Helligkeitsstufen
-- kompakte technische Schrift, klare Kontraste
+- monochromes Phosphorgrün
+- kompakte technische Schrift und hohe Lesbarkeit
 - RobCo-Rahmen, Statusleisten und kleine technische Kennungen
-- dezente Scanline-Anmutung nur, wenn sie die Lesbarkeit nicht stört
-- kein starkes Flackern und keine hektischen Vollbildanimationen
+- dezente CRT-Anmutung, aber keine hektischen Vollbildblitze
+- Animationen dürfen Uhr- und Wetterdaten nicht verdecken
 
-## Wetterseite
+Das Terminal-Theme ist voreingestellt. GIF-Farben werden beim Zeichnen in
+monochromes Grün umgerechnet; transparente Pixel erscheinen schwarz.
 
-Die vorhandenen Wetterdaten und deren Aktualisierung bleiben erhalten. Gestaltung:
-- klare Kopfzeile im RobCo-Terminal-Stil
+## Weather
+
+- Live-Wetter über Open-Meteo
+- Standardstandort: PLZ 47239 Duisburg / Rumeln-Kaldenhausen
 - aktuelle Temperatur als primärer Wert
-- Wetterzustand und Symbol gut erkennbar
-- weitere bereits vorhandene Messwerte in kompakten Statusfeldern
-- keine erfundenen oder fest eingebrannten Live-Werte
+- Wetterzustand, Höchst-/Tiefstwert und Regenwahrscheinlichkeit in kompakten
+  Statusfeldern
+- keine fest eingebrannten oder erfundenen Live-Werte
+- Aktualisierung standardmäßig alle 30 Minuten
 
-## Uhrseite
+## Clock
 
-Die vorhandene Uhr- und Datumsfunktion bleibt erhalten. Gestaltung:
+- Live-NTP-Zeit und Datum
+- Standardzeitzone Europe/Berlin mit automatischer CET/CEST-Umstellung
 - Uhrzeit als größtes Element
-- Datum/Wochentag darunter
-- optional bereits vorhandene Zusatzwerte in kleinen Statuszeilen
-- grüne Terminal-Rahmen und dezente technische Beschriftung
+- RobCo-/Vault-Tec-Kopfzeile und dezente Statusbeschriftung
 
-## GIF-Sequenz zwischen den Seiten
+## GIF-Archiv
 
-- vorhandene GIF-Slots verwenden
-- kurze, gut erkennbare Animationen
-- möglichst 80×80 bzw. in der tatsächlich unterstützten Größe
-- Schwarz/Phosphorgrün
-- niedrige Dateigröße und wenige Frames
-- Animationen dürfen Wetter- und Uhrdaten nicht verdecken
+- LittleFS-Verzeichnis `/gif/`
+- geschützte Uploadseite `/gif`
+- bis zu zwölf alphabetisch sortierte GIFs
+- automatischer Wechsel nach 20 Sekunden
+- maximal 240×240 Pixel und 300 KiB je Datei
+- LZW-Codegröße höchstens 11 Bit
+- Frames müssen das vollständige Canvas abdecken
+- transparente Pixel werden schwarz dargestellt
+- alle Bildfarben werden in Pip-Boy-Grün umgerechnet
+- kein Vollbild-RGB565-Compositing-Puffer; Decoder nur während der GIF-Seite im
+  sekundären IRAM-Heap
 
-## Implementierungsprinzip
+Stock-GIFs werden nicht automatisch migriert. Vor einem Firmwarewechsel müssen
+Originaldateien extern gesichert und nach der Installation über `/gif`
+hochgeladen werden.
 
-Erst die vorhandenen Seiten anpassen, dann GIFs einzeln ersetzen. Originaldateien sichern und jeden Schritt am Display prüfen. Keine Firmware ersetzen, solange die Stock-Firmware die benötigten Funktionen bereitstellt.
+## Implementierungsstatus
 
-Die tatsächlichen Schreibschnittstellen der Firmware Ultra-V9.0.50 sind noch nicht vollständig verifiziert. Layoutregeln sind daher festgelegt, aber keine nicht getestete API wird als funktionsfähig ausgegeben.
+Die Uhr-/Wetterrenderer und die GIF-Player-/Upload-Integration liegen als
+C++-Patches bzw. Quellcode-Prototyp vor. Der GitHub-Actions-Build ist eingerichtet,
+aber ein erfolgreicher Build und Hardwaretest sind noch nicht bestätigt. Es gibt
+noch kein nachweislich flashfertiges Image; das Gerät wurde nicht verändert.
