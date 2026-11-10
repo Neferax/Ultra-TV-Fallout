@@ -117,7 +117,9 @@ void renderWeatherPage() {
     const int cx = 181;
     const int cy = 105;
     if (condition.indexOf("rain") >= 0 || condition.indexOf("regen") >= 0 ||
-        condition.indexOf("shower") >= 0 || condition.indexOf("drizzle") >= 0) {
+        condition.indexOf("shower") >= 0 || condition.indexOf("drizzle") >= 0 ||
+        condition.indexOf("niesel") >= 0 || condition.indexOf("schauer") >= 0 ||
+        condition.indexOf("gewitter") >= 0 || condition.indexOf("storm") >= 0) {
         tft.drawCircle(cx - 8, cy - 5, 10, theme.accent);
         tft.drawCircle(cx + 5, cy - 8, 13, theme.accent);
         tft.drawCircle(cx + 17, cy - 3, 8, theme.accent);
@@ -126,7 +128,9 @@ void renderWeatherPage() {
             tft.drawLine(cx - 10 + i * 14, cy + 8, cx - 15 + i * 14, cy + 17, theme.text);
         }
     } else if (condition.indexOf("cloud") >= 0 || condition.indexOf("bewoelk") >= 0 ||
-               condition.indexOf("overcast") >= 0 || condition.indexOf("nebel") >= 0) {
+               condition.indexOf("bewölk") >= 0 || condition.indexOf("wolke") >= 0 ||
+               condition.indexOf("overcast") >= 0 || condition.indexOf("nebel") >= 0 ||
+               condition.indexOf("fog") >= 0 || condition.indexOf("mist") >= 0) {
         tft.drawCircle(cx - 8, cy - 2, 10, theme.accent);
         tft.drawCircle(cx + 5, cy - 7, 13, theme.accent);
         tft.drawCircle(cx + 17, cy - 1, 8, theme.accent);
@@ -145,11 +149,11 @@ void renderWeatherPage() {
     }
 
     drawDisplayLabel(weather->condition[0] != '\0' ? weather->condition : "AKTUELLE LAGE",
-                     120, 135, 204, TC_DATUM, theme.accent, FONT_INFO);
+                     120, 130, 204, TC_DATUM, theme.accent, FONT_INFO);
     String currentRange = "HOCH " + String(weather->high) + "C   TIEF " +
                           String(weather->low) + "C   REGEN " +
                           String(weather->rainChance) + "%";
-    drawDisplayLabel(currentRange, 120, 146, 204, TC_DATUM, theme.text, FONT_INFO);
+    drawDisplayLabel(currentRange, 120, 144, 204, TC_DATUM, theme.text, FONT_INFO);
 
     drawDisplayLabel("VORHERSAGE // 3 TAGE", 10, 163, 220,
                      TL_DATUM, theme.accent, FONT_LABEL);
