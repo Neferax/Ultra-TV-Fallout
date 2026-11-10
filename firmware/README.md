@@ -46,7 +46,7 @@ Limits:
 - Up to twelve indexed GIF files.
 - 300 KiB maximum per file.
 - LZW code size up to 11 bits.
-- Every frame must cover the full canvas. Transparent pixels are flattened to black; disposal method 2 is unsupported.
+- Every frame must cover the full canvas. Transparent pixels are flattened to black; all disposal methods are accepted for full-canvas frames.
 - Partial frames are rejected; transparent pixels become black. No full-canvas compositing buffer is allocated. All source colors are tinted to monochrome Pip-Boy green.
 
 The decoder instance is allocated in the secondary IRAM heap only during GIF
