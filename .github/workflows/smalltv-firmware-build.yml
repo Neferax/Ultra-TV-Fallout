@@ -46,6 +46,10 @@ jobs:
           cp ../fallout/firmware/gif_player.cpp src/gif_player.cpp
           cp ../fallout/firmware/gif_player.h src/gif_player.h
 
+      - name: Integrate GIF album page, upload route and feed-safe scheduling
+        working-directory: firmware
+        run: git apply --check ../fallout/patches/0002-gif-player-integration.patch && git apply ../fallout/patches/0002-gif-player-integration.patch
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
