@@ -30,6 +30,15 @@ Eine Wetterseite, eine Uhrseite und die vorhandenen GIF-Anzeigen dazwischen. All
 4. Exakte Boardrevision, Flash-Layout und Recovery-Weg vor jeder Geräteinstallation verifizieren.
 
 
+## GIF-Seite und Upload-Integration (Patch erstellt)
+- `patches/0002-gif-player-integration.patch` ergänzt die Dashboard-Seite **direkt nach Weather**, die Konfigurationsversion und die Seitenrotation.
+- Der Webserver erhält `/gif` als geschützte Upload-Seite und `POST /gif/upload`; Dateien landen in `/gif/` in LittleFS. Uploads schreiben zunächst in eine temporäre Datei und ersetzen erst nach erfolgreichem Abschluss.
+- Die GIF-Seite spielt bis zu acht alphabetisch sortierte Dateien ab und wechselt nach 20 Sekunden zur nächsten Datei.
+- Feed-/TLS-Arbeit, OTA und anstehende Netzwerkaktionen stoppen den Decoder und geben seinen IRAM-Speicher frei.
+- Das Gerät bekommt damit keine automatische Übernahme seiner alten Stock-GIFs. Die alten Dateien müssen extern gesichert und nach der Installation über `/gif` erneut hochgeladen werden.
+- Einschränkungen: maximal 300 KiB pro GIF, 240 px Canvas-Breite, LZW-Codegröße höchstens 10 Bit, nur vollständig deckende Vollbild-Frames. Transparente oder partielle Frames werden abgewiesen, da kein voller Compositing-Framebuffer reserviert wird.
+- Der CI-Workflow wendet jetzt beide Patches an und kompiliert den Player samt Bibliothek. Der verfügbare Status-Endpunkt meldet noch keine Checks; Build und Laufzeit sind daher weiterhin **unbestätigt**.
+
 ## GIF-Player-Prototyp (Quellcode vorhanden)
 - `firmware/gif_player.h/.cpp` enthält jetzt einen isolierten Player: LittleFS-Datei-Callbacks, AnimatedGIF-RAW-Scanlines, RGB565-Ausgabe über TFT_eSPI und zentrierte Darstellung auf 240×240.
 - Decoder-Instanz wird nur bei Start im `HeapSelectIram` angelegt; vor dem Freigeben wird die Datei geschlossen und das Objekt wieder im selben Heap freigegeben.
