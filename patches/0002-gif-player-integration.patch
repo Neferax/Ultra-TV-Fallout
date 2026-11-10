@@ -203,15 +203,16 @@ diff --git a/src/feeds.cpp b/src/feeds.cpp
 diff --git a/src/main.cpp b/src/main.cpp
 --- a/src/main.cpp
 +++ b/src/main.cpp
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,8 @@
  #include "dashboard.h"
  #include "display.h"
  #include "feeds.h"
 +#include "gif_player.h"
++#include <TZ.h>
  #include "auth.h"
  #include "webserver.h"
  #include "settings.h"
-@@ -21,6 +22,7 @@
+@@ -21,6 +23,7 @@
  unsigned long lastDisplayUpdate = 0;
  unsigned long lastDisplayProfileCheck = 0;
  unsigned long lastPageRotation = 0;
@@ -219,7 +220,20 @@ diff --git a/src/main.cpp b/src/main.cpp
  unsigned long lastWiFiReconnectAttempt = 0;
  bool wifiFailsafeMode = false;  // True when in AP-only mode after connection failures
  String apPassword = "";  // Generated random AP password
-@@ -712,6 +714,20 @@
+@@ -270,7 +273,11 @@
+         return;
+     }
+ 
+-    configTime(appSettings.gmtOffset, 0, NTP_SERVER);
++    if (appSettings.gmtOffset == 3600) {
++        configTime(TZ_Europe_Berlin, NTP_SERVER);
++    } else {
++        configTime(appSettings.gmtOffset, 0, NTP_SERVER);
++    }
+     timeServicesStarted = true;
+     logPrint(F("Time services started"));
+     logHeapState("time services init");
+@@ -712,6 +719,20 @@
          lastPageRotation = millis();
      }
  
@@ -240,6 +254,18 @@ diff --git a/src/main.cpp b/src/main.cpp
      maybeEnableClockSprite();
  
      if (millis() - lastDisplayUpdate > DISPLAY_UPDATE_INTERVAL) {
+diff --git a/src/settings.cpp b/src/settings.cpp
+--- a/src/settings.cpp
++++ b/src/settings.cpp
+@@ -318,7 +318,7 @@
+     settings.version = FIRMWARE_VERSION;
+     settings.brightness = 70;
+     settings.theme = 0;
+-    settings.gmtOffset = 0;         // Default to UTC for a neutral out-of-box setup
++    settings.gmtOffset = 3600;     // Default to Central European time with automatic DST
+     settingsDefaultDeviceName(settings.deviceName, sizeof(settings.deviceName));
+     settings.valid = true;
+     settings.crc = settingsCalculateCRC(settings);
 diff --git a/src/webserver.cpp b/src/webserver.cpp
 --- a/src/webserver.cpp
 +++ b/src/webserver.cpp
