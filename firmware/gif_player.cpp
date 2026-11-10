@@ -269,19 +269,23 @@ size_t gifPlayerDecoderBytes() {
 
 bool gifPlayerRefreshFiles() {
     gifPathCount = 0;
-    Dir dir = LittleFS.openDir("/gif");
-    while (dir.next() && gifPathCount < 12) {
-        String name = dir.fileName();
-        if (!name.endsWith(".gif") && !name.endsWith(".GIF")) continue;
-        if (dir.fileSize() == 0 || dir.fileSize() > 300UL * 1024UL) continue;
+    const char *directories[] = {"/gif", "/image"};
+    for (uint8_t directoryIndex = 0; directoryIndex < 2 && gifPathCount < 12; ++directoryIndex) {
+        Dir dir = LittleFS.openDir(directories[directoryIndex]);
+        while (dir.next() && gifPathCount < 12) {
+            String name = dir.fileName();
+            if (!name.endsWith(".gif") && !name.endsWith(".GIF")) continue;
+            if (dir.fileSize() == 0 || dir.fileSize() > 300UL * 1024UL) continue;
 
-        String path = name.startsWith("/") ? name : String("/gif/") + name;
-        if (path.length() >= sizeof(gifPaths[0])) continue;
-        path.toCharArray(gifPaths[gifPathCount], sizeof(gifPaths[0]));
-        ++gifPathCount;
+            String path = name.startsWith("/") ? name : String(directories[directoryIndex]) + "/" + name;
+            if (path.length() >= sizeof(gifPaths[0])) continue;
+            path.toCharArray(gifPaths[gifPathCount], sizeof(gifPaths[0]));
+            ++gifPathCount;
+        }
     }
 
-    // Keep album order deterministic regardless of LittleFS directory order.
+    // Preserve the stock firmware's /image album when the filesystem survives
+    // the firmware replacement; also include newly uploaded /gif entries.
     for (uint8_t i = 0; i < gifPathCount; ++i) {
         for (uint8_t j = i + 1; j < gifPathCount; ++j) {
             if (strcmp(gifPaths[j], gifPaths[i]) < 0) {
@@ -296,7 +300,6 @@ bool gifPlayerRefreshFiles() {
     gifFileListDirty = false;
     return gifPathCount > 0;
 }
-
 bool gifPlayerHasFiles() {
     if (gifFileListDirty) gifPlayerRefreshFiles();
     return gifPathCount > 0;
