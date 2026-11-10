@@ -46,3 +46,13 @@
 
 - Konfigurationsmigration: Alte Dashboard-Konfigurationen (Schema 3) übernehmen nicht mehr die früheren Seiten-IDs; die neuen Standardseiten Uhr, Wetter und GIF-Archiv bleiben aktiv. Alte Feed-Konfigurationen (Schema 2) behalten Markt-/Home-Assistant-Einstellungen, übernehmen aber die neue Open-Meteo-Wettervoreinstellung.
 - LittleFS-Uploadpfade: Temporäre Datei und Sicherung verwenden feste kurze Namen, damit gültige GIF-Dateinamen bis zur LittleFS-Komponentengrenze nicht durch angehängte Endungen unbrauchbar werden.
+
+
+### Verifizierter CI-Build
+- GitHub Actions: [Build-Lauf 42804144232](https://github.com/Neferax/Ultra-TV-Fallout/actions/runs/42804144232) – erfolgreich.
+- PlatformIO: `pio run -e nodemcuv2` – erfolgreich.
+- RAM: 47.892 von 81.920 Bytes (58,5 %).
+- Flash: 697.451 von 1.044.464 Bytes (66,8 %).
+- Firmware-Binary: 701.600 Bytes; SHA-256 `9e530d102b92c251e9ed1ee36d7791077f43375d10693eff9b012619765d4df4`.
+- Artifact: `smalltv-ultra-fallout-esp8266`, GitHub-Aufbewahrung bis 24.11.2026.
+- Noch offen: Flashen, Boot-/Displaytest, GIF-Kompatibilität, WLAN/OTA/Feed-Stabilität und Langzeittest auf dem realen Gerät.
