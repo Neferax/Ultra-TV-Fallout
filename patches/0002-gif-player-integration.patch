@@ -184,7 +184,7 @@ diff --git a/src/webserver.cpp b/src/webserver.cpp
 +        "max-width:520px;margin:32px auto;padding:16px}fieldset{border:1px solid #4c9b4a;padding:18px}"
 +        "button,input{font:inherit;margin:12px 0}button{background:#17351a;color:#a5ff9a;border:1px solid #7cff75;"
 +        "padding:10px 16px}</style></head><body><h2>ROBCO // VISUAL ARCHIVE</h2>"
-+        "<p>Upload a GIF to the device album. Maximum 300 KiB per file; up to eight files are indexed.</p>"
++        "<p>Upload a GIF to the device album. Maximum 300 KiB per file; up to twelve files are indexed.</p>"
 +        "<p>GIFs must be 240 px or narrower, use 10-bit-or-smaller LZW codes, and contain flattened opaque full-canvas frames.</p>"
 +        "<form action='/gif/upload' method='post' enctype='multipart/form-data'>"
 +        "<fieldset><input type='file' name='file' accept='.gif,image/gif' required><br>"
