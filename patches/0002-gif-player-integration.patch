@@ -404,14 +404,14 @@ diff --git a/src/dashboard.cpp b/src/dashboard.cpp
 diff --git a/src/feeds.h b/src/feeds.h
 --- a/src/feeds.h
 +++ b/src/feeds.h
-@@ -7,1 +7,1 @@
+@@ -8,1 +8,1 @@
 -#define FEEDS_CONFIG_VERSION 2
 +#define FEEDS_CONFIG_VERSION 3
 
 diff --git a/src/feeds.cpp b/src/feeds.cpp
 --- a/src/feeds.cpp
 +++ b/src/feeds.cpp
-@@ -2030,7 +2030,9 @@
+@@ -2030,7 +2030,11 @@
  void applyConfigObject(JsonObjectConst root) {
      applyProvidersObject(root["providers"].as<JsonObjectConst>());
 -    applyWeatherObject(root["weather"].as<JsonObjectConst>());
