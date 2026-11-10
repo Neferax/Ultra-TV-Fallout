@@ -66,44 +66,37 @@ void drawGifScanline(GIFDRAW *line) {
     if (line == nullptr || targetDisplay == nullptr || line->pPixels == nullptr ||
         line->pPalette == nullptr || unsupportedFrame) return;
 
-    // No full-canvas framebuffer is available on this ESP8266. Accept only
-    // pre-flattened opaque frames; partial/transparency/disposal-2 frames need
-    // compositing state and would otherwise leave trails.
-    if (line->ucHasTransparency || line->ucDisposalMethod == 2 ||
-        line->iX != 0 || line->iY != 0 ||
+    // The ESP8266 build has no full-canvas compositing buffer. Accept full-canvas
+    // frames only. Transparent pixels are flattened to black during drawing.
+    if (line->ucDisposalMethod == 2 || line->iX != 0 || line->iY != 0 ||
         line->iWidth != canvasWidth || line->iHeight != canvasHeight) {
         unsupportedFrame = true;
         return;
     }
 
-    const int16_t x = static_cast<int16_t>(canvasOriginX + line->iX);
-    const int16_t y = static_cast<int16_t>(canvasOriginY + line->iY + line->y);
+    const int16_t x = canvasOriginX;
+    const int16_t y = static_cast<int16_t>(canvasOriginY + line->y);
     if (y < 0 || y >= kDisplayHeight) return;
 
-    int sourceX = max(0, -static_cast<int>(x));
-    int sourceEnd = min(line->iWidth, kDisplayWidth - static_cast<int>(x));
-    if (sourceEnd <= sourceX) return;
-
-    while (sourceX < sourceEnd) {
-        if (line->ucHasTransparency && line->pPixels[sourceX] == line->ucTransparent) {
-            ++sourceX;
+    for (int pixel = 0; pixel < line->iWidth; ++pixel) {
+        const uint8_t paletteIndex = line->pPixels[pixel];
+        if (line->ucHasTransparency && paletteIndex == line->ucTransparent) {
+            scanline565[pixel] = TFT_BLACK;
             continue;
         }
 
-        const int runStart = sourceX;
-        int runLength = 0;
-        while (sourceX < sourceEnd &&
-               !(line->ucHasTransparency && line->pPixels[sourceX] == line->ucTransparent)) {
-            scanline565[runLength++] = line->pPalette[line->pPixels[sourceX]];
-            ++sourceX;
-        }
-
-        if (runLength > 0) {
-            targetDisplay->pushImage(x + runStart, y, runLength, 1, scanline565);
-        }
+        // Convert source artwork to monochrome Pip-Boy phosphor green.
+        const uint16_t source = line->pPalette[paletteIndex];
+        const uint16_t red8 = static_cast<uint16_t>(((source >> 11) & 0x1F) * 255U / 31U);
+        const uint16_t green8 = static_cast<uint16_t>(((source >> 5) & 0x3F) * 255U / 63U);
+        const uint16_t blue8 = static_cast<uint16_t>((source & 0x1F) * 255U / 31U);
+        const uint16_t luminance = static_cast<uint16_t>(
+            (red8 * 77U + green8 * 150U + blue8 * 29U) >> 8);
+        const uint16_t phosphor = static_cast<uint16_t>((luminance * 63U + 127U) / 255U);
+        scanline565[pixel] = static_cast<uint16_t>(phosphor << 5);
     }
 
-    // Yield once per decoded row so a large frame cannot monopolise the ESP8266 loop.
+    targetDisplay->pushImage(x, y, line->iWidth, 1, scanline565);
     yield();
 }
 }  // namespace
