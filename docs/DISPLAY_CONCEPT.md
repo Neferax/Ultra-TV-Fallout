@@ -1,62 +1,47 @@
 # Display-Konzept – Fallout / RobCo
 
-## Gemeinsame visuelle Sprache
-- Canvas-Ziel: 240 × 240 Pixel (vor Implementierung verifizieren).
-- Hintergrund: nahezu schwarz.
-- Primärfarbe: Phosphorgrün; sekundäre Helligkeitsstufen statt vieler zusätzlicher Farben.
-- Typografie: kompakte, gut lesbare Pixel- oder Monospace-Schrift.
-- Linien, Klammern, Raster und kleine technische Kennungen im Stil eines RobCo-Terminals.
-- Dezente Scanlines oder leichtes Leuchten nur, wenn sie die Lesbarkeit und Bildrate nicht beeinträchtigen.
-- Keine dauerhafte starke Flicker-Animation.
-- Kleine Pip-Boy-/Vault-Tec-Grafiken als funktionale Icons oder kurze Animationen, nicht als vollflächiger Hintergrund.
+## Verbindliche Bestandsstruktur
 
-## Ansicht A – STAT / Hauptübersicht
-**Ausgangsdaten der bestehenden Hauptanzeige erhalten:**
-- Uhrzeit und Sekunden, sofern bereits vorhanden.
-- Datum und Wochentag.
-- Standort.
-- Luftdruck.
-- Temperatur.
-- Luftfeuchtigkeit.
-- Aktuelles Wettersymbol.
+Das Gerät hat eine vorhandene Wetterseite, eine vorhandene Uhrseite und GIF-Anzeigen dazwischen. Diese Struktur bleibt bestehen. Keine zusätzlichen Seiten und kein unnötiger Firmware-Neubau.
 
-**Layout-Idee:**
-- Kopfzeile: ROBCO INDUSTRIES bzw. STAT.
-- Uhrzeit als stärkstes Element.
-- Datum und Standort als kompakte Metadaten.
-- Wetter- und Messwerte in klar getrennten Statusfeldern.
-- Kleine technische Statusmarkierungen am unteren Rand.
+## Gemeinsame Bildsprache
 
-Die Hauptansicht soll auf einen Blick die wichtigsten Informationen liefern. Nicht alle Werte müssen gleich groß dargestellt werden.
+- Referenz: Fallout 4 / Pip-Boy 3000 Mark IV
+- tiefschwarzer Hintergrund
+- monochromes Phosphorgrün mit wenigen Helligkeitsstufen
+- kompakte technische Schrift, klare Kontraste
+- RobCo-Rahmen, Statusleisten und kleine technische Kennungen
+- dezente Scanline-Anmutung nur, wenn sie die Lesbarkeit nicht stört
+- kein starkes Flackern und keine hektischen Vollbildanimationen
 
-## Ansicht B – DATA / ATMOS / Vorhersage
-**Ausgangsdaten der vorhandenen Forecast-Seite erhalten:**
-- Drei vorhandene Vorhersagetage.
-- Wochentag und Datum.
-- Wetterzustand.
-- Tiefst- und Höchsttemperatur.
+## Wetterseite
 
-**Layout-Idee:**
-- Eigenständiger Kopf: DATA // ATMOS.
-- Drei klar getrennte horizontale Tagesdatensätze.
-- Wetter-Icons als monochrome Pixelgrafiken.
-- Temperaturwerte rechtsbündig.
-- Optional Regen-/Winddaten nur, falls die Firmware diese Werte tatsächlich bereitstellt und ausreichend Platz bleibt.
+Die vorhandenen Wetterdaten und deren Aktualisierung bleiben erhalten. Gestaltung:
+- klare Kopfzeile im RobCo-Terminal-Stil
+- aktuelle Temperatur als primärer Wert
+- Wetterzustand und Symbol gut erkennbar
+- weitere bereits vorhandene Messwerte in kompakten Statusfeldern
+- keine erfundenen oder fest eingebrannten Live-Werte
 
-Die Vorhersage soll ausdrücklich anders aussehen als STAT: datenorientierte Liste statt großer Uhr-/Statuskomposition.
+## Uhrseite
 
-## Weitere mögliche Ansichten – erst nach Bestandsaufnahme
-Die Menünamen MAP, INV und RADIO sind gestalterische Inspiration, keine Zusage, dass die Stock-Firmware diese Seiten besitzt oder zusätzliche Seiten unterstützt.
-- MAP: Standort- oder Umgebungsinformationen, falls vorhanden.
-- INV: Geräte-/Netzwerkstatus, falls zugänglich.
-- RADIO: Verbindungs-/Signalstatus, falls zugänglich.
+Die vorhandene Uhr- und Datumsfunktion bleibt erhalten. Gestaltung:
+- Uhrzeit als größtes Element
+- Datum/Wochentag darunter
+- optional bereits vorhandene Zusatzwerte in kleinen Statuszeilen
+- grüne Terminal-Rahmen und dezente technische Beschriftung
 
-## Animationsregeln
-- Animationen kurz und sparsam.
-- Keine animierten Vollbild-Hintergründe.
-- Wetter-Icons nur mit wenigen Frames.
-- Animationen dürfen Daten nicht verdecken und müssen bei fehlenden Daten einen statischen Fallback zeigen.
-- GIF-Unterstützung wird nicht vorausgesetzt; Format und Speicherbedarf hängen vom tatsächlichen Firmwarepfad ab.
+## GIF-Sequenz zwischen den Seiten
 
-## Referenz- und Asset-Rechte
-Fallout, Pip-Boy, Vault-Tec und zugehörige Grafiken sind geschützte Marken bzw. urheberrechtlich geschützte Inhalte. Das Repository sollte keine aus dem Spiel extrahierten oder anderweitig geschützten Assets weiterverbreiten, solange Herkunft und Nutzungsrechte nicht geklärt sind. Für Tests können eigene Platzhaltergrafiken genutzt werden; für konkrete Assets Herkunft und Lizenz dokumentieren.
+- vorhandene GIF-Slots verwenden
+- kurze, gut erkennbare Animationen
+- möglichst 80×80 bzw. in der tatsächlich unterstützten Größe
+- Schwarz/Phosphorgrün
+- niedrige Dateigröße und wenige Frames
+- Animationen dürfen Wetter- und Uhrdaten nicht verdecken
+
+## Implementierungsprinzip
+
+Erst die vorhandenen Seiten anpassen, dann GIFs einzeln ersetzen. Originaldateien sichern und jeden Schritt am Display prüfen. Keine Firmware ersetzen, solange die Stock-Firmware die benötigten Funktionen bereitstellt.
+
+Die tatsächlichen Schreibschnittstellen der Firmware Ultra-V9.0.50 sind noch nicht vollständig verifiziert. Layoutregeln sind daher festgelegt, aber keine nicht getestete API wird als funktionsfähig ausgegeben.
