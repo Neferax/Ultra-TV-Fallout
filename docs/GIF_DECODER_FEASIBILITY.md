@@ -61,11 +61,11 @@ zusammensetzen. Er akzeptiert daher nur:
 - Canvas maximal 240 × 240 Pixel.
 - Vollständige, deckende Frames, die jeweils das ganze GIF-Canvas abdecken.
 - Transparente Pixel werden beim Zeichnen zu Schwarz abgeflacht.
-- Keine Disposal-Methode 2.
+- Alle Disposal-Methoden sind bei vollständigen Canvas-Frames zulässig, da jede Frame-Zeile komplett neu gezeichnet wird.
 - LZW-Codegröße maximal 11 Bit.
 - Dateigröße maximal 300 KiB.
 
-Partielle Frames und Disposal-Methode 2 werden abgewiesen. Transparenz wird
+Partielle Frames werden abgewiesen. Transparenz wird
 auf schwarzem Hintergrund abgeflacht. Alle sichtbaren GIF-Farben werden in
 monochromes Pip-Boy-Phosphorgrün umgerechnet. Die Dateien müssen entsprechend vorbereitet
 sein. Die vorhandenen Stock-GIFs wurden noch nicht gegen diese Anforderungen
