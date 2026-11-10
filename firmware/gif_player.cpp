@@ -303,7 +303,20 @@ bool gifPlayerUploadChunk(const uint8_t *data, size_t length) {
 bool gifPlayerUploadEnd() {
     if (!uploadGifFile) return false;
     uploadGifFile.close();
-    bool valid = uploadGifBytes > 0 && LittleFS.exists(uploadGifTempPath);
+    bool valid = uploadGifBytes >= 10 && LittleFS.exists(uploadGifTempPath);
+    if (valid) {
+        File verify = LittleFS.open(uploadGifTempPath, "r");
+        uint8_t header[10] = {0};
+        const size_t headerBytes = verify ? verify.read(header, sizeof(header)) : 0;
+        if (verify) verify.close();
+        const bool gifSignature =
+            memcmp(header, "GIF87a", 6) == 0 || memcmp(header, "GIF89a", 6) == 0;
+        const uint16_t width = static_cast<uint16_t>(header[6] | (header[7] << 8));
+        const uint16_t height = static_cast<uint16_t>(header[8] | (header[9] << 8));
+        valid = headerBytes == sizeof(header) && gifSignature &&
+                width > 0 && width <= kDisplayWidth &&
+                height > 0 && height <= kDisplayHeight;
+    }
     String backupPath = String(uploadGifPath) + ".bak";
     if (valid) {
         LittleFS.remove(backupPath);
