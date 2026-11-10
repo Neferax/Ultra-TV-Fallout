@@ -4,6 +4,7 @@
 #include <ESP8266WiFi.h>
 #include <umm_malloc/umm_heap_select.h>
 #include <new>
+#include <string.h>
 #include <AnimatedGIF.h>
 
 namespace {
