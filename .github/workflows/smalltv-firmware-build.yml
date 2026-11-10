@@ -54,6 +54,8 @@ jobs:
         run: python fallout/scripts/apply_forecast_and_stable_radio.py firmware
       - name: Improve weather readability and add built-in Pip-Boy animation
         run: python fallout/scripts/apply_readable_ui_and_builtin_animation.py firmware
+      - name: Apply v7 readable weather and real GIF transitions
+        run: python fallout/scripts/apply_readable_weather_and_real_gif_transitions.py firmware
 
       - name: Set up Python
         uses: actions/setup-python@v5
