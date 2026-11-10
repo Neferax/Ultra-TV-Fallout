@@ -33,7 +33,7 @@
 ## Was noch offen ist
 1. GitHub-Actions-Build tatsächlich erfolgreich durchlaufen lassen und Fehler korrigieren.
 2. Auf dem Build die echte Decoder-Instanzgröße und IRAM-Reserve protokollieren.
-3. Geeignete GIFs testen: 11-Bit-LZW, vollständig deckende Frames, keine Transparenz oder Disposal-Methode 2.
+3. Geeignete GIFs testen: 11-Bit-LZW und vollständige Canvas-Frames; Transparenz wird schwarz dargestellt.
 4. Laufzeit prüfen: Framerate, Seitenwechsel, TLS-Feed, OTA, Watchdog und Speicherfragmentierung.
 5. Backup-/Restore- und Recovery-Weg für genau diese Hardware-/Partitionsvariante prüfen.
 
