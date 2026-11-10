@@ -2,7 +2,6 @@
 
 #include <LittleFS.h>
 #include <ESP8266WiFi.h>
-#include <umm_malloc/umm_heap_select.h>
 #include <new>
 #include <string.h>
 #include <AnimatedGIF.h>
@@ -10,7 +9,7 @@
 namespace {
 constexpr int kDisplayWidth = 240;
 constexpr int kDisplayHeight = 240;
-constexpr uint32_t kIramSafetyMargin = 2048;
+constexpr uint32_t kHeapSafetyMargin = 8192;
 
 AnimatedGIF *decoder = nullptr;
 File activeGifFile;
@@ -138,27 +137,19 @@ bool gifPlayerStart(const char *path, TFT_eSPI &display) {
     gifPlayerStop();
     if (path == nullptr || path[0] != '/') return false;
 
-    uint32_t iramFree = 0;
-    uint32_t iramLargest = 0;
-    {
-        HeapSelectIram selected;
-        ESP.getHeapStats(&iramFree, &iramLargest);
-    }
-
-    const size_t required = sizeof(AnimatedGIF) + kIramSafetyMargin;
-    if (iramLargest < required || iramFree < required) {
-        Serial.printf("GIF skipped: IRAM free=%u largest=%u need=%u\n",
-                      static_cast<unsigned int>(iramFree),
-                      static_cast<unsigned int>(iramLargest),
+    // A generic GIF needs the complete 12-bit LZW dictionary. That decoder
+    // no longer fits the ESP8266's small IRAM heap, so use the normal heap,
+    // but only when enough free heap remains for Wi-Fi and the web server.
+    const uint32_t heapFree = ESP.getFreeHeap();
+    const size_t required = sizeof(AnimatedGIF) + kHeapSafetyMargin;
+    if (heapFree < required) {
+        Serial.printf("GIF skipped: heap free=%u need=%u\\n",
+                      static_cast<unsigned int>(heapFree),
                       static_cast<unsigned int>(required));
         return false;
     }
 
-    {
-        // ESP8266's selected secondary heap backs this decoder instance only.
-        HeapSelectIram selected;
-        decoder = new (std::nothrow) AnimatedGIF();
-    }
+    decoder = new (std::nothrow) AnimatedGIF();
     if (decoder == nullptr) {
         Serial.println(F("GIF skipped: decoder allocation failed"));
         return false;
@@ -273,10 +264,7 @@ bool gifPlayerTick(uint32_t nowMs) {
 void gifPlayerStop() {
     if (decoder != nullptr) {
         decoder->close();
-        {
-            HeapSelectIram selected;
-            delete decoder;
-        }
+        delete decoder;
         decoder = nullptr;
     }
     if (activeGifFile) activeGifFile.close();
