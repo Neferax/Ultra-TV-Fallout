@@ -77,8 +77,12 @@ replacement = '''    runtime.data.rainChance = rain.isNull() || rain.size() == 0
                                   : constrain(static_cast<int>(roundf(rain[0].as<float>())), 0, 100);
 
     runtime.data.forecastCount = 0;
-    const size_t forecastSize = min(static_cast<size_t>(4),
-        min(dates.size(), min(codes.size(), min(highs.size(), min(lows.size(), rain.size())))));
+    size_t forecastSize = dates.size();
+    if (codes.size() < forecastSize) forecastSize = codes.size();
+    if (highs.size() < forecastSize) forecastSize = highs.size();
+    if (lows.size() < forecastSize) forecastSize = lows.size();
+    if (rain.size() < forecastSize) forecastSize = rain.size();
+    if (forecastSize > 4) forecastSize = 4;
     for (size_t index = 0; index < forecastSize; ++index) {
         const char *isoDate = dates[index] | "";
         WeatherForecastDay &day = runtime.data.forecast[index];
@@ -114,6 +118,43 @@ if needle not in s:
     raise SystemExit("Could not locate weather JSON serialization block")
 s = s.replace(needle, replacement)
 feeds_cpp.write_text(s, encoding="utf-8")
+
+# Include live feed state and each forecast day in the render-cache key.
+display_cpp = root / "src/display.cpp"
+s = display_cpp.read_text(encoding="utf-8")
+start = s.find("void hashWeatherData(uint32_t &hash) {")
+end = s.find("\\nvoid hashMarketData(", start)
+if start < 0 or end < 0:
+    raise SystemExit("Could not locate weather render-cache hash")
+hash_function = r'''void hashWeatherData(uint32_t &hash) {
+    hashValue(hash, feedsWeatherSource());
+    hashValue(hash, feedsWeatherUsesFahrenheit());
+    hashValue(hash, weatherWaitingForSync());
+    hashValue(hash, feedRuntime.weather.syncing);
+    hashCString(hash, feedRuntime.weather.lastError);
+
+    const WeatherData *weather = effectiveWeatherData();
+    bool hasData = weather != nullptr;
+    hashValue(hash, hasData);
+    if (!hasData) return;
+
+    hashCString(hash, weather->location);
+    hashCString(hash, weather->condition);
+    hashValue(hash, weather->temperature);
+    hashValue(hash, weather->high);
+    hashValue(hash, weather->low);
+    hashValue(hash, weather->rainChance);
+    hashValue(hash, weather->forecastCount);
+    for (uint8_t index = 0; index < weather->forecastCount && index < 4; ++index) {
+        hashCString(hash, weather->forecast[index].date);
+        hashCString(hash, weather->forecast[index].condition);
+        hashValue(hash, weather->forecast[index].high);
+        hashValue(hash, weather->forecast[index].low);
+        hashValue(hash, weather->forecast[index].rainChance);
+    }
+}'''
+s = s[:start] + hash_function + s[end:]
+display_cpp.write_text(s, encoding="utf-8")
 
 # A failed/unsupported GIF now leaves the stable archive page visible.
 s = gif_cpp.read_text(encoding="utf-8")
