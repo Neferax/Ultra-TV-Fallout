@@ -174,7 +174,7 @@ diff --git a/src/feeds.cpp b/src/feeds.cpp
 -    feedConfig.weather.source = WEATHER_FEED_DISABLED;
 +    feedConfig.weather.source = WEATHER_FEED_OPEN_METEO;
 +    copyString(feedConfig.weather.query, sizeof(feedConfig.weather.query), "47239 Duisburg");
-+    copyString(feedConfig.weather.label, sizeof(feedConfig.weather.label), "DUISBURG // RUMELN-KALDENHAUSEN");
++    copyString(feedConfig.weather.label, sizeof(feedConfig.weather.label), "DUISBURG // RUMELN");
 +    feedConfig.weather.latitude = 51.3948f;
 +    feedConfig.weather.longitude = 6.65183f;
      feedConfig.weather.refreshMinutes = 30;
