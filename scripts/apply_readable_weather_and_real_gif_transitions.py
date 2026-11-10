@@ -127,6 +127,16 @@ void renderWeatherPage() {
         for (int i = 0; i < 3; ++i) {
             tft.drawLine(cx - 10 + i * 14, cy + 8, cx - 15 + i * 14, cy + 17, theme.text);
         }
+    } else if (condition.indexOf("snow") >= 0 || condition.indexOf("schnee") >= 0) {
+        tft.drawCircle(cx - 8, cy - 2, 10, theme.accent);
+        tft.drawCircle(cx + 5, cy - 7, 13, theme.accent);
+        tft.drawCircle(cx + 17, cy - 1, 8, theme.accent);
+        tft.drawFastHLine(cx - 17, cy + 7, 43, theme.accent);
+        for (int i = 0; i < 3; ++i) {
+            const int sx = cx - 10 + i * 14;
+            tft.drawLine(sx, cy + 10, sx - 3, cy + 16, theme.text);
+            tft.drawLine(sx, cy + 10, sx + 3, cy + 16, theme.text);
+        }
     } else if (condition.indexOf("cloud") >= 0 || condition.indexOf("bewoelk") >= 0 ||
                condition.indexOf("bewölk") >= 0 || condition.indexOf("wolke") >= 0 ||
                condition.indexOf("overcast") >= 0 || condition.indexOf("nebel") >= 0 ||
