@@ -22,17 +22,22 @@ Es werden keine unnötigen neuen Seiten gebaut. Wetter- und Uhrseite sollen dire
 - [x] Speicherstand und vorhandene GIFs erfasst
 - [x] Erste 80×80-GIF erstellt: 9 Frames, 180 ms, ca. 14 KB
 - [x] Austauschdatei heißt `spaceman.gif`
-- [x] Installationspaket vorbereitet
+- [ ] Vollständiges Firmware-Redesign umgesetzt
 - [ ] GIF am Gerät hochladen und Anzeige prüfen
-- [ ] Wetterseite im vorhandenen Theme anpassen
-- [ ] Uhrseite im vorhandenen Theme anpassen
-- [ ] übrige GIFs einzeln ersetzen
+- [ ] Stock-UI-Rendering für Wetter- und Uhrseite technisch zugänglich machen
+- [ ] Wetterseite im Pip-Boy-Stil implementieren
+- [ ] Uhrseite im Pip-Boy-Stil implementieren
+- [ ] GIF-Seiten im selben Stil integrieren
 
 **Wichtig:** Am Gerät wurden bislang keine Schreibzugriffe, Löschungen, Theme-Wechsel oder Firmware-Updates ausgeführt. Die lokale Upload-/Overwrite-Schnittstelle für `/gif` und die Schreibschnittstellen für die beiden Seiten sind auf Ultra-V9.0.50 noch nicht verifiziert. Deshalb wird nichts blind automatisiert.
 
 ## Asset
 
 Die erste Animation ist ein eigens erstelltes Retro-Terminal-Maskottchen, Fallout-inspiriert, aber kein offizieller Bethesda-/Vault-Boy-Asset. Sie liegt im vorbereiteten Paket unter `gif/spaceman.gif`.
+
+## Technische Entscheidung
+
+Die geprüfte Alternative `smalltv-mod` ist kein Skin für die originale Ultra-Firmware: Ihr Theme-System ersetzt nur die Uhrenansicht innerhalb einer komplett anderen Firmware. Es passt nicht die native Wetterseite und den vorhandenen GIF-Ablauf der Stock-Firmware an. Deshalb wird sie nicht als vermeintlich einfache Lösung installiert. Details und die nächsten technischen Wege stehen in [Alternative-Firmware-Kompatibilität](docs/ALTERNATIVE_FIRMWARE_COMPATIBILITY.md).
 
 ## Dokumentation
 
