@@ -2,7 +2,7 @@
 
 #include <LittleFS.h>
 #include <ESP8266WiFi.h>
-#include <umm_heap_select.h>
+#include <umm_malloc/umm_heap_select.h>
 #include <new>
 #include <AnimatedGIF.h>
 
