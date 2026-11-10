@@ -1,0 +1,117 @@
+diff --git a/src/display.cpp b/src/display.cpp
+--- a/src/display.cpp
++++ b/src/display.cpp
+@@ -1,31 +1,70 @@
+ void renderClockPage() {
+     const ThemePalette &theme = activeTheme();
+-    drawScreenChrome("ROBCO INDUSTRIES");
++    drawScreenChrome("ROBCO // PERSONAL INFORMATION PROCESSOR");
+     clockMetaCache.valid = false;
+     updateClockDynamicArea();
++    // Full Pip-Boy terminal composition: instrument bezel, tabs and data panels.
++    tft.drawRect(2, 34, 236, 174, theme.accent);
++    tft.drawRect(5, 37, 230, 168, theme.accentSoft);
++    tft.fillRect(7, 39, 226, 18, theme.surface);
++    drawDisplayLabel("ROBCO INDUSTRIES", 12, 42, 145, TL_DATUM, theme.accent, FONT_INFO);
++    drawDisplayLabel("PIP-OS 3000", 228, 42, 90, TR_DATUM, theme.text, FONT_INFO);
++    tft.drawFastHLine(8, 60, 224, theme.accent);
++    drawDisplayLabel("[ STATUS ]", 12, 64, 72, TL_DATUM, theme.accent, FONT_INFO);
++    drawDisplayLabel("LOCAL TIME", 228, 64, 100, TR_DATUM, theme.muted, FONT_INFO);
++    tft.drawRect(10, 78, 220, 58, theme.accent);
++    tft.drawFastHLine(14, 139, 212, theme.accentSoft);
++    drawDisplayLabel("ENVIRONMENTAL READOUT", 12, 145, 216, TL_DATUM, theme.accent, FONT_INFO);
+     const char *message = activeClockMessage();
+     if (hasWeatherContent()) {
+         const WeatherData *weather = effectiveWeatherData();
+-        tft.fillRect(8, 137, 224, 65, theme.surface);
+-        tft.drawRect(8, 137, 224, 65, theme.accent);
+-        drawDisplayLabel("ENVIRONMENTAL MONITOR", 14, 141, 210, TL_DATUM, theme.accent, FONT_INFO);
+-        drawHeroText(formatWeatherTemperature(weather->temperature), 153, 34, theme.text, 2);
+-        drawDisplayLabel(weather->condition[0] != '\0' ? weather->condition : "WEATHER",
+-                         120, 187, 210, TC_DATUM, theme.muted, FONT_INFO);
++        tft.fillRect(12, 160, 216, 38, theme.surface);
++        tft.drawRect(12, 160, 216, 38, theme.accent);
++        drawDisplayLabel(formatWeatherTemperature(weather->temperature), 18, 165, 96,
++                         TL_DATUM, theme.text, FONT_BODY);
++        drawDisplayLabel(weather->condition[0] != '\0' ? weather->condition : "WEATHER",
++                         222, 169, 104, TR_DATUM, theme.accent, FONT_INFO);
++        drawDisplayLabel("DUISBURG // RUMLN", 120, 185, 204, TC_DATUM, theme.muted, FONT_INFO);
+     } else if (weatherWaitingForSync()) {
+-        drawDisplayLabel("ENVIRONMENTAL MONITOR", 8, 145, 224, TL_DATUM, theme.accent, FONT_INFO);
+-        drawDisplayLabel("ACQUIRING DATA...", 8, 169, 224, TL_DATUM, theme.muted, FONT_BODY);
++        tft.drawRect(12, 160, 216, 38, theme.accent);
++        drawDisplayLabel("ACQUIRING DATA...", 120, 174, 204, TC_DATUM, theme.muted, FONT_INFO);
+     } else if (message != nullptr) {
+-        drawWrappedCenteredText(message, 120, 136, 224, FONT_BODY,
+-                                theme.text, theme.background, 4, 68);
++        drawDisplayLabel("ENVIRONMENTAL DATA OFFLINE", 120, 174, 204,
++                         TC_DATUM, theme.warning, FONT_INFO);
+     } else {
+-        drawDisplayLabel("ENVIRONMENTAL DATA OFFLINE", 120, 164, 224, TC_DATUM,
+-                         theme.muted, FONT_INFO);
++        drawDisplayLabel("NO DATA", 120, 174, 204, TC_DATUM, theme.muted, FONT_INFO);
+     }
++    drawDisplayLabel("VAULT-TEC PERSONNEL RECORD", 12, 211, 216, TL_DATUM, theme.muted, FONT_INFO);
+ }
+ 
+ void renderWeatherPage() {
+     const ThemePalette &theme = activeTheme();
+     if (!hasWeatherContent()) {
+         drawScreenChrome("ROBCO // WEATHER");
+-        tft.drawRect(3, 36, 234, 174, theme.accent);
+-        drawDisplayLabel("WEATHER LINK", 12, 46, 216, TL_DATUM, theme.accent, FONT_INFO);
++        tft.drawRect(2, 34, 236, 174, theme.accent);
++        tft.drawRect(5, 37, 230, 168, theme.accentSoft);
++        tft.fillRect(7, 39, 226, 18, theme.surface);
++        drawDisplayLabel("ROBCO // WEATHER", 12, 42, 216, TL_DATUM, theme.accent, FONT_INFO);
++        tft.drawFastHLine(8, 60, 224, theme.accent);
++        drawDisplayLabel("METEOROLOGICAL DATABASE", 12, 72, 216, TL_DATUM, theme.text, FONT_INFO);
+         drawDisplayLabel(weatherWaitingForSync() ? "CONNECTING TO METEOROLOGICAL FEED"
+                                                  : "NO WEATHER DATA CONFIGURED",
+-                         120, 104, 216, TC_DATUM, theme.text, FONT_LABEL);
+-        drawDisplayLabel("OPEN-METEO // LIVE FEED", 12, 185, 216, TL_DATUM, theme.muted, FONT_INFO);
++                         120, 118, 216, TC_DATUM, theme.text, FONT_LABEL);
++        tft.drawRect(12, 151, 216, 36, theme.accent);
++        drawDisplayLabel("OPEN-METEO // LIVE FEED", 120, 164, 204, TC_DATUM, theme.muted, FONT_INFO);
+         return;
+     }
+     const WeatherData *weather = effectiveWeatherData();
+     drawScreenChrome("ROBCO // WEATHER");
+-    tft.drawRect(3, 36, 234, 174, theme.accent);
+-    drawDisplayLabel("LOCATION", 12, 43, 216, TL_DATUM, theme.muted, FONT_INFO);
+-    drawDisplayLabel(weather->location[0] != '\0' ? weather->location : "UNKNOWN",
+-                     228, 43, 216, TR_DATUM, theme.text, FONT_LABEL);
+-    tft.drawFastHLine(10, 63, 220, theme.accent);
+-    drawDisplayLabel("CURRENT CONDITIONS", 12, 70, 216, TL_DATUM, theme.accent, FONT_INFO);
+-    drawHeroText(formatWeatherTemperature(weather->temperature), 82, 58, theme.text, 3);
+-    drawDisplayLabel(weather->condition[0] != '\0' ? weather->condition : "UPDATED",
+-                     120, 139, 216, TC_DATUM, theme.accent, FONT_LABEL);
+-    tft.drawFastHLine(10, 159, 220, theme.accent);
++    tft.drawRect(2, 34, 236, 174, theme.accent);
++    tft.drawRect(5, 37, 230, 168, theme.accentSoft);
++    tft.fillRect(7, 39, 226, 18, theme.surface);
++    drawDisplayLabel("ROBCO // WEATHER", 12, 42, 216, TL_DATUM, theme.accent, FONT_INFO);
++    drawDisplayLabel(weather->location[0] != '\0' ? weather->location : "UNKNOWN",
++                     120, 64, 216, TC_DATUM, theme.muted, FONT_INFO);
++    tft.drawFastHLine(10, 82, 220, theme.accent);
++    drawDisplayLabel("CURRENT CONDITIONS", 12, 89, 216, TL_DATUM, theme.accent, FONT_INFO);
++    tft.drawRect(12, 104, 216, 48, theme.accent);
++    drawHeroText(formatWeatherTemperature(weather->temperature), 108, 40, theme.text, 3);
++    drawDisplayLabel(weather->condition[0] != '\0' ? weather->condition : "UPDATED",
++                     120, 158, 216, TC_DATUM, theme.accent, FONT_LABEL);
++    tft.drawFastHLine(10, 176, 220, theme.accent);
+     const int valueFonts[] = {FONT_BODY, FONT_LABEL};
+     const String values[] = {formatWeatherTemperature(weather->high),
+                              formatWeatherTemperature(weather->low), String(weather->rainChance) + "%"};
+     const char *labels[] = {"HIGH", "LOW", "RAIN"};
+     for (uint8_t index = 0; index < 3; ++index) {
+         int centerX = 40 + index * 80;
+-        tft.drawRect(centerX - 34, 168, 68, 34, theme.accent);
+-        drawDisplayLabel(labels[index], centerX, 171, 64, TC_DATUM, theme.muted, FONT_INFO);
+-        drawAdaptiveText(values[index], centerX, 185, 64, TC_DATUM,
++        tft.drawRect(centerX - 34, 180, 68, 23, theme.accent);
++        drawDisplayLabel(labels[index], centerX, 181, 64, TC_DATUM, theme.muted, FONT_INFO);
++        drawAdaptiveText(values[index], centerX, 191, 64, TC_DATUM,
+                          valueFonts, sizeof(valueFonts) / sizeof(valueFonts[0]), theme.text, theme.background);
+     }
+ }
