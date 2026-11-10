@@ -57,6 +57,16 @@ jobs:
       - name: Apply v7 readable weather and real GIF transitions
         run: python fallout/scripts/apply_readable_weather_and_real_gif_transitions.py firmware
 
+      - name: Bundle official Bethesda Vault Boy animation
+        run: |
+          mkdir -p firmware/data/gif
+          curl --fail --location --retry 3 \
+            'https://media3.giphy.com/media/W4dICb7X8m8bpl3mIY/200.gif' \
+            --output firmware/data/gif/bethesda-vaultboy.gif
+          test -s firmware/data/gif/bethesda-vaultboy.gif
+          test "$(stat -c%s firmware/data/gif/bethesda-vaultboy.gif)" -le 307200
+          file firmware/data/gif/bethesda-vaultboy.gif
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
