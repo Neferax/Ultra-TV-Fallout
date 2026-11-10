@@ -98,7 +98,7 @@ source = replace_function(
     tft.drawFastVLine(234, 54, 150, theme.accentSoft);
     tft.drawFastHLine(8, 207, 224, theme.accent);
     tft.drawFastHLine(8, 209, 224, theme.accentSoft);
-    drawDisplayLabel("VAULT-TEC // PERSONNEL DEVICE", 232, 219, 218,
+    drawDisplayLabel("VAULT-TEC // PERSONNEL DEVICE", 232, 219, 128,
                      TR_DATUM, theme.muted, FONT_INFO);
     if (displayState.currentPage != DASHBOARD_PAGE_CLOCK || temporaryMessageVisible()) {
         updateFooterClock();
@@ -114,7 +114,6 @@ clock_weather = r'''void renderClockPage() {
     // Main Pip-Boy time instrument.
     tft.drawRect(8, 68, 224, 80, theme.accent);
     tft.drawRect(11, 71, 218, 74, theme.accentSoft);
-    tft.fillRect(14, 74, 212, 5, theme.surface);
     updateClockDynamicArea();
 
     // Live environmental status card.
