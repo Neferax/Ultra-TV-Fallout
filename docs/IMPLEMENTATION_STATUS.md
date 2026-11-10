@@ -3,36 +3,38 @@
 ## Gerät
 - GeekMagic SmallTV Ultra, Firmware Ultra-V9.0.50
 - IP: `192.168.178.70`
-- Aktuelles Theme: 7
+- Aktuelles Theme laut letzter Auslesung: 7
 - Freier Speicher zuletzt gemeldet: 187.916 Bytes (ca. 183,5 KiB)
 
 ## Verbindliches Ziel
-Eine Wetterseite, eine Uhrseite und die vorhandenen GIF-Anzeigen dazwischen. Alle drei Bestandteile sollen ein zusammenhängendes Fallout-4-/Pip-Boy-3000-Mark-IV-Design erhalten. Wetter, Uhrzeit, Datum, WLAN und der bisherige Ablauf müssen erhalten bleiben. Keine unnötigen zusätzlichen Seiten.
+Eine Wetterseite, eine Uhrseite und die vorhandenen GIF-Anzeigen dazwischen. Alle Bestandteile sollen ein zusammenhängendes Fallout-4-/Pip-Boy-3000-Mark-IV-Design erhalten. Wetter, Uhrzeit, Datum, WLAN und der bisherige Ablauf sollen erhalten bleiben. Keine unnötigen zusätzlichen Seiten.
 
-## Was tatsächlich umgesetzt ist
-- Gerät, Firmwareversion und relevante Speicherwerte dokumentiert.
-- Vorhandene GIF-Dateien und ihre Größen erfasst.
-- Erste Designkonzepte und technische Bestandsaufnahme im Repository abgelegt.
-- Kompatibilitätsprüfung der Alternative smalltv-mod durchgeführt.
-- Ergebnis: smalltv-mods Theme-Uhr ist kein vollständiger Skin für die Stock-Wetterseite, Stock-Uhrseite und GIF-Rotation.
-- Entscheidung dokumentiert: kein Loader und kein Firmware-Flash als Abkürzung.
+## Tatsächlich erledigt
+- Gerät, Firmwareversion, relevante Speicherwerte und vorhandene GIF-Dateien dokumentiert.
+- Stock-Firmware-Endpunkte read-only untersucht; keine Schreiboperation am Gerät ausgeführt.
+- Kompatibilitätsprüfung von `smalltv-mod`: dessen Theme-Engine skinnt nicht die Stock-Wetterseite, Stock-Uhrseite und GIF-Rotation.
+- Bessere Open-Source-Basis identifiziert: [iodn/geekmagic-tv-esp8266](https://github.com/iodn/geekmagic-tv-esp8266). Das Projekt nennt SmallTV Ultra ausdrücklich als getestete ESP8266-Hardware und enthält getrennte C++-Renderer für Uhr und Wetter.
+- Ersten konkreten C++-Quellcode-Patch erstellt: [patches/0001-fallout-pipboy-renderers.patch](../patches/0001-fallout-pipboy-renderers.patch). Er ersetzt die generischen Uhr-/Wetterlayouts durch RobCo-/Pip-Boy-Panels und behält die vorhandenen NTP- und Open-Meteo-Datenpfade bei.
+- Integrationshinweise und Einschränkungen dokumentiert: [firmware/README.md](../firmware/README.md).
+
+## Aktueller Stand des Quellcode-Patches
+- Patch basiert auf dem upstream `src/display.cpp` Blob `ef482ea3cc556eb414fff6178fcc7a4d136563a9`.
+- Patch wurde in diesem Repository abgelegt, aber noch nicht gegen einen lokalen vollständigen Upstream-Checkout mit `git apply` validiert.
+- Nicht kompiliert, nicht auf Hardware getestet und ausdrücklich kein flashfertiges Image.
+- Als Ausgangsfarbschema ist das eingebaute Terminal-Theme (ID 2) vorgesehen; benutzerdefinierte Schwarz-/Grünwerte sind in `firmware/README.md` dokumentiert.
+
+## Offene Kernarbeit
+1. Patch in einem vollständigen Upstream-Checkout anwenden und kompilieren; Compilerfehler korrigieren.
+2. GIF-Wiedergabe und den vorhandenen Album-Ablauf implementieren. In den durchsuchten Upstream-Quellen wurde kein GIF-Decoder bzw. keine AnimatedGIF-Integration gefunden. Die dokumentierte Bildfunktion betrifft temporäre JPEGs; außerdem wird `/image/` beim Start geleert.
+3. Prüfen, wie Wetter-/WLAN-Konfiguration aus dem bisherigen Gerät übernommen werden kann.
+4. Exakte Boardrevision, Flash-Layout und Recovery-Weg vor jeder Geräteinstallation verifizieren.
 
 ## Was ausdrücklich NICHT fertig ist
 - Kein vollständiger Fallout-Firmwarebuild.
-- Keine Wetter- oder Uhrseite im Gerät geändert.
-- Keine GIF-Datei am Gerät ersetzt.
-- Kein Installationspaket als flashfertiges Firmwareartefakt.
-- Keine Schreiboperation am Gerät ausgeführt.
-
-## Technischer Befund
-Die Stock-Firmware V9.0.50 ist als Hersteller-Binärpaket auffindbar; vollständiger Quellcode für das native Seiten-Rendering liegt bislang nicht vor. Die ausgelesenen Geräte-Endpunkte belegen Speicher- und Einstellungsdaten, aber keine unterstützte Schnittstelle zum Umbau der nativen Wetter-/Uhrgrafik.
-
-Die Alternative smalltv-mod ersetzt die Stock-Firmware. Ihre Theme-Engine kann eine eigene Uhrenansicht mit Grafiken, Animationen, Formen, Text und begrenzten JSON-Datenquellen zeichnen, aber sie skinnt nicht die native Stock-Wetterseite und erhält nicht automatisch den Stock-GIF-Ablauf. Beim SmallTV Ultra ist die Installation außerdem zweistufig und erfordert einen Loader.
-
-Siehe [Kompatibilitätsentscheidung](ALTERNATIVE_FIRMWARE_COMPATIBILITY.md).
-
-## Nächster technischer Meilenstein
-Eine belastbare Methode für den Zugriff auf das Rendering der Stock-Firmware finden oder eine vollständige Ersatzfirmware mit Wetter, Uhr und GIF-Karussell spezifizieren. Vor einem Ersatzfirmware-Ansatz sind Wetterdatenquelle, Speicherbudget, Animation, WLAN-Konfiguration, Recovery und die genaue ESP8266-Hardware zu prüfen.
+- Keine Änderung am Gerät.
+- Keine GIF-Datei am Gerät ersetzt oder gelöscht.
+- Kein flashfertiges Installationspaket.
+- Keine bestätigte GIF-Karussell-Wiedergabe in der alternativen Firmware.
 
 ## Sicherheit
 - Kein Flashen, Löschen oder Überschreiben.
