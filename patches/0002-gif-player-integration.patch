@@ -388,3 +388,15 @@ diff --git a/src/webserver.cpp b/src/webserver.cpp
      if (webserverHasPendingNetworkAction() && feedsBusy()) {
          feedsCancelJobs();
          return;
+
+diff --git a/src/dashboard.cpp b/src/dashboard.cpp
+--- a/src/dashboard.cpp
++++ b/src/dashboard.cpp
+@@ -633,2 +633,6 @@
+-    applyPagesObject(root["pages"].as<JsonObjectConst>());
++    // Version 3 stored page IDs before the GIF slot was inserted. Keep the
++    // new core-page defaults when migrating those older configurations.
++    if (root["version"].as<uint8_t>() >= DASHBOARD_CONFIG_VERSION) {
++        applyPagesObject(root["pages"].as<JsonObjectConst>());
++    }
+     normalizeConfig();
