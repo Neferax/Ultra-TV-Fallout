@@ -70,9 +70,9 @@ Weather in the dashboard rotation and a protected upload page at
 filename after the complete write succeeds.
 
 The decoder is intentionally constrained for the ESP8266:
-- Maximum canvas width: 240 pixels.
+- Maximum canvas size: 240×240 pixels.
 - Maximum file size: 300 KiB per GIF; at most twelve files are indexed.
-- LZW code size must stay at or below 10 bits.
+- LZW code size must stay at or below 11 bits.
 - Frames must be full-canvas and opaque. Transparent or partial frames are
   rejected because the player deliberately avoids a 240x240 compositing buffer.
 - The decoder object is allocated from the secondary IRAM heap only while the
