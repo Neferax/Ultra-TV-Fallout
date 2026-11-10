@@ -59,14 +59,35 @@ jobs:
       - name: Install PlatformIO
         run: python -m pip install --upgrade platformio
 
+      - name: Add minimal OTA loader source and build target
+        working-directory: firmware
+        run: |
+          cp ../fallout/firmware/loader.cpp src/loader.cpp
+          cat >> platformio.ini <<'EOF'
+
+          [env:nodemcuv2_loader]
+          platform = espressif8266@4.2.1
+          board = nodemcuv2
+          framework = arduino
+          build_flags = -D LOADER_BUILD
+          build_src_filter = -<*> +<loader.cpp>
+          monitor_speed = 115200
+          EOF
+
+      - name: Compile OTA loader
+        working-directory: firmware
+        run: pio run -e nodemcuv2_loader
+
       - name: Compile ESP8266 firmware
         working-directory: firmware
         run: pio run -e nodemcuv2
 
-      - name: Upload firmware build artifact
+      - name: Upload loader and firmware build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: smalltv-ultra-fallout-esp8266
-          path: firmware/.pio/build/nodemcuv2/firmware.bin
+          name: smalltv-ultra-fallout-install-package
+          path: |
+            firmware/.pio/build/nodemcuv2_loader/firmware.bin
+            firmware/.pio/build/nodemcuv2/firmware.bin
           if-no-files-found: error
           retention-days: 14
