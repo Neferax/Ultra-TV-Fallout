@@ -290,8 +290,13 @@ bool gifPlayerUploadStart(const char *filename) {
 
     LittleFS.mkdir("/gif");
     snprintf(uploadGifPath, sizeof(uploadGifPath), "/gif/%s", name.c_str());
-    snprintf(uploadGifTempPath, sizeof(uploadGifTempPath), "/gif/.%s.tmp", name.c_str());
+    // LittleFS limits each path component to 31 bytes. A valid final GIF name
+    // may exceed that limit when decorated with a temporary-file suffix.
+    // Uploads are serialized by the synchronous web server, so fixed staging
+    // names are safe and keep the temporary component short.
+    strlcpy(uploadGifTempPath, "/gif/.upload.tmp", sizeof(uploadGifTempPath));
     LittleFS.remove(uploadGifTempPath);
+    LittleFS.remove("/gif/.previous.bak");
     uploadGifFile = LittleFS.open(uploadGifTempPath, "w");
     uploadGifBytes = 0;
     if (!uploadGifFile) {
@@ -339,7 +344,7 @@ bool gifPlayerUploadEnd() {
                 width > 0 && width <= kDisplayWidth &&
                 height > 0 && height <= kDisplayHeight;
     }
-    String backupPath = String(uploadGifPath) + ".bak";
+    const char *backupPath = "/gif/.previous.bak";
     if (valid) {
         LittleFS.remove(backupPath);
         if (LittleFS.exists(uploadGifPath) && !LittleFS.rename(uploadGifPath, backupPath)) {
