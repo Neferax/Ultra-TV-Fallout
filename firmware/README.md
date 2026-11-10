@@ -66,8 +66,8 @@ No device flash or storage modification has been performed.
 The current implementation patch adds a dedicated GIF page immediately after
 Weather in the dashboard rotation and a protected upload page at
 `http://<device-ip>/gif`. Uploaded files are stored in LittleFS under
-`/gif/`; the upload uses a temporary file and only replaces an existing
-filename after the complete write succeeds.
+`/gif/`; the upload checks the GIF signature and 240×240 canvas, writes to a
+temporary file, and only replaces an existing filename after the complete write succeeds.
 
 The decoder is intentionally constrained for the ESP8266:
 - Maximum canvas size: 240×240 pixels.
