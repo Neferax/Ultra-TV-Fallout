@@ -25,7 +25,7 @@ Eine Wetterseite, eine Uhrseite und die vorhandenen GIF-Anzeigen dazwischen. All
 
 ## Offene Kernarbeit
 1. Patch in einem vollständigen Upstream-Checkout anwenden und kompilieren; Compilerfehler korrigieren.
-2. GIF-Wiedergabe und den vorhandenen Album-Ablauf implementieren. In den durchsuchten Upstream-Quellen wurde kein GIF-Decoder bzw. keine AnimatedGIF-Integration gefunden. Die dokumentierte Bildfunktion betrifft temporäre JPEGs; außerdem wird `/image/` beim Start geleert.
+2. GIF-Wiedergabe und den vorhandenen Album-Ablauf implementieren. Die aktuelle Upstream-Quelle enthält keinen GIF-Player. Die Upstream-Historie dokumentiert die bewusste Entfernung der JPEG-Bildfunktion und ihrer Decoder-Abhängigkeit. Der Standarddecoder AnimatedGIF benötigt laut Beispiel rund 22,5 KB RAM; die dokumentierte freie DRAM-Reserve des Upstream-Geräts liegt nach normalem Start bei etwa 18,5 KB. Eine unveränderte Integration ist daher nicht vertretbar. Siehe [GIF-Decoder-Machbarkeit](GIF_DECODER_FEASIBILITY.md).
 3. Prüfen, wie Wetter-/WLAN-Konfiguration aus dem bisherigen Gerät übernommen werden kann.
 4. Exakte Boardrevision, Flash-Layout und Recovery-Weg vor jeder Geräteinstallation verifizieren.
 
@@ -35,6 +35,7 @@ Eine Wetterseite, eine Uhrseite und die vorhandenen GIF-Anzeigen dazwischen. All
 - Keine GIF-Datei am Gerät ersetzt oder gelöscht.
 - Kein flashfertiges Installationspaket.
 - Keine bestätigte GIF-Karussell-Wiedergabe in der alternativen Firmware.
+- Keine GIF-Decoder-Integration; Speicherbudget und notwendige Einschränkungen sind dokumentiert.
 
 ## Sicherheit
 - Kein Flashen, Löschen oder Überschreiben.
