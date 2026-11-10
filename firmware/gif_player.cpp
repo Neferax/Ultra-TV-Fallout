@@ -30,6 +30,8 @@ int16_t canvasOriginY = 0;
 int16_t canvasWidth = 0;
 int16_t canvasHeight = 0;
 bool unsupportedFrame = false;
+bool fallbackAnimationActive = false;
+uint32_t fallbackFrameAtMs = 0;
 uint16_t scanline565[kDisplayWidth];
 
 void *openGifFile(const char *path, int32_t *fileSize) {
@@ -156,6 +158,49 @@ bool gifPlayerStart(const char *path, TFT_eSPI &display) {
 }
 
 bool gifPlayerTick(uint32_t nowMs) {
+    if (fallbackAnimationActive && decoder == nullptr && targetDisplay != nullptr) {
+        if (static_cast<int32_t>(nowMs - fallbackFrameAtMs) < 0) return false;
+        fallbackFrameAtMs = nowMs + 110UL;
+        TFT_eSPI &display = *targetDisplay;
+        const uint16_t phosphor = 0x07E0;
+        const uint16_t dim = 0x03E0;
+        const uint16_t pale = 0xAFE5;
+        const bool blink = ((nowMs / 110UL) % 19UL) == 0;
+        const int scanY = 72 + static_cast<int>((nowMs / 45UL) % 112UL);
+
+        // Native animated power-armour helmet fallback. This keeps the RADIO
+        // page alive even before the user uploads compatible GIF artwork.
+        display.fillRect(12, 61, 216, 142, TFT_BLACK);
+        display.drawRoundRect(69, 75, 102, 111, 18, dim);
+        display.fillRoundRect(73, 79, 94, 103, 16, 0x0100);
+        display.drawFastHLine(83, 86, 74, phosphor);
+        display.drawRect(85, 93, 70, 12, dim);
+        display.fillRoundRect(88, 108, 64, 35, 7, dim);
+        display.drawRoundRect(88, 108, 64, 35, 7, phosphor);
+        display.fillRect(96, 118, 20, blink ? 3 : 8, blink ? dim : pale);
+        display.fillRect(124, 118, 20, blink ? 3 : 8, blink ? dim : pale);
+        display.drawFastHLine(99, 151, 42, phosphor);
+        display.drawLine(105, 155, 120, 166, dim);
+        display.drawLine(135, 155, 120, 166, dim);
+        display.fillRoundRect(54, 112, 17, 42, 5, 0x0100);
+        display.drawRoundRect(54, 112, 17, 42, 5, phosphor);
+        display.fillRoundRect(169, 112, 17, 42, 5, 0x0100);
+        display.drawRoundRect(169, 112, 17, 42, 5, phosphor);
+        display.drawCircle(62, 132, 3, pale);
+        display.drawCircle(178, 132, 3, pale);
+        display.drawFastHLine(18, scanY, 204, dim);
+        display.drawFastHLine(18, 201, 204, dim);
+        display.setTextDatum(TC_DATUM);
+        display.setTextFont(1);
+        display.setTextColor(phosphor, TFT_BLACK);
+        display.drawString("ROBCO // VISUAL ARCHIVE", 120, 63, 1);
+        display.setTextColor(pale, TFT_BLACK);
+        display.drawString("PIP-BOY SYSTEM ANIMATION", 120, 190, 1);
+        display.setTextColor(dim, TFT_BLACK);
+        display.drawString("UPLOAD GIFs AT /GIF", 120, 211, 1);
+        yield();
+        return true;
+    }
     if (decoder == nullptr) return false;
     if (nowMs - gifStartedAtMs >= 20000UL) {
         TFT_eSPI *display = targetDisplay;
@@ -170,8 +215,13 @@ bool gifPlayerTick(uint32_t nowMs) {
     if (result < 0 || unsupportedFrame) {
         Serial.printf("GIF skipped: frame decode failed (%d), unsupported=%u\n",
                       result, unsupportedFrame ? 1U : 0U);
-        if (targetDisplay != nullptr) targetDisplay->fillScreen(TFT_BLACK);
+        TFT_eSPI *display = targetDisplay;
         gifPlayerStop();
+        if (display != nullptr) {
+            targetDisplay = display;
+            fallbackAnimationActive = true;
+            fallbackFrameAtMs = 0;
+        }
         return false;
     }
 
@@ -197,6 +247,8 @@ void gifPlayerStop() {
     }
     if (activeGifFile) activeGifFile.close();
     targetDisplay = nullptr;
+    fallbackAnimationActive = false;
+    fallbackFrameAtMs = 0;
     nextFrameAtMs = 0;
     gifStartedAtMs = 0;
     canvasOriginX = 0;
@@ -207,7 +259,7 @@ void gifPlayerStop() {
 }
 
 bool gifPlayerIsActive() {
-    return decoder != nullptr;
+    return decoder != nullptr || fallbackAnimationActive;
 }
 
 size_t gifPlayerDecoderBytes() {
@@ -252,7 +304,13 @@ bool gifPlayerHasFiles() {
 
 bool gifPlayerStartNext(TFT_eSPI &display) {
     if (gifFileListDirty) gifPlayerRefreshFiles();
-    if (gifPathCount == 0) return false;
+    if (gifPathCount == 0) {
+        targetDisplay = &display;
+        fallbackAnimationActive = true;
+        fallbackFrameAtMs = 0;
+        gifStartedAtMs = millis();
+        return true;
+    }
 
     const uint8_t selected = nextGifIndex;
     nextGifIndex = static_cast<uint8_t>((nextGifIndex + 1) % gifPathCount);
