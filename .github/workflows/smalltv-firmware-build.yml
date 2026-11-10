@@ -66,6 +66,8 @@ jobs:
           test -s firmware/data/gif/bethesda-vaultboy.gif
           test "$(stat -c%s firmware/data/gif/bethesda-vaultboy.gif)" -le 307200
           file firmware/data/gif/bethesda-vaultboy.gif
+          mkdir -p fallout/package
+          cp firmware/data/gif/bethesda-vaultboy.gif fallout/package/bethesda-vaultboy.gif
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -105,5 +107,6 @@ jobs:
           path: |
             firmware/.pio/build/nodemcuv2_loader/firmware.bin
             firmware/.pio/build/nodemcuv2/firmware.bin
+            fallout/package/bethesda-vaultboy.gif
           if-no-files-found: error
           retention-days: 14
