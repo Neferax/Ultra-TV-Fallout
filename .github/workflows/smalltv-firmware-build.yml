@@ -50,6 +50,9 @@ jobs:
         working-directory: firmware
         run: git apply --check ../fallout/patches/0002-gif-player-integration.patch && git apply ../fallout/patches/0002-gif-player-integration.patch
 
+      - name: Add multi-day weather forecast and stable RADIO rendering
+        run: python fallout/scripts/apply_forecast_and_stable_radio.py firmware
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
