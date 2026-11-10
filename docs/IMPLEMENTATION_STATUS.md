@@ -43,3 +43,6 @@
 - Keine Stock-GIFs, Einstellungen oder Dateien wurden gelöscht oder überschrieben.
 - Es gibt noch kein nachweislich flashfertiges Firmware-Image.
 - Der Build-/Laufzeitstatus wird nicht als erfolgreich bezeichnet, bevor die Tests tatsächlich vorliegen.
+
+- Konfigurationsmigration: Alte Dashboard-Konfigurationen (Schema 3) übernehmen nicht mehr die früheren Seiten-IDs; die neuen Standardseiten Uhr, Wetter und GIF-Archiv bleiben aktiv. Alte Feed-Konfigurationen (Schema 2) behalten Markt-/Home-Assistant-Einstellungen, übernehmen aber die neue Open-Meteo-Wettervoreinstellung.
+- LittleFS-Uploadpfade: Temporäre Datei und Sicherung verwenden feste kurze Namen, damit gültige GIF-Dateinamen bis zur LittleFS-Komponentengrenze nicht durch angehängte Endungen unbrauchbar werden.
