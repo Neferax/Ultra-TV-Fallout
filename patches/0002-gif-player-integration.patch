@@ -113,7 +113,7 @@ diff --git a/src/display.cpp b/src/display.cpp
 -        case DASHBOARD_PAGE_STATUS:
 -            return hasStatusContent();
 +        case DASHBOARD_PAGE_GIF:
-+            return gifPlayerHasFiles();
++            return true;
          default:
              return false;
      }
@@ -137,11 +137,13 @@ diff --git a/src/display.cpp b/src/display.cpp
 +        case DASHBOARD_PAGE_GIF: {
 +            const ThemePalette &theme = activeTheme();
 +            drawScreenChrome("ROBCO // VISUAL ARCHIVE");
-+            tft.drawRect(4, 38, 232, 164, theme.accent);
-+            drawDisplayLabel("VAULT-TEC ANIMATION DATA", 120, 48, 220,
++            tft.drawRect(8, 68, 224, 132, theme.accent);
++            tft.drawRect(11, 71, 218, 126, theme.accentSoft);
++            drawDisplayLabel("ROBCO // VISUAL ARCHIVE", 120, 58, 220,
 +                             TC_DATUM, theme.accent, FONT_INFO);
-+            drawDisplayLabel("DECODING FRAME STREAM...", 120, 190, 220,
-+                             TC_DATUM, theme.muted, FONT_INFO);
++            drawDisplayLabel(gifPlayerHasFiles() ? "DECODING FRAME STREAM..."
++                                                  : "BUILT-IN SYSTEM ANIMATION",
++                             120, 188, 220, TC_DATUM, theme.muted, FONT_INFO);
              break;
 +        }
          default:
