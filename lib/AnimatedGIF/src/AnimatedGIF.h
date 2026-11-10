@@ -61,7 +61,7 @@
 // by preparing (specially encoding) the GIFs, you can save >10kB RAM, but you will not be able to decode arbitrary
 // images anymore. One application to craft such GIFs can be found here (use option -d) 
 // https://create.stephan-brumme.com/flexigif-lossless-gif-lzw-optimization/
-#define MAX_CODE_SIZE 10
+#define MAX_CODE_SIZE 11
 
 #define MAX_COLORS 256
 #ifdef __LINUX__
