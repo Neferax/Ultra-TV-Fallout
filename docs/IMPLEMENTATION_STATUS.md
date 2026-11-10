@@ -36,7 +36,7 @@ Eine Wetterseite, eine Uhrseite und die vorhandenen GIF-Anzeigen dazwischen. All
 - Die GIF-Seite spielt bis zu zwölf alphabetisch sortierte Dateien ab und wechselt nach 20 Sekunden zur nächsten Datei.
 - Feed-/TLS-Arbeit, OTA und anstehende Netzwerkaktionen stoppen den Decoder und geben seinen IRAM-Speicher frei.
 - Das Gerät bekommt damit keine automatische Übernahme seiner alten Stock-GIFs. Die alten Dateien müssen extern gesichert und nach der Installation über `/gif` erneut hochgeladen werden.
-- Einschränkungen: maximal 300 KiB pro GIF, 240 px Canvas-Breite, LZW-Codegröße höchstens 10 Bit, nur vollständig deckende Vollbild-Frames. Transparente oder partielle Frames werden abgewiesen, da kein voller Compositing-Framebuffer reserviert wird.
+- Einschränkungen: maximal 300 KiB pro GIF, 240 px Canvas-Breite, LZW-Codegröße höchstens 11 Bit, nur vollständig deckende Vollbild-Frames. Transparente oder partielle Frames werden abgewiesen, da kein voller Compositing-Framebuffer reserviert wird.
 - Der CI-Workflow wendet jetzt beide Patches an und kompiliert den Player samt Bibliothek. Der verfügbare Status-Endpunkt meldet noch keine Checks; Build und Laufzeit sind daher weiterhin **unbestätigt**.
 
 ## GIF-Player-Prototyp (Quellcode vorhanden)
