@@ -68,7 +68,7 @@ void drawGifScanline(GIFDRAW *line) {
 
     // The ESP8266 build has no full-canvas compositing buffer. Accept full-canvas
     // frames only. Transparent pixels are flattened to black during drawing.
-    if (line->ucDisposalMethod == 2 || line->iX != 0 || line->iY != 0 ||
+    if (line->iX != 0 || line->iY != 0 ||
         line->iWidth != canvasWidth || line->iHeight != canvasHeight) {
         unsupportedFrame = true;
         return;
