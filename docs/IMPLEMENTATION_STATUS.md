@@ -30,6 +30,14 @@ Eine Wetterseite, eine Uhrseite und die vorhandenen GIF-Anzeigen dazwischen. All
 4. Exakte Boardrevision, Flash-Layout und Recovery-Weg vor jeder Geräteinstallation verifizieren.
 
 
+## GIF-Decoder: erster echter Build-Baustein
+- AnimatedGIF wurde mit Apache-2.0-Lizenz lokal in `lib/AnimatedGIF/` vendort.
+- Die lokale Kopie begrenzt `MAX_CODE_SIZE` auf 10 und `MAX_WIDTH` auf 240. Die Bibliothek ist damit nur für eigens passend encodierte GIF-Dateien vorgesehen; beliebige GIFs sind nicht garantiert kompatibel.
+- `firmware/gif_decoder_probe.cpp` erzwingt beim Build die beiden Konfigurationswerte und macht die tatsächliche Instanzgröße über `sizeof(AnimatedGIF)` messbar.
+- Der GitHub-Actions-Workflow kopiert Bibliothek und Probe in den Upstream-Checkout und kompiliert sie zusammen mit dem vorhandenen Firmwareprojekt.
+- Noch nicht vorhanden: LittleFS-Datei-Callbacks, Scanline-Ausgabe, Albumverwaltung, Feed-Priorisierung und Dashboard-Seitenintegration.
+- CI-Status weiterhin nicht bestätigt; keine Behauptung eines erfolgreichen Builds.
+
 ## Reproduzierbarer Build-Check
 - GitHub Actions Workflow ergänzt: [smalltv-firmware-build.yml](../.github/workflows/smalltv-firmware-build.yml).
 - Der Workflow checkt den SmallTV-Upstream aus, prüft den exakten `src/display.cpp`-Ausgangsblob, wendet den Renderer-Patch mit `git apply --check` an und baut anschließend `pio run -e nodemcuv2`.
