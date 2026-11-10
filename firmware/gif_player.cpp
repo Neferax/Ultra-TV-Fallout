@@ -175,6 +175,10 @@ bool gifPlayerTick(uint32_t nowMs) {
         return false;
     }
 
+    // AnimatedGIF reports 0 after the final frame. Rewind immediately so
+    // trailer bytes are never mistaken for another frame on the next tick.
+    if (result == 0) decoder->reset();
+
     if (delayMs < 20) delayMs = 20;
     if (delayMs > 5000) delayMs = 5000;
     nextFrameAtMs = nowMs + static_cast<uint32_t>(delayMs);
