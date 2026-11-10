@@ -57,6 +57,30 @@ jobs:
       - name: Apply v7 readable weather and real GIF transitions
         run: python fallout/scripts/apply_readable_weather_and_real_gif_transitions.py firmware
 
+
+      - name: Verify compact GIF viewport and page transitions
+        working-directory: firmware
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          gif = Path("src/gif_player.cpp").read_text()
+          main = Path("src/main.cpp").read_text()
+          display = Path("src/display.cpp").read_text()
+          required = [
+              "kGifViewportWidth = 104",
+              "kGifViewportHeight = 104",
+              "canvasOriginY = static_cast<int16_t>(76 + (104 - scaledCanvasHeight) / 2)",
+          ]
+          for token in required:
+              if token not in gif:
+                  raise SystemExit(f"GIF viewport check failed: {token}")
+          if "gifTransitionUntilMs = nowMs + 1800UL" not in main:
+              raise SystemExit("GIF page-transition playback missing")
+          if "void renderWeatherPage()" not in display or "VORHERSAGE" not in display:
+              raise SystemExit("Readable weather renderer missing")
+          print("Verified: 104x104 GIF viewport, short page transitions, weather renderer")
+          PY
+
       - name: Bundle official Bethesda Vault Boy animation
         run: |
           mkdir -p firmware/data/gif
