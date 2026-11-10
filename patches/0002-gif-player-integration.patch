@@ -41,7 +41,21 @@ diff --git a/src/dashboard.cpp b/src/dashboard.cpp
  }
  
  bool anyPageEnabled() {
-@@ -151,7 +154,7 @@
+@@ -121,7 +124,7 @@
+ void setConfigDefaults() {
+     memset(&dashboardConfig, 0, sizeof(dashboardConfig));
+     dashboardConfig.version = DASHBOARD_CONFIG_VERSION;
+-    dashboardConfig.theme = DASHBOARD_THEME_AURORA;
++    dashboardConfig.theme = DASHBOARD_THEME_TERMINAL;
+     dashboardConfig.customThemeEnabled = false;
+     copyString(dashboardConfig.customBackground, sizeof(dashboardConfig.customBackground), kDefaultCustomBackground);
+     copyString(dashboardConfig.customSurface, sizeof(dashboardConfig.customSurface), kDefaultCustomSurface);
+@@ -147,11 +150,11 @@
+                sizeof(dashboardConfig.nightCustomText),
+                kDefaultNightCustomText);
+     dashboardConfig.rotationEnabled = true;
+-    dashboardConfig.rotationIntervalSec = 10;
++    dashboardConfig.rotationIntervalSec = 20;
      dashboardConfig.use24Hour = true;
      dashboardConfig.showSeconds = false;
      dashboardConfig.showIp = false;
