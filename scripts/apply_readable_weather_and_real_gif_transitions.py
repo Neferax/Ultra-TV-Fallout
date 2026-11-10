@@ -50,18 +50,18 @@ clock_weather = r'''void renderClockPage() {
     if (hasWeatherContent()) {
         const WeatherData *weather = effectiveWeatherData();
         const int temperatureFonts[] = {FONT_BODY, FONT_LABEL};
-        drawAdaptiveText(formatWeatherTemperature(weather->temperature), 64, 178, 78,
+        drawAdaptiveText(formatWeatherTemperature(weather->temperature), 18, 178, 78,
                          TL_DATUM, temperatureFonts, 2, theme.text, theme.surface);
-        drawDisplayLabel(weather->condition[0] != '\0' ? weather->condition : "AKTUELL",
+        drawDisplayLabel(weather->condition[0] != '\\0' ? weather->condition : "AKTUELL",
                          220, 180, 126, TR_DATUM, theme.text, FONT_LABEL);
-        drawDisplayLabel(weather->location[0] != '\0' ? weather->location : "DUISBURG",
+        drawDisplayLabel(weather->location[0] != '\\0' ? weather->location : "DUISBURG",
                          18, 198, 204, TL_DATUM, theme.muted, FONT_INFO);
     } else if (feedRuntime.weather.syncing || weatherWaitingForSync()) {
         drawDisplayLabel("WETTERDATEN WERDEN GELADEN",
                          120, 181, 204, TC_DATUM, theme.text, FONT_LABEL);
         drawDisplayLabel("OPEN-METEO // VERBINDUNG AKTIV",
                          120, 199, 204, TC_DATUM, theme.muted, FONT_INFO);
-    } else if (feedRuntime.weather.lastError[0] != '\0') {
+    } else if (feedRuntime.weather.lastError[0] != '\\0') {
         drawDisplayLabel("WETTERDATEN NICHT VERFUEGBAR",
                          120, 179, 204, TC_DATUM, theme.warning, FONT_LABEL);
         drawDisplayLabel(feedRuntime.weather.lastError,
@@ -76,23 +76,23 @@ clock_weather = r'''void renderClockPage() {
 
 void renderWeatherPage() {
     const ThemePalette &theme = activeTheme();
-    drawScreenChrome("DATA // WASTELAND WEATHER");
+    drawScreenChrome("WETTER // REGION 47239");
 
     if (!hasWeatherContent()) {
-        tft.drawRect(9, 70, 222, 125, theme.accent);
-        tft.drawFastHLine(13, 92, 214, theme.accentSoft);
-        drawDisplayLabel("WETTERDATENBANK", 120, 78, 208,
+        tft.drawRect(9, 66, 222, 132, theme.accent);
+        tft.drawFastHLine(13, 89, 214, theme.accentSoft);
+        drawDisplayLabel("METEOROLOGISCHE DATENBANK", 120, 74, 208,
                          TC_DATUM, theme.accent, FONT_LABEL);
         if (feedRuntime.weather.syncing || weatherWaitingForSync()) {
-            drawDisplayLabel("WETTERDATEN WERDEN GELADEN",
+            drawDisplayLabel("LIVE-VERBINDUNG WIRD AUFGEBAUT",
                              120, 119, 208, TC_DATUM, theme.text, FONT_LABEL);
-            drawDisplayLabel("OPEN-METEO // LIVE-VERBINDUNG",
-                             120, 146, 208, TC_DATUM, theme.muted, FONT_INFO);
-        } else if (feedRuntime.weather.lastError[0] != '\0') {
-            drawDisplayLabel("WETTERDATEN NICHT VERFUEGBAR",
+            drawDisplayLabel("OPEN-METEO // DUISBURG", 120, 145, 208,
+                             TC_DATUM, theme.muted, FONT_INFO);
+        } else if (feedRuntime.weather.lastError[0] != '\\0') {
+            drawDisplayLabel("DATENVERBINDUNG FEHLGESCHLAGEN",
                              120, 115, 208, TC_DATUM, theme.warning, FONT_LABEL);
-            drawDisplayLabel(feedRuntime.weather.lastError,
-                             120, 143, 208, TC_DATUM, theme.text, FONT_INFO);
+            drawDisplayLabel(feedRuntime.weather.lastError, 120, 143, 208,
+                             TC_DATUM, theme.text, FONT_INFO);
         } else {
             drawDisplayLabel("KEINE WETTERDATEN EMPFANGEN",
                              120, 124, 208, TC_DATUM, theme.warning, FONT_LABEL);
@@ -101,35 +101,76 @@ void renderWeatherPage() {
     }
 
     const WeatherData *weather = effectiveWeatherData();
-    tft.drawRect(9, 69, 222, 80, theme.accent);
-    tft.drawRect(12, 72, 216, 74, theme.accentSoft);
-    drawDisplayLabel(weather->location[0] != '\0' ? weather->location : "DUISBURG",
-                     120, 76, 208, TC_DATUM, theme.muted, FONT_LABEL);
 
-    const int temperatureFonts[] = {FONT_BODY, FONT_LABEL};
-    drawAdaptiveText(formatWeatherTemperature(weather->temperature), 120, 94, 170,
-                     TC_DATUM, temperatureFonts, 2, theme.text, theme.background);
-    drawDisplayLabel(weather->condition[0] != '\0' ? weather->condition : "AKTUELLE BEDINGUNGEN",
-                     120, 129, 208, TC_DATUM, theme.accent, FONT_LABEL);
+    // Current conditions: temperature on the left, a hand-drawn weather glyph on the right.
+    tft.fillRect(9, 64, 222, 91, theme.surface);
+    tft.drawRect(9, 64, 222, 91, theme.accent);
+    tft.drawRect(12, 67, 216, 85, theme.accentSoft);
+    drawDisplayLabel(weather->location[0] != '\\0' ? weather->location : "DUISBURG // 47239",
+                     18, 71, 204, TL_DATUM, theme.muted, FONT_INFO);
+    const int temperatureFonts[] = {FONT_HUGE, FONT_TITLE, FONT_BODY, FONT_LABEL};
+    drawAdaptiveText(formatWeatherTemperature(weather->temperature), 20, 88, 128,
+                     TL_DATUM, temperatureFonts, 4, theme.text, theme.surface);
 
-    drawDisplayLabel("VORHERSAGE // NAECHSTE 3 TAGE", 10, 155, 220,
+    String condition = weather->condition;
+    condition.toLowerCase();
+    const int cx = 181;
+    const int cy = 105;
+    if (condition.indexOf("rain") >= 0 || condition.indexOf("regen") >= 0 ||
+        condition.indexOf("shower") >= 0 || condition.indexOf("drizzle") >= 0) {
+        tft.drawCircle(cx - 8, cy - 5, 10, theme.accent);
+        tft.drawCircle(cx + 5, cy - 8, 13, theme.accent);
+        tft.drawCircle(cx + 17, cy - 3, 8, theme.accent);
+        tft.drawFastHLine(cx - 16, cy + 2, 42, theme.accent);
+        for (int i = 0; i < 3; ++i) {
+            tft.drawLine(cx - 10 + i * 14, cy + 8, cx - 15 + i * 14, cy + 17, theme.text);
+        }
+    } else if (condition.indexOf("cloud") >= 0 || condition.indexOf("bewoelk") >= 0 ||
+               condition.indexOf("overcast") >= 0 || condition.indexOf("nebel") >= 0) {
+        tft.drawCircle(cx - 8, cy - 2, 10, theme.accent);
+        tft.drawCircle(cx + 5, cy - 7, 13, theme.accent);
+        tft.drawCircle(cx + 17, cy - 1, 8, theme.accent);
+        tft.drawFastHLine(cx - 17, cy + 7, 43, theme.accent);
+    } else {
+        tft.drawCircle(cx, cy, 13, theme.accent);
+        tft.drawCircle(cx, cy, 8, theme.text);
+        for (int ray = 0; ray < 8; ++ray) {
+            const float angle = ray * 0.785398f;
+            const int x1 = cx + static_cast<int>(17 * cosf(angle));
+            const int y1 = cy + static_cast<int>(17 * sinf(angle));
+            const int x2 = cx + static_cast<int>(23 * cosf(angle));
+            const int y2 = cy + static_cast<int>(23 * sinf(angle));
+            tft.drawLine(x1, y1, x2, y2, theme.accent);
+        }
+    }
+
+    drawDisplayLabel(weather->condition[0] != '\\0' ? weather->condition : "AKTUELLE LAGE",
+                     120, 135, 204, TC_DATUM, theme.accent, FONT_INFO);
+    String currentRange = "HOCH " + String(weather->high) + "C   TIEF " +
+                          String(weather->low) + "C   REGEN " +
+                          String(weather->rainChance) + "%";
+    drawDisplayLabel(currentRange, 120, 146, 204, TC_DATUM, theme.text, FONT_INFO);
+
+    drawDisplayLabel("VORHERSAGE // 3 TAGE", 10, 163, 220,
                      TL_DATUM, theme.accent, FONT_LABEL);
-    tft.drawFastHLine(10, 171, 220, theme.accentSoft);
+    tft.drawFastHLine(10, 177, 220, theme.accentSoft);
 
     for (uint8_t slot = 0; slot < 3; ++slot) {
-        const int y = 175 + static_cast<int>(slot) * 17;
+        const int y = 181 + static_cast<int>(slot) * 15;
         if (slot > 0) tft.drawFastHLine(10, y - 2, 220, theme.surface);
         if (weather->forecastCount > slot + 1) {
             const WeatherForecastDay &day = weather->forecast[slot + 1];
-            drawDisplayLabel(day.date, 12, y, 54, TL_DATUM, theme.text, FONT_LABEL);
-            String range = String(day.low) + " / " + String(day.high) + " C";
-            drawDisplayLabel(range, 128, y, 112, TC_DATUM, theme.text, FONT_LABEL);
-            drawDisplayLabel(String(day.rainChance) + "%",
-                             228, y, 48, TR_DATUM, theme.accent, FONT_LABEL);
+            drawDisplayLabel(day.date, 12, y, 42, TL_DATUM, theme.text, FONT_INFO);
+            drawDisplayLabel(day.condition, 58, y, 92, TL_DATUM, theme.muted, FONT_INFO);
+            String range = String(day.low) + "/" + String(day.high) + "C";
+            drawDisplayLabel(range, 174, y, 48, TR_DATUM, theme.text, FONT_INFO);
+            drawDisplayLabel(String(day.rainChance) + "%", 230, y, 34,
+                             TR_DATUM, theme.accent, FONT_INFO);
         } else {
-            drawDisplayLabel("--.--", 12, y, 54, TL_DATUM, theme.muted, FONT_LABEL);
-            drawDisplayLabel("-- / -- C", 128, y, 112, TC_DATUM, theme.muted, FONT_LABEL);
-            drawDisplayLabel("--", 228, y, 48, TR_DATUM, theme.muted, FONT_LABEL);
+            drawDisplayLabel("--.--", 12, y, 42, TL_DATUM, theme.muted, FONT_INFO);
+            drawDisplayLabel("DATEN AUSSTEHEND", 58, y, 92, TL_DATUM, theme.muted, FONT_INFO);
+            drawDisplayLabel("--/--", 174, y, 48, TR_DATUM, theme.muted, FONT_INFO);
+            drawDisplayLabel("--", 230, y, 34, TR_DATUM, theme.muted, FONT_INFO);
         }
     }
 }'''
