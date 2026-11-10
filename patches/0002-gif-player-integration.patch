@@ -404,9 +404,11 @@ diff --git a/src/dashboard.cpp b/src/dashboard.cpp
 diff --git a/src/feeds.h b/src/feeds.h
 --- a/src/feeds.h
 +++ b/src/feeds.h
-@@ -8,1 +8,1 @@
+@@ -7,3 +7,3 @@
+ #define FEEDS_CONFIG_PATH "/feeds-config.json"
 -#define FEEDS_CONFIG_VERSION 2
 +#define FEEDS_CONFIG_VERSION 3
+ #define HOME_ASSISTANT_SLOT_COUNT 4
 
 diff --git a/src/feeds.cpp b/src/feeds.cpp
 --- a/src/feeds.cpp
