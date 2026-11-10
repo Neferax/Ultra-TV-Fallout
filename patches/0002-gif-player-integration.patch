@@ -1,7 +1,7 @@
 diff --git a/src/dashboard.h b/src/dashboard.h
 --- a/src/dashboard.h
 +++ b/src/dashboard.h
-@@ -7,7 +7,7 @@
+@@ -7,11 +7,12 @@
  #define DASHBOARD_WORLD_CLOCK_COUNT 2
  #define DASHBOARD_CONFIG_PATH "/dashboard-config.json"
  #define DASHBOARD_DATA_PATH "/dashboard-data.json"
@@ -10,14 +10,11 @@ diff --git a/src/dashboard.h b/src/dashboard.h
  
  enum DashboardPageId : uint8_t {
      DASHBOARD_PAGE_CLOCK = 0,
-@@ -19,6 +19,7 @@
-     DASHBOARD_PAGE_EVENT,
-     DASHBOARD_PAGE_QUOTE,
-     DASHBOARD_PAGE_STATUS,
+     DASHBOARD_PAGE_WEATHER,
 +    DASHBOARD_PAGE_GIF,
-     DASHBOARD_PAGE_COUNT
- };
- 
+     DASHBOARD_PAGE_MARKETS,
+     DASHBOARD_PAGE_HOME,
+     DASHBOARD_PAGE_FOCUS,
 diff --git a/src/dashboard.cpp b/src/dashboard.cpp
 --- a/src/dashboard.cpp
 +++ b/src/dashboard.cpp
