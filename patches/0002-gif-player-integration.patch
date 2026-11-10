@@ -400,3 +400,26 @@ diff --git a/src/dashboard.cpp b/src/dashboard.cpp
 +        applyPagesObject(root["pages"].as<JsonObjectConst>());
 +    }
      normalizeConfig();
+
+diff --git a/src/feeds.h b/src/feeds.h
+--- a/src/feeds.h
++++ b/src/feeds.h
+@@ -7,1 +7,1 @@
+-#define FEEDS_CONFIG_VERSION 2
++#define FEEDS_CONFIG_VERSION 3
+
+diff --git a/src/feeds.cpp b/src/feeds.cpp
+--- a/src/feeds.cpp
++++ b/src/feeds.cpp
+@@ -2030,7 +2030,9 @@
+ void applyConfigObject(JsonObjectConst root) {
+     applyProvidersObject(root["providers"].as<JsonObjectConst>());
+-    applyWeatherObject(root["weather"].as<JsonObjectConst>());
++    // Version 2 used the old disabled-weather defaults. Retain the new
++    // Open-Meteo defaults when migrating, while preserving other feed settings.
++    if (root["version"].as<uint16_t>() >= FEEDS_CONFIG_VERSION) {
++        applyWeatherObject(root["weather"].as<JsonObjectConst>());
++    }
+     applyMarketsArray(root["markets"].as<JsonArrayConst>());
+     applyHomeAssistantObject(root["homeAssistant"].as<JsonObjectConst>());
+     normalizeConfig();
