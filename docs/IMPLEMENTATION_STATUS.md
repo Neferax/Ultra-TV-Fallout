@@ -29,6 +29,15 @@ Eine Wetterseite, eine Uhrseite und die vorhandenen GIF-Anzeigen dazwischen. All
 3. Prüfen, wie Wetter-/WLAN-Konfiguration aus dem bisherigen Gerät übernommen werden kann.
 4. Exakte Boardrevision, Flash-Layout und Recovery-Weg vor jeder Geräteinstallation verifizieren.
 
+
+## Reproduzierbarer Build-Check
+- GitHub Actions Workflow ergänzt: [smalltv-firmware-build.yml](../.github/workflows/smalltv-firmware-build.yml).
+- Der Workflow checkt den SmallTV-Upstream aus, prüft den exakten `src/display.cpp`-Ausgangsblob, wendet den Renderer-Patch mit `git apply --check` an und baut anschließend `pio run -e nodemcuv2`.
+- Bei erfolgreichem Lauf wird `firmware.bin` als 14 Tage verfügbares Actions-Artefakt abgelegt.
+- Commit mit Workflow: `086332b96f6e5bec1de9215d918e87fdd4794572`.
+- **Laufstatus noch nicht bestätigt:** Die verfügbaren GitHub-Abfragen liefern für diesen Commit bislang keine Status-Checks. Daher wird der Build nicht als erfolgreich bezeichnet.
+- Der Workflow baut derzeit nur den Uhr-/Wetter-Renderer-Patch. Er enthält noch keine GIF-Integration und erzeugt noch kein vollständiges Fallout-System mit GIF-Karussell.
+
 ## Neue Erkenntnisse zur GIF-Integration (10.11.2026)
 - Hauptloop geprüft: `feedsLoop()` und `displayUpdate()` laufen unabhängig; ein GIF-Player muss Feed-/TLS-Jobs ausdrücklich priorisieren.
 - Feed-Code nutzt `HeapSelectIram` für BearSSL-Puffer und prüft freie DRAM-/Gesamtheap-Reserven. Eine GIF-Instanz darf deshalb nicht parallel zu TLS im Sekundärheap verbleiben.
