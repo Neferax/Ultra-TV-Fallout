@@ -12,3 +12,9 @@ TFT_eSPI, album upload, or the dashboard rotation. It is currently only a
 compile-probe dependency.
 
 The source license is included in `LICENSE`.
+
+The current player prototype additionally accepts only **flattened full-canvas
+frames**: each frame must cover the complete GIF canvas, contain no transparent
+pixels, and not rely on disposal method 2. This avoids requiring a full-canvas
+compositing buffer, which is too expensive on this ESP8266. Unsupported frames
+are rejected rather than displayed with trails or broken transparency.
