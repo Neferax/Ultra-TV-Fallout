@@ -18,6 +18,7 @@ uint32_t nextFrameAtMs = 0;
 uint32_t gifStartedAtMs = 0;
 uint32_t uploadGifBytes = 0;
 char uploadGifPath[48] = {0};
+char uploadGifTempPath[56] = {0};
 bool gifFileListDirty = true;
 char gifPaths[8][48] = {{0}};
 uint8_t gifPathCount = 0;
@@ -260,7 +261,9 @@ bool gifPlayerUploadStart(const char *filename) {
 
     LittleFS.mkdir("/gif");
     snprintf(uploadGifPath, sizeof(uploadGifPath), "/gif/%s", name.c_str());
-    uploadGifFile = LittleFS.open(uploadGifPath, "w");
+    snprintf(uploadGifTempPath, sizeof(uploadGifTempPath), "/gif/.%s.tmp", name.c_str());
+    LittleFS.remove(uploadGifTempPath);
+    uploadGifFile = LittleFS.open(uploadGifTempPath, "w");
     uploadGifBytes = 0;
     return static_cast<bool>(uploadGifFile);
 }
@@ -276,9 +279,22 @@ bool gifPlayerUploadChunk(const uint8_t *data, size_t length) {
 bool gifPlayerUploadEnd() {
     if (!uploadGifFile) return false;
     uploadGifFile.close();
-    const bool valid = uploadGifBytes > 0 && LittleFS.exists(uploadGifPath);
-    if (!valid) LittleFS.remove(uploadGifPath);
+    bool valid = uploadGifBytes > 0 && LittleFS.exists(uploadGifTempPath);
+    String backupPath = String(uploadGifPath) + ".bak";
+    if (valid) {
+        LittleFS.remove(backupPath);
+        if (LittleFS.exists(uploadGifPath) && !LittleFS.rename(uploadGifPath, backupPath)) {
+            valid = false;
+        }
+        if (valid && !LittleFS.rename(uploadGifTempPath, uploadGifPath)) {
+            valid = false;
+        }
+        if (valid) LittleFS.remove(backupPath);
+        else if (LittleFS.exists(backupPath)) LittleFS.rename(backupPath, uploadGifPath);
+    }
+    if (!valid) LittleFS.remove(uploadGifTempPath);
     uploadGifPath[0] = '\0';
+    uploadGifTempPath[0] = '\0';
     uploadGifBytes = 0;
     gifFileListDirty = true;
     gifPlayerRefreshFiles();
