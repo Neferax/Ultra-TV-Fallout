@@ -26,7 +26,7 @@ weather = r'''void renderWeatherPage() {
             drawDisplayLabel("WEATHER LINK // ERROR", 120, 119, 204,
                              TC_DATUM, theme.warning, FONT_LABEL);
             drawDisplayLabel(feedRuntime.weather.lastError, 120, 145, 204,
-                             TC_DATUM, theme.text, FONT_INFO);
+                             TC_DATUM, theme.text, FONT_LABEL);
         } else {
             drawDisplayLabel(feedRuntime.weather.syncing ? "ESTABLISHING DATA LINK"
                                                          : "NO WEATHER DATA RECEIVED",
@@ -54,19 +54,19 @@ weather = r'''void renderWeatherPage() {
 
     // Three full-width rows are substantially more legible than tiny cards.
     for (uint8_t slot = 0; slot < 3; ++slot) {
-        const int y = 171 + static_cast<int>(slot) * 13;
+        const int y = 170 + static_cast<int>(slot) * 16;
         if (slot > 0) tft.drawFastHLine(10, y - 2, 220, theme.surface);
         if (weather->forecastCount > slot + 1) {
             const WeatherForecastDay &day = weather->forecast[slot + 1];
-            drawDisplayLabel(day.date, 12, y, 48, TL_DATUM, theme.text, FONT_INFO);
+            drawDisplayLabel(day.date, 12, y, 48, TL_DATUM, theme.text, FONT_LABEL);
             String range = String(day.high) + "/" + String(day.low) + "C";
             drawDisplayLabel(range, 120, y, 82, TC_DATUM, theme.text, FONT_INFO);
             drawDisplayLabel(String(day.rainChance) + "%", 228, y, 44,
-                             TR_DATUM, theme.accent, FONT_INFO);
+                             TR_DATUM, theme.accent, FONT_LABEL);
         } else {
-            drawDisplayLabel("--", 12, y, 48, TL_DATUM, theme.muted, FONT_INFO);
-            drawDisplayLabel("--/--", 120, y, 82, TC_DATUM, theme.muted, FONT_INFO);
-            drawDisplayLabel("--", 228, y, 44, TR_DATUM, theme.muted, FONT_INFO);
+            drawDisplayLabel("--", 12, y, 48, TL_DATUM, theme.muted, FONT_LABEL);
+            drawDisplayLabel("--/--", 120, y, 82, TC_DATUM, theme.muted, FONT_LABEL);
+            drawDisplayLabel("--", 228, y, 44, TR_DATUM, theme.muted, FONT_LABEL);
         }
     }
 }'''
@@ -103,6 +103,11 @@ needle = "    int targetBrightness = appliedBrightness;"
 if needle not in s:
     raise SystemExit("Could not locate page transition brightness block")
 s = s.replace(needle, "    if (smoothTransition) playPipboyTransition();\n\n" + needle, 1)
+
+# Move the common footer down so the larger forecast rows have room.
+s = s.replace("tft.drawFastHLine(8, 207, 224, theme.accent);", "tft.drawFastHLine(8, 223, 224, theme.accent);")
+s = s.replace("tft.drawFastHLine(8, 209, 224, theme.accentSoft);", "tft.drawFastHLine(8, 225, 224, theme.accentSoft);")
+s = s.replace('''drawDisplayLabel("VAULT-TEC // PERSONNEL DEVICE", 232, 219, 128,''', '''drawDisplayLabel("VAULT-TEC // PERSONNEL DEVICE", 232, 230, 128,''')
 
 display_cpp.write_text(s, encoding="utf-8")
 
