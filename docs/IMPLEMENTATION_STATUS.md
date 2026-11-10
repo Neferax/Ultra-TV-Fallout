@@ -30,6 +30,14 @@ Eine Wetterseite, eine Uhrseite und die vorhandenen GIF-Anzeigen dazwischen. All
 4. Exakte Boardrevision, Flash-Layout und Recovery-Weg vor jeder Geräteinstallation verifizieren.
 
 
+## GIF-Player-Prototyp (Quellcode vorhanden)
+- `firmware/gif_player.h/.cpp` enthält jetzt einen isolierten Player: LittleFS-Datei-Callbacks, AnimatedGIF-RAW-Scanlines, RGB565-Ausgabe über TFT_eSPI und zentrierte Darstellung auf 240×240.
+- Decoder-Instanz wird nur bei Start im `HeapSelectIram` angelegt; vor dem Freigeben wird die Datei geschlossen und das Objekt wieder im selben Heap freigegeben.
+- Die LittleFS-Callbacks aktualisieren explizit `GIFFILE.iPos`; das ist für die Positionslogik des Decoders erforderlich.
+- Vor Start wird `largestBlock` und `free` des IRAM-Heaps gegen `sizeof(AnimatedGIF)+2048` geprüft. Bei zu wenig Speicher wird nicht auf DRAM ausgewichen.
+- Der Player ist noch **nicht** mit Hauptloop, Feed-Worker, Upload-Endpunkt, Album-Dateiliste oder Dashboard-Seitenrotation verbunden. Der Aufrufer muss ihn vor jedem Netzwerk-/TLS-Job stoppen.
+- Der CI-Workflow kopiert nun Player, Header und Low-RAM-Bibliothek in den Upstream-Checkout und versucht den ESP8266-Build. Ein erfolgreicher Lauf ist über die verfügbaren Statusabfragen noch nicht bestätigt.
+
 ## GIF-Decoder: erster echter Build-Baustein
 - AnimatedGIF wurde mit Apache-2.0-Lizenz lokal in `lib/AnimatedGIF/` vendort.
 - Die lokale Kopie begrenzt `MAX_CODE_SIZE` auf 10 und `MAX_WIDTH` auf 240. Die Bibliothek ist damit nur für eigens passend encodierte GIF-Dateien vorgesehen; beliebige GIFs sind nicht garantiert kompatibel.
