@@ -1,141 +1,114 @@
-# GIF-Wiedergabe: Machbarkeit und Speicherbudget
+# GIF-Wiedergabe: Machbarkeit und aktueller Implementierungsstand
 
-## Ergebnis der Quellcodeprüfung
+## Ausgangslage
 
 Die aktuelle Quelle von `iodn/geekmagic-tv-esp8266` enthält keine GIF-Wiedergabe.
-Die Projekt-Historie dokumentiert am 14.10.2026 ausdrücklich, dass JPEG-Rendering,
-Bild-Uploads, Bildrouten, Dashboard-Bedienelemente und die Decoder-Abhängigkeit
-entfernt wurden. Der aktuelle README-Text des Upstream-Projekts enthält an dieser
-Stelle noch ältere Angaben und ist nicht mit dem aktuellen Quellcode synchron.
+Die Projekt-Historie dokumentiert die Entfernung der früheren JPEG-/Bildfunktion
+und ihrer Decoder-Abhängigkeit. Ein GIF-Player muss deshalb neu integriert werden.
 
-Quelle: `audit/sync-all-and-clock-verification.txt` im Upstream-Projekt.
+## Decoder und Speicher
 
-## Kandidat: bitbank2/AnimatedGIF
+Verwendete Bibliothek: `bitbank2/AnimatedGIF` (Apache-2.0), lokal vendort unter
+`lib/AnimatedGIF/`.
 
-Die Bibliothek trennt Dateizugriff, Dekodierung und Display-Ausgabe über Callbacks.
-Für den SmallTV wäre die passende Architektur:
+Die Standardkonfiguration reserviert laut Bibliotheksbeispiel rund 22,5 KB RAM.
+Die historische Hardwaremessung des Upstream-Projekts meldet nach normalem Start
+rund 18,5 KB freien DRAM und 18,8 KB freien sekundären IRAM-Heap. Ein
+Standarddecoder passt daher nicht einfach in den freien DRAM.
 
-1. GIF-Datei aus LittleFS streamen (Open/Read/Seek/Close-Callbacks).
-2. Jede dekodierte Scanline direkt an TFT_eSPI übertragen.
-3. Keinen 240x240 RGB565-Framebuffer anlegen.
-4. GIF nur während der Bildphase abspielen; Feed-/TLS-Arbeit hat Vorrang.
-5. Bei Ende oder Fehler Datei schließen und zur nächsten Album-Datei wechseln.
+Für den ESP8266 wurde die Bibliothek gezielt reduziert:
+- `MAX_CODE_SIZE=11`: LZW-Codes bis 11 Bit.
+- `MAX_WIDTH=240`: Bildbreite passend zum Display.
+- Die Instanz wird nur während der GIF-Anzeige im sekundären Heap angelegt.
+- Der Build-Probe erzwingt `sizeof(AnimatedGIF) <= 15360` Bytes.
+- Vor der Allokation prüft der Player den größten freien IRAM-Block und lässt
+  mindestens 2 KB Reserve. Bei zu wenig Speicher wird die GIF-Wiedergabe
+  übersprungen; es gibt keinen DRAM-Fallback.
 
-Die öffentliche API unterstützt dateibasierte `open(...)`-Callbacks und
-`playFrame(...)`. Der Decoder-Callback erhält Zeilenpixel und Palette.
-Quelle: [AnimatedGIF API](https://github.com/bitbank2/AnimatedGIF/wiki).
-
-## Kritischer RAM-Befund
-
-Das AnimatedGIF-Beispiel nennt für die Instanz rund **22,5 KB RAM**. Der Header
-enthält unter anderem einen LZW-Tabellenpuffer mit 4096 Einträgen, einen
-Pixelpuffer und einen Zeilenpuffer. Die Bibliothek erlaubt, `MAX_CODE_SIZE`
-herabzusetzen, wenn sämtliche GIFs gezielt dafür encodiert werden. Das ist keine
-universelle Kompatibilität mehr: GIFs, die größere LZW-Codes benötigen, können
-damit nicht zuverlässig dekodiert werden.
-
-Quellen:
-- [AnimatedGIF TFT_eSPI example](https://github.com/bitbank2/AnimatedGIF/blob/master/examples/TFT_eSPI_memory/TFT_eSPI_memory.ino)
-- [AnimatedGIF header](https://github.com/bitbank2/AnimatedGIF/blob/master/src/AnimatedGIF.h)
-
-Die Upstream-Hardwaremessung vom 14.10.2026 meldet nach normalem Start ungefähr
-18.5 KB freie DRAM. Damit passt eine normale 22.5-KB-Decoderinstanz nicht einfach
-in den vorhandenen freien DRAM. TLS benötigt zusätzlich freie DRAM-Blöcke und
-Sekundärheap-Puffer. Ein global hinzugefügter Standarddecoder wäre deshalb kein
-vertretbarer erster Versuch.
-
-## Nächster Implementierungsschritt
-
-- Kleinen Decoder-Fork mit reduzierter `MAX_CODE_SIZE`-Konfiguration untersuchen.
-- Instanz- und Heap-Größen mit dem ESP8266-Compiler messen, nicht schätzen.
-- GIFs vorab in ein kontrolliertes Format umcodieren; Originaldateien separat sichern.
-- Erst einen GIF-Testplayer ohne Netzwerkzugriffe kompilieren.
-- Danach den Player in den Seitenwechsel integrieren und während Feed-/TLS-Jobs pausieren.
-- Laufzeitmessung: DRAM frei/größter Block, IRAM frei, Framerate, Watchdog und Bootstabilität.
-
-## Abbruchkriterien
-
-Kein Einbau in den Hauptloop, wenn der Player die TLS-Reserve unterschreitet,
-den größten freien DRAM-Block zu stark fragmentiert oder den Watchdog auslöst.
-Kein Flashen auf das Nutzergerät, bevor Backup/Restore der Original-GIFs und
-Recovery für die genaue Hardwarevariante nachgewiesen sind.
-
-**Status:** Analyse abgeschlossen, Decoder noch nicht integriert, nicht kompiliert
-und nicht auf Hardware getestet.
-
-
-## Konkreter Speicheransatz für den nächsten Prototyp
-
-Ein möglicher Weg ist, den Decoder nicht dauerhaft im primären DRAM zu halten:
-- `MAX_CODE_SIZE=11` würde die großen LZW-Tabellen-/Pixelpuffer gegenüber dem Standardwert 12 deutlich verkleinern.
-- Die GIF-Dateien müssten vorab kontrolliert neu encodiert werden; beliebige GIFs wären nicht mehr garantiert kompatibel.
-- Die Decoder-Instanz könnte testweise nur während der GIF-Seite dynamisch im sekundären IRAM-Heap angelegt werden.
-- Vor jedem Feed-/TLS-Job müsste die Wiedergabe beendet und die Instanz freigegeben sein, da BearSSL denselben sekundären Heap für seine Puffer nutzt.
-
-[Schlussfolgerung] Mit dem in der Hardwaremessung protokollierten IRAM-Freiraum von rund 18.8 KB könnte eine reduzierte Decoder-Instanz grundsätzlich in Frage kommen. Das ist noch kein Nachweis: `sizeof(AnimatedGIF)`, tatsächliche IRAM-Allokation, größter freier Block und Verhalten beim Wechsel zwischen GIF und TLS müssen auf dem echten Build gemessen werden. Bei zu wenig IRAM wird die GIF-Seite deaktiviert statt den Netzwerkbetrieb zu riskieren.
-
-## Zusätzliche Prüfung: tatsächlicher Hauptloop und Heap-Auswahl
-
-Die aktuelle Upstream-Implementierung wurde zusätzlich direkt in den relevanten
-Quellstellen geprüft:
-
-- `src/main.cpp`: `feedsLoop()` wird im Hauptloop aufgerufen; danach kann
-  `displayUpdate()` weiterhin laufen. Ein GIF-Player darf daher nicht einfach
-  im Renderpfad Speicher belegen, während ein Feed-Worker aktiv ist.
-- `src/feeds.cpp`: BearSSL verwendet explizit `HeapSelectIram` für TLS-Puffer.
-  Die HTTPS-Freigabe prüft mindestens 20 KB freien DRAM-Heap und einen
-  kombinierten freien Heap von 38 KB; zusätzlich muss ein ausreichend großer
-  zusammenhängender Block für den TLS-Empfangspuffer verfügbar sein.
-- `src/display.cpp`: Es existiert bereits `displaySuspendDynamicResources()`
-  für die dynamischen Clock-Sprite-Ressourcen. Das ist ein vorhandener
-  Integrationsmechanismus, ersetzt aber keine GIF-spezifische Speicherverwaltung.
-- `src/dashboard.h`: Die Seitenrotation ist auf die vorhandenen Dashboard-IDs
-  ausgelegt. Ein GIF-Karussell ist keine bereits vorhandene Seite und muss
-  ausdrücklich in Seitenverfügbarkeit, Rotation und Rendering integriert werden.
-
-### Konsequenz für den Decoder-Prototyp
-
-Der Header von AnimatedGIF legt die großen Decoder-Puffer direkt in
-`GIFIMAGE` ab, das wiederum Bestandteil der `AnimatedGIF`-Instanz ist.
-Bei `MAX_CODE_SIZE=11` ergeben allein die großen Arrays näherungsweise:
+Die großen festen Arrays der 11-Bit-Konfiguration benötigen näherungsweise:
 
 | Puffer | Größe |
 |---|---:|
-| Datei-/LZW-Pixelstack | 1.024 B |
+| Datei-/LZW-Pixelstack | 2.048 B |
 | globale + lokale Palette | 1.536 B |
 | LZW-Chunkpuffer | 1.530 B |
-| Turbo-LZW-Tabelle | 2.048 B |
-| Turbo-Pixelpuffer | 2.048 B |
-| Zeilenpuffer | 495 B |
-| **Summe der Arrays** | **8.681 B** |
+| Turbo-LZW-Tabelle | 4.096 B |
+| Turbo-Pixelpuffer | 4.096 B |
+| Zeilenpuffer (240 + 15) | 255 B |
+| **Summe der Arrays** | **13.561 B** |
 
-Hinzu kommen Strukturfelder und Zeiger. Das ist eine Größenabschätzung aus den
-Header-Arrays, kein gemessener `sizeof(AnimatedGIF)`-Wert. Die Turbo-Puffer
-werden in RAW-Scanline-Wiedergabe nicht als zusätzlicher Framebuffer angefordert,
-liegen aber als feste Arrays trotzdem in der Instanz.
+Das ist eine Berechnung aus den Array-Dimensionen des Headers, kein gemessener
+`sizeof(AnimatedGIF)`-Wert. Der Compile-Probe prüft die Obergrenze beim Build.
 
-### Erforderliche Ablaufsteuerung
+## Implementierter Prototyp
 
-1. Vor dem Start eines Feed-/TLS-Jobs GIF-Datei schließen, Decoder-Instanz
-   freigeben und IRAM-Heap-Auswahl sauber zurücksetzen.
-2. GIF-Player nur starten, wenn kein Feed-Job und keine Netzwerkaktion läuft.
-3. Während eines GIF-Frames regelmäßig `yield()` ausführen und die
-   Frame-Wartezeit nicht blockierend über `millis()` verwalten.
-4. Feed-Jobs erhalten Vorrang; nach Ende des Jobs darf der GIF-Player auf der
-   aktuellen Albumposition wieder starten.
-5. Bei fehlender IRAM-Blockgröße oder Allokationsfehler die GIF-Seite überspringen,
-   nicht in den DRAM-Fallback wechseln.
+Quellcode:
+- `firmware/gif_player.h`
+- `firmware/gif_player.cpp`
+- `lib/AnimatedGIF/src/`
 
-**Wichtige offene Messung:** Die Upstream-Hardware-Auditwerte nennen rund
-18.8 KB freien IRAM-Heap nach dem Start. Das ist ein historischer Messwert und
-kein garantierter Wert für jeden Bootzustand. Vor einem echten Player müssen
-`sizeof(AnimatedGIF)`, IRAM-Heap-`free` und `largestBlock` im konkreten Build
-protokolliert werden. Der Decoder-Fork muss außerdem tatsächlich mit
-`MAX_CODE_SIZE=11` gebaut werden; das einfache Überschreiben des Makros vor
-einem unveränderten Bibliotheksheader reicht nicht.
+Der Player verwendet:
+1. LittleFS-Open-/Read-/Seek-/Close-Callbacks.
+2. RAW-Scanline-Ausgabe direkt über TFT_eSPI in RGB565.
+3. Einen einzelnen 240-Pixel-Zeilenpuffer statt eines Vollbild-Framebuffers.
+4. Dynamische Allokation des Decoderobjekts im IRAM-Heap.
+5. `yield()` nach jeder ausgegebenen Zeile.
 
-**Entscheidung:** Noch keine GIF-Player-Integration in `main.cpp` oder
-`display.cpp`. Zuerst ist ein isolierter Decoder-Prototyp mit gemessener
-IRAM-Allokation und LittleFS-Callbacks nötig. Erst danach wird die zusätzliche
-Dashboard-Seite angelegt. So bleibt die funktionierende Uhr-/Wetter-/TLS-Basis
-unangetastet.
+### Bewusste GIF-Einschränkungen
+
+Ohne Compositing-Framebuffer kann der Player keine beliebigen GIF-Frames korrekt
+zusammensetzen. Er akzeptiert daher nur:
+- Canvas maximal 240 × 240 Pixel.
+- Vollständige, deckende Frames, die jeweils das ganze GIF-Canvas abdecken.
+- Keine transparenten Pixel.
+- Keine Disposal-Methode 2.
+- LZW-Codegröße maximal 11 Bit.
+- Dateigröße maximal 300 KiB.
+
+Partielle oder transparente Frames werden abgewiesen, statt Bildreste oder
+fehlerhafte Transparenz anzuzeigen. Die Dateien müssen entsprechend vorbereitet
+sein. Die vorhandenen Stock-GIFs wurden noch nicht gegen diese Anforderungen
+geprüft.
+
+## Integration in die Firmware
+
+`patches/0002-gif-player-integration.patch` ergänzt:
+- Eine GIF-Seite direkt nach Weather in der Seitenrotation.
+- Eine geschützte Upload-Seite unter `/gif`.
+- Speicherung unter LittleFS `/gif/`.
+- Bis zu zwölf alphabetisch sortierte GIF-Dateien.
+- Temporäre Upload-Datei und Austausch erst nach vollständigem Upload.
+- Automatischen Wechsel zum nächsten GIF nach 20 Sekunden.
+- Stoppen und Freigeben des Decoders vor Feed-/TLS-Jobs, OTA und anstehenden
+  Netzwerkaktionen.
+
+Die Originaldateien aus der Stock-Firmware werden nicht automatisch in das neue
+LittleFS übernommen. Sie müssen extern gesichert und nach Installation über
+`/gif` erneut hochgeladen werden.
+
+## Build- und Teststatus
+
+Ein GitHub-Actions-Workflow ist eingerichtet:
+`.github/workflows/smalltv-firmware-build.yml`. Er:
+- prüft den erwarteten Upstream-Quellstand,
+- wendet den Fallout-Uhr-/Wetter-Patch an,
+- kopiert die lokale Decoderbibliothek und den Player,
+- wendet die GIF-Integrationspatches an,
+- kompiliert mit PlatformIO für `nodemcuv2`,
+- legt bei Erfolg das Firmware-Binary als Artefakt ab.
+
+**Der Buildstatus konnte über die verfügbaren GitHub-Abfragen nicht bestätigt
+werden.** Daher sind Compile-Erfolg, tatsächliche Instanzgröße, IRAM-Allokation,
+GIF-Framerate, Watchdog-Stabilität und TLS-Wechsel weiterhin nicht verifiziert.
+Es wurde nichts auf das SmallTV-Gerät geflasht oder verändert.
+
+## Abbruchkriterien
+
+Die GIF-Seite bleibt deaktiviert bzw. wird übersprungen, wenn:
+- der Compile-Probe die 15-KB-Instanzgrenze überschreitet,
+- der größte freie IRAM-Block nicht ausreicht,
+- die TLS-Reserve nach dem Freigeben nicht wiederhergestellt wird,
+- Laufzeitfehler oder Watchdog-Resets auftreten.
+
+Kein Flashen, bevor Build, Laufzeit, Backup/Restore und Recovery für die genaue
+Hardwarevariante nachgewiesen sind.
