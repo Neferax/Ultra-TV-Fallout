@@ -307,9 +307,10 @@ bool gifPlayerUploadChunk(const uint8_t *data, size_t length) {
     // The previous file remains in place until the temporary upload is complete,
     // so free space is checked against the actual current filesystem usage.
     FSInfo filesystemInfo;
-    if (!LittleFS.info(filesystemInfo)) return false;
-    const uint32_t freeBytes = filesystemInfo.totalBytes - filesystemInfo.usedBytes;
-    constexpr uint32_t kFilesystemReserve = 4096;
+    if (!LittleFS.info(filesystemInfo) ||
+        filesystemInfo.usedBytes >= filesystemInfo.totalBytes) return false;
+    const size_t freeBytes = filesystemInfo.totalBytes - filesystemInfo.usedBytes;
+    constexpr size_t kFilesystemReserve = 4096;
     if (length > freeBytes || freeBytes - length < kFilesystemReserve) return false;
 
     const size_t written = uploadGifFile.write(data, length);
