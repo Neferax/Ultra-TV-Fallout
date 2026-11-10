@@ -19,7 +19,7 @@
 - `firmware/gif_player.cpp/.h` implementiert LittleFS-Datei-Callbacks, RAW-Scanline-Dekodierung und RGB565-Ausgabe direkt über TFT_eSPI. Es wird kein 240×240-RGB565-Vollbildpuffer angelegt.
 - Decoder-Instanz wird bei Bedarf im sekundären IRAM-Heap angelegt und vor Feed-/TLS-Arbeit, OTA und anstehenden Netzwerkaktionen wieder freigegeben.
 - Vor dem Start prüft der Player `free` und `largestBlock` des IRAM-Heaps gegen `sizeof(AnimatedGIF)+2048`. Bei zu wenig Speicher wird die GIF-Wiedergabe übersprungen, nicht auf DRAM ausgewichen.
-- `patches/0002-gif-player-integration.patch` ergänzt eine GIF-Seite direkt nach Weather, die Seitenkonfiguration und einen geschützten Upload unter `/gif` mit `POST /gif/upload`.
+- `patches/0002-gif-player-integration.patch` verwendet den vorhandenen Status-Seitenslot für die GIF-Seite direkt nach Weather; die Gesamtzahl der Dashboard-Seiten wird nicht erhöht. Seitenkonfiguration und geschützter Upload unter `/gif` mit `POST /gif/upload` sind ergänzt.
 - Uploads prüfen GIF-Signatur und 240×240-Canvas, schreiben zunächst in eine temporäre Datei und ersetzen erst nach erfolgreichem Abschluss. Bis zu zwölf alphabetisch sortierte Dateien werden abgespielt; der Player wechselt nach 20 Sekunden zur nächsten.
 - Einschränkungen: maximal 300 KiB pro Datei, maximal zwölf Dateien, LZW-Codegröße höchstens 11 Bit, nur vollständig deckende Vollbild-Frames. Transparente und partielle Frames werden abgewiesen, weil kein Compositing-Framebuffer verfügbar ist.
 - Stock-GIFs werden beim Firmwarewechsel nicht automatisch migriert. Originale müssen außerhalb des Geräts gesichert und nach Installation über `/gif` erneut hochgeladen werden. Die vorhandenen Dateien wurden noch nicht auf LZW-/Frame-Kompatibilität geprüft.
