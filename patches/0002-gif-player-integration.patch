@@ -1,10 +1,20 @@
 diff --git a/src/dashboard.h b/src/dashboard.h
 --- a/src/dashboard.h
 +++ b/src/dashboard.h
-@@
+@@ -8,16 +8,17 @@
+ #define DASHBOARD_CONFIG_PATH "/dashboard-config.json"
+ #define DASHBOARD_DATA_PATH "/dashboard-data.json"
 -#define DASHBOARD_CONFIG_VERSION 3
 +#define DASHBOARD_CONFIG_VERSION 4
-@@
+ 
+ enum DashboardPageId : uint8_t {
+     DASHBOARD_PAGE_CLOCK = 0,
+     DASHBOARD_PAGE_WEATHER,
+     DASHBOARD_PAGE_MARKETS,
+     DASHBOARD_PAGE_HOME,
+     DASHBOARD_PAGE_FOCUS,
+     DASHBOARD_PAGE_WORLD,
+     DASHBOARD_PAGE_EVENT,
      DASHBOARD_PAGE_QUOTE,
      DASHBOARD_PAGE_STATUS,
 +    DASHBOARD_PAGE_GIF,
@@ -13,18 +23,22 @@ diff --git a/src/dashboard.h b/src/dashboard.h
 diff --git a/src/dashboard.cpp b/src/dashboard.cpp
 --- a/src/dashboard.cpp
 +++ b/src/dashboard.cpp
-@@
+@@ -384,11 +384,12 @@ void fillConfigJson(JsonObject root) {
+     pages["world"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_WORLD];
+     pages["event"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_EVENT];
      pages["quote"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_QUOTE];
      pages["status"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_STATUS];
 +    pages["gif"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF];
-@@
+ }
+@@ -447,34 +448,37 @@ void applyPagesObject(JsonObjectConst pages) {
      if (!pages["status"].isNull()) {
          dashboardConfig.enabledPages[DASHBOARD_PAGE_STATUS] = pages["status"].as<bool>();
      }
 +    if (!pages["gif"].isNull()) {
 +        dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF] = pages["gif"].as<bool>();
 +    }
-@@
+ }
+@@ -1088,23 +1091,25 @@ const char* dashboardPageName(uint8_t pageId) {
          case DASHBOARD_PAGE_STATUS:
              return "status";
 +        case DASHBOARD_PAGE_GIF:
@@ -32,20 +46,27 @@ diff --git a/src/dashboard.cpp b/src/dashboard.cpp
          default:
              return "clock";
      }
+ }
 diff --git a/src/display.cpp b/src/display.cpp
 --- a/src/display.cpp
 +++ b/src/display.cpp
-@@
+@@ -2,7 +2,8 @@
+ #include "auth.h"
+ #include "config.h"
  #include "feeds.h"
 +#include "gif_player.h"
-@@
+ #include "logger.h"
+ #include <ESP8266WiFi.h>
+ #include <time.h>
+@@ -1097,8 +1098,10 @@ bool dashboardPageHasRenderableContent(uint8_t pageId) {
          case DASHBOARD_PAGE_STATUS:
              return hasStatusContent();
 +        case DASHBOARD_PAGE_GIF:
 +            return gifPlayerHasFiles();
          default:
              return false;
-@@
+     }
+@@ -1732,6 +1735,15 @@ void renderDashboardPage() {
          case DASHBOARD_PAGE_STATUS:
              renderStatusPage();
              break;
@@ -65,16 +86,24 @@ diff --git a/src/display.cpp b/src/display.cpp
 diff --git a/src/feeds.cpp b/src/feeds.cpp
 --- a/src/feeds.cpp
 +++ b/src/feeds.cpp
-@@
+@@ -1,6 +1,7 @@
  #include "feeds.h"
+ 
+ #include "display.h"
 +#include "gif_player.h"
-@@
+ #include "logger.h"
+ #include <ArduinoJson.h>
+ #include <ESP8266HTTPClient.h>
+@@ -2389,7 +2390,8 @@ void feedsLoop() {
+         if (slot.hasData && (slot.lastError[0] || now - slot.lastSuccessMs > staleAfterMs)) slot.stale = true;
+     }
      if (feedsBusy()) {
 +        gifPlayerStop();
          pumpFeedJob();
          return;
-@@
--    if (pendingSyncMask) feedJobsCancelled = false;
+@@ -2407,7 +2409,10 @@ void feedsLoop() {
+     }
+     if (pendingSyncMask) feedJobsCancelled = false;
 +    if (pendingSyncMask) {
 +        feedJobsCancelled = false;
 +        gifPlayerStop();
@@ -84,17 +113,24 @@ diff --git a/src/feeds.cpp b/src/feeds.cpp
 diff --git a/src/main.cpp b/src/main.cpp
 --- a/src/main.cpp
 +++ b/src/main.cpp
-@@
+@@ -9,6 +9,7 @@
+ #include "dashboard.h"
+ #include "display.h"
  #include "feeds.h"
 +#include "gif_player.h"
-@@
+ #include "auth.h"
+ #include "webserver.h"
+ #include "settings.h"
+@@ -20,6 +21,7 @@
+ Settings appSettings;
+ unsigned long lastDisplayUpdate = 0;
+ unsigned long lastDisplayProfileCheck = 0;
  unsigned long lastPageRotation = 0;
 +uint32_t lastGifStartAttemptMs = 0;
-@@
-     if (!wifiFailsafeMode &&
-         !networkActionBusy &&
-         !displayState.apMode &&
-@@
+ unsigned long lastWiFiReconnectAttempt = 0;
+ bool wifiFailsafeMode = false;  // True when in AP-only mode after connection failures
+@@ -710,6 +712,20 @@
+         displayCycleNextPage(true);
          lastPageRotation = millis();
      }
  
@@ -113,18 +149,28 @@ diff --git a/src/main.cpp b/src/main.cpp
 +    }
 +
      maybeEnableClockSprite();
+ 
+     if (millis() - lastDisplayUpdate > DISPLAY_UPDATE_INTERVAL) {
 diff --git a/src/webserver.cpp b/src/webserver.cpp
 --- a/src/webserver.cpp
 +++ b/src/webserver.cpp
-@@
+@@ -4,6 +4,7 @@
+ #include "dashboard.h"
+ #include "display.h"
  #include "feeds.h"
 +#include "gif_player.h"
-@@
+ #include "auth.h"
+ #include "logger.h"
+ #include "settings.h"
+@@ -38,7 +39,9 @@
  bool otaUploadComplete = false;
  String otaUploadError;
 +bool gifUploadComplete = false;
 +String gifUploadError;
-@@
+ String authSessionToken;
+ unsigned long authSessionLastSeenMs = 0;
+ int lastEffectiveBrightness = -1;
+@@ -1045,6 +1048,64 @@
 -void handleOTAForm() {
 +void handleGifForm() {
 +    static const char html[] PROGMEM =
@@ -181,15 +227,15 @@ diff --git a/src/webserver.cpp b/src/webserver.cpp
 +}
 +
 +void handleOTAForm() {
-@@
+@@ -1228,6 +1289,7 @@
      registerProtectedRoute("/feeds/job", HTTP_GET, handleFeedJob);
      registerProtectedRoute("/feeds/search", HTTP_GET, handleFeedSearch);
 +    registerProtectedRoute("/gif", HTTP_GET, handleGifForm);
-@@
+@@ -1244,6 +1306,17 @@
      server.on("/update", HTTP_POST,
 @@
                });
-+
+ 
 +    server.on("/gif/upload", HTTP_POST,
 +              []() {
 +                  if (!ensureAuthenticatedRequest()) return;
@@ -199,5 +245,5 @@ diff --git a/src/webserver.cpp b/src/webserver.cpp
 +                  if (!requestHasValidSession()) return;
 +                  handleGifUpload();
 +              });
- 
++
      server.onNotFound([]() {
