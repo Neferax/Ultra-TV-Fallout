@@ -21,6 +21,6 @@ Die GIF-Dateien wurden noch nicht heruntergeladen oder gegen den ESP8266-Decoder
 - Dateigröße maximal 300 KiB
 - LZW-Codegröße maximal 11 Bit
 - Frames müssen das gesamte Canvas abdecken
-- Disposal-Methode 2 wird nicht unterstützt
+- Frames müssen das vollständige Canvas abdecken; alle Disposal-Methoden sind zulässig
 
 Nach der Firmwareinstallation können kompatible Dateien über `http://<device-ip>/gif` hochgeladen werden. Der Upload prüft Signatur und Canvas; die übrigen Animationsmerkmale werden beim Abspielen geprüft.
