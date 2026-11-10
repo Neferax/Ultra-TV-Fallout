@@ -60,3 +60,30 @@ firmware is flashed. None of that is implemented yet.
 - Patch application, compile, runtime memory profiling, or screen verification.
 
 No device flash or storage modification has been performed.
+
+## GIF archive and player integration (prototype)
+
+The current implementation patch adds a dedicated GIF page immediately after
+Weather in the dashboard rotation and a protected upload page at
+`http://<device-ip>/gif`. Uploaded files are stored in LittleFS under
+`/gif/`; the upload uses a temporary file and only replaces an existing
+filename after the complete write succeeds.
+
+The decoder is intentionally constrained for the ESP8266:
+- Maximum canvas width: 240 pixels.
+- Maximum file size: 300 KiB per GIF; at most eight files are indexed.
+- LZW code size must stay at or below 10 bits.
+- Frames must be full-canvas and opaque. Transparent or partial frames are
+  rejected because the player deliberately avoids a 240x240 compositing buffer.
+- The decoder object is allocated from the secondary IRAM heap only while the
+  GIF page is active. It is stopped before feed/TLS work, OTA upload and pending
+  network actions.
+
+**Important:** this is still a source prototype. The integration patch and
+GitHub Actions build workflow exist, but a successful CI build and hardware
+playback have not yet been verified. It is not a flash-ready firmware image.
+
+The stock firmware's existing `/gif` and `/image` contents are not migrated
+automatically into the new firmware's LittleFS. Back up the original files
+separately and upload compatible GIFs through the new `/gif` page after
+installation. No files have been changed on the device.
