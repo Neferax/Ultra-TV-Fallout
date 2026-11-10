@@ -29,6 +29,13 @@ Eine Wetterseite, eine Uhrseite und die vorhandenen GIF-Anzeigen dazwischen. All
 3. Prüfen, wie Wetter-/WLAN-Konfiguration aus dem bisherigen Gerät übernommen werden kann.
 4. Exakte Boardrevision, Flash-Layout und Recovery-Weg vor jeder Geräteinstallation verifizieren.
 
+## Neue Erkenntnisse zur GIF-Integration (10.11.2026)
+- Hauptloop geprüft: `feedsLoop()` und `displayUpdate()` laufen unabhängig; ein GIF-Player muss Feed-/TLS-Jobs ausdrücklich priorisieren.
+- Feed-Code nutzt `HeapSelectIram` für BearSSL-Puffer und prüft freie DRAM-/Gesamtheap-Reserven. Eine GIF-Instanz darf deshalb nicht parallel zu TLS im Sekundärheap verbleiben.
+- AnimatedGIF legt die großen LZW-/Pixelpuffer direkt in der Decoder-Instanz ab. Ein `MAX_CODE_SIZE=10`-Prototyp hat rund 8,7 KB große Array-Puffer (ohne Struktur-Overhead); das ist eine Header-basierte Abschätzung, keine gemessene Instanzgröße.
+- Die Decoder-Integration wird erst nach Messung von `sizeof(AnimatedGIF)`, IRAM-`largestBlock`, LittleFS-Callback-Funktion und erfolgreichem isoliertem Build begonnen.
+- Detail: [GIF-Decoder-Machbarkeit](GIF_DECODER_FEASIBILITY.md), aktualisiert am Commit `bcbfc05d85c622a65eb672d99eb315b761a0fb57`.
+
 ## Was ausdrücklich NICHT fertig ist
 - Kein vollständiger Fallout-Firmwarebuild.
 - Keine Änderung am Gerät.
