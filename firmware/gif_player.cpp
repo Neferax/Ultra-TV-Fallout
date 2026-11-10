@@ -35,13 +35,16 @@ int32_t readGifFile(GIFFILE *gifFile, uint8_t *buffer, int32_t length) {
     if (gifFile == nullptr || gifFile->fHandle == nullptr || length <= 0) return 0;
     File *file = static_cast<File *>(gifFile->fHandle);
     if (!*file) return 0;
-    return static_cast<int32_t>(file->read(buffer, static_cast<size_t>(length)));
+    const int32_t bytesRead = static_cast<int32_t>(file->read(buffer, static_cast<size_t>(length)));
+    gifFile->iPos += bytesRead;
+    return bytesRead;
 }
 
 int32_t seekGifFile(GIFFILE *gifFile, int32_t position) {
     if (gifFile == nullptr || gifFile->fHandle == nullptr || position < 0) return -1;
     File *file = static_cast<File *>(gifFile->fHandle);
     if (!*file || !file->seek(static_cast<uint32_t>(position), SeekSet)) return -1;
+    gifFile->iPos = position;
     return position;
 }
 
