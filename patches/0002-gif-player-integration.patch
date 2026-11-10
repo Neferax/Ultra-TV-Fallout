@@ -1,7 +1,8 @@
 diff --git a/src/dashboard.h b/src/dashboard.h
 --- a/src/dashboard.h
 +++ b/src/dashboard.h
-@@ -8,16 +8,17 @@
+@@ -7,7 +7,7 @@
+ #define DASHBOARD_WORLD_CLOCK_COUNT 2
  #define DASHBOARD_CONFIG_PATH "/dashboard-config.json"
  #define DASHBOARD_DATA_PATH "/dashboard-data.json"
 -#define DASHBOARD_CONFIG_VERSION 3
@@ -9,28 +10,26 @@ diff --git a/src/dashboard.h b/src/dashboard.h
  
  enum DashboardPageId : uint8_t {
      DASHBOARD_PAGE_CLOCK = 0,
-     DASHBOARD_PAGE_WEATHER,
-     DASHBOARD_PAGE_MARKETS,
-     DASHBOARD_PAGE_HOME,
-     DASHBOARD_PAGE_FOCUS,
-     DASHBOARD_PAGE_WORLD,
+@@ -19,6 +19,7 @@
      DASHBOARD_PAGE_EVENT,
      DASHBOARD_PAGE_QUOTE,
      DASHBOARD_PAGE_STATUS,
 +    DASHBOARD_PAGE_GIF,
      DASHBOARD_PAGE_COUNT
  };
+ 
 diff --git a/src/dashboard.cpp b/src/dashboard.cpp
 --- a/src/dashboard.cpp
 +++ b/src/dashboard.cpp
-@@ -384,11 +384,12 @@ void fillConfigJson(JsonObject root) {
-     pages["world"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_WORLD];
+@@ -391,6 +391,7 @@
      pages["event"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_EVENT];
      pages["quote"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_QUOTE];
      pages["status"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_STATUS];
 +    pages["gif"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF];
  }
-@@ -447,34 +448,37 @@ void applyPagesObject(JsonObjectConst pages) {
+ 
+ void fillDataJson(JsonObject root) {
+@@ -476,6 +477,9 @@
      if (!pages["status"].isNull()) {
          dashboardConfig.enabledPages[DASHBOARD_PAGE_STATUS] = pages["status"].as<bool>();
      }
@@ -38,7 +37,10 @@ diff --git a/src/dashboard.cpp b/src/dashboard.cpp
 +        dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF] = pages["gif"].as<bool>();
 +    }
  }
-@@ -1088,23 +1091,25 @@ const char* dashboardPageName(uint8_t pageId) {
+ 
+ bool writeJsonToFile(const char *path, JsonDocument &doc) {
+@@ -1105,6 +1109,8 @@
+             return "quote";
          case DASHBOARD_PAGE_STATUS:
              return "status";
 +        case DASHBOARD_PAGE_GIF:
@@ -46,11 +48,10 @@ diff --git a/src/dashboard.cpp b/src/dashboard.cpp
          default:
              return "clock";
      }
- }
 diff --git a/src/display.cpp b/src/display.cpp
 --- a/src/display.cpp
 +++ b/src/display.cpp
-@@ -2,7 +2,8 @@
+@@ -3,6 +3,7 @@
  #include "auth.h"
  #include "config.h"
  #include "feeds.h"
@@ -58,7 +59,8 @@ diff --git a/src/display.cpp b/src/display.cpp
  #include "logger.h"
  #include <ESP8266WiFi.h>
  #include <time.h>
-@@ -1097,8 +1098,10 @@ bool dashboardPageHasRenderableContent(uint8_t pageId) {
+@@ -1099,6 +1100,8 @@
+             return hasQuoteContent();
          case DASHBOARD_PAGE_STATUS:
              return hasStatusContent();
 +        case DASHBOARD_PAGE_GIF:
@@ -66,7 +68,7 @@ diff --git a/src/display.cpp b/src/display.cpp
          default:
              return false;
      }
-@@ -1732,6 +1735,15 @@ void renderDashboardPage() {
+@@ -1735,6 +1738,16 @@
          case DASHBOARD_PAGE_STATUS:
              renderStatusPage();
              break;
@@ -94,26 +96,30 @@ diff --git a/src/feeds.cpp b/src/feeds.cpp
  #include "logger.h"
  #include <ArduinoJson.h>
  #include <ESP8266HTTPClient.h>
-@@ -2389,7 +2390,8 @@ void feedsLoop() {
+@@ -2390,6 +2391,7 @@
          if (slot.hasData && (slot.lastError[0] || now - slot.lastSuccessMs > staleAfterMs)) slot.stale = true;
      }
      if (feedsBusy()) {
 +        gifPlayerStop();
          pumpFeedJob();
          return;
-@@ -2407,7 +2409,10 @@ void feedsLoop() {
      }
-     if (pendingSyncMask) feedJobsCancelled = false;
+@@ -2407,7 +2409,10 @@
+         if (feedsMarketConfigured(index) && (feedConfig.markets[index].source == MARKET_FEED_FINNHUB || feedConfig.markets[index].source == MARKET_FEED_COINGECKO) && due(feedRuntime.markets[index].lastAttemptMs, feedConfig.markets[index].refreshMinutes)) pendingSyncMask |= kMarketJobBase << index;
+     }
+     if (feedsHomeAssistantConfigured() && due(feedRuntime.homeAssistant.lastAttemptMs, feedConfig.homeAssistant.refreshMinutes)) pendingSyncMask |= kHomeAssistantJob;
+-    if (pendingSyncMask) feedJobsCancelled = false;
 +    if (pendingSyncMask) {
 +        feedJobsCancelled = false;
 +        gifPlayerStop();
 +    }
      pumpFeedJob();
  }
+ 
 diff --git a/src/main.cpp b/src/main.cpp
 --- a/src/main.cpp
 +++ b/src/main.cpp
-@@ -9,6 +9,7 @@
+@@ -10,6 +10,7 @@
  #include "dashboard.h"
  #include "display.h"
  #include "feeds.h"
@@ -121,16 +127,15 @@ diff --git a/src/main.cpp b/src/main.cpp
  #include "auth.h"
  #include "webserver.h"
  #include "settings.h"
-@@ -20,6 +21,7 @@
- Settings appSettings;
+@@ -21,6 +22,7 @@
  unsigned long lastDisplayUpdate = 0;
  unsigned long lastDisplayProfileCheck = 0;
  unsigned long lastPageRotation = 0;
 +uint32_t lastGifStartAttemptMs = 0;
  unsigned long lastWiFiReconnectAttempt = 0;
  bool wifiFailsafeMode = false;  // True when in AP-only mode after connection failures
-@@ -710,6 +712,20 @@
-         displayCycleNextPage(true);
+ String apPassword = "";  // Generated random AP password
+@@ -712,6 +714,20 @@
          lastPageRotation = millis();
      }
  
@@ -162,7 +167,8 @@ diff --git a/src/webserver.cpp b/src/webserver.cpp
  #include "auth.h"
  #include "logger.h"
  #include "settings.h"
-@@ -38,7 +39,9 @@
+@@ -39,6 +40,8 @@
+ bool wifiScanStarted = false;
  bool otaUploadComplete = false;
  String otaUploadError;
 +bool gifUploadComplete = false;
@@ -170,8 +176,10 @@ diff --git a/src/webserver.cpp b/src/webserver.cpp
  String authSessionToken;
  unsigned long authSessionLastSeenMs = 0;
  int lastEffectiveBrightness = -1;
-@@ -1045,6 +1048,64 @@
--void handleOTAForm() {
+@@ -1044,6 +1047,60 @@
+     sendTextResponse(202, F("Factory reset requested. Device will restart shortly."));
+ }
+ 
 +void handleGifForm() {
 +    static const char html[] PROGMEM =
 +        "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>"
@@ -226,14 +234,19 @@ diff --git a/src/webserver.cpp b/src/webserver.cpp
 +    }
 +}
 +
-+void handleOTAForm() {
-@@ -1228,6 +1289,7 @@
+ void handleOTAForm() {
+     prepareNoStoreHeaders();
+     server.sendHeader("Content-Encoding", "gzip");
+@@ -1229,6 +1286,7 @@
+     registerProtectedRoute("/feeds/sync", HTTP_POST, handleFeedsSync);
      registerProtectedRoute("/feeds/job", HTTP_GET, handleFeedJob);
      registerProtectedRoute("/feeds/search", HTTP_GET, handleFeedSearch);
 +    registerProtectedRoute("/gif", HTTP_GET, handleGifForm);
-@@ -1244,6 +1306,17 @@
-     server.on("/update", HTTP_POST,
-@@
+     registerProtectedRoute("/api/update", HTTP_POST, handleApiUpdate);
+     registerProtectedRoute("/api/dashboard", HTTP_POST, handleDashboardDataSave);
+     registerProtectedRoute("/auth/password", HTTP_POST, handleAuthPasswordChange);
+@@ -1255,6 +1313,16 @@
+                   handleOTAUpload();
                });
  
 +    server.on("/gif/upload", HTTP_POST,
@@ -247,3 +260,5 @@ diff --git a/src/webserver.cpp b/src/webserver.cpp
 +              });
 +
      server.onNotFound([]() {
+         if (wifiFailsafeMode) {
+             server.sendHeader("Location", "http://" + WiFi.softAPIP().toString() + "/");
