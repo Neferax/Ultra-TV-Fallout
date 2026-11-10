@@ -34,9 +34,9 @@ Der bisherige Status-Seitenslot wird für die GIF-Anzeige wiederverwendet. Es wi
 ## Wichtige Einschränkungen
 
 Der GIF-Player ist auf 240×240 Pixel, maximal 300 KiB pro Datei, höchstens
-11-Bit-LZW und vollständig deckende Vollbild-Frames begrenzt. Transparente oder
-partielle Frames werden abgewiesen, weil kein Vollbild-Compositing-Puffer
-verwendet wird. Die bestehenden Stock-GIFs wurden noch nicht auf diese
+11-Bit-LZW und vollständige Vollbild-Frames begrenzt. Transparente Pixel
+werden schwarz dargestellt, partielle Frames abgewiesen. Alle Farben werden in
+Pip-Boy-Grün umgerechnet; ein Vollbild-Compositing-Puffer wird nicht verwendet. Die bestehenden Stock-GIFs wurden noch nicht auf diese
 Kompatibilität geprüft.
 
 Die Stock-GIFs werden nicht automatisch in das neue LittleFS übernommen. Sie
