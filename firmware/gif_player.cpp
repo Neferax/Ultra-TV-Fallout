@@ -29,6 +29,14 @@ int16_t canvasOriginY = 0;
 int16_t canvasWidth = 0;
 int16_t canvasHeight = 0;
 bool unsupportedFrame = false;
+bool gifFrameStateValid = false;
+bool gifLoopClearPending = false;
+uint8_t previousFrameDisposal = 0;
+int16_t previousFrameX = 0;
+int16_t previousFrameY = 0;
+int16_t previousFrameWidth = 0;
+int16_t previousFrameHeight = 0;
+uint16_t previousFrameBackground = 0;
 bool fallbackAnimationActive = false;
 uint32_t fallbackFrameAtMs = 0;
 uint16_t scanline565[kDisplayWidth];
@@ -68,9 +76,57 @@ int32_t seekGifFile(GIFFILE *gifFile, int32_t position) {
     return position;
 }
 
+uint16_t toPhosphor(uint16_t source) {
+    const uint16_t r = static_cast<uint16_t>(((source >> 11) & 0x1F) * 255U / 31U);
+    const uint16_t g = static_cast<uint16_t>(((source >> 5) & 0x3F) * 255U / 63U);
+    const uint16_t b = static_cast<uint16_t>((source & 0x1F) * 255U / 31U);
+    const uint16_t lum = static_cast<uint16_t>((r * 77U + g * 150U + b * 29U) >> 8);
+    return static_cast<uint16_t>(((lum * 63U + 127U) / 255U) << 5);
+}
+
+void clearPreviousGifFrame() {
+    if (targetDisplay == nullptr || previousFrameWidth <= 0 || previousFrameHeight <= 0) return;
+    int16_t left = static_cast<int16_t>(canvasOriginX + previousFrameX * gifScale);
+    int16_t top = static_cast<int16_t>(canvasOriginY + previousFrameY * gifScale);
+    int16_t right = static_cast<int16_t>(canvasOriginX +
+        (previousFrameX + previousFrameWidth) * gifScale);
+    int16_t bottom = static_cast<int16_t>(canvasOriginY +
+        (previousFrameY + previousFrameHeight) * gifScale);
+    if (left < canvasOriginX) left = canvasOriginX;
+    if (top < canvasOriginY) top = canvasOriginY;
+    const int16_t viewportRight = static_cast<int16_t>(canvasOriginX + scaledCanvasWidth);
+    const int16_t viewportBottom = static_cast<int16_t>(canvasOriginY + scaledCanvasHeight);
+    if (right > viewportRight) right = viewportRight;
+    if (bottom > viewportBottom) bottom = viewportBottom;
+    if (right > left && bottom > top) {
+        targetDisplay->fillRect(left, top, right - left, bottom - top, previousFrameBackground);
+    }
+}
+
 void drawGifScanline(GIFDRAW *line) {
     if (line == nullptr || targetDisplay == nullptr || line->pPixels == nullptr ||
         line->pPalette == nullptr || unsupportedFrame) return;
+
+    // The library's no-framebuffer callback path does not restore disposal
+    // method 2. Clear the previous frame's rectangle when the next frame starts.
+    if (line->y == 0) {
+        if (gifLoopClearPending) {
+            targetDisplay->fillRect(canvasOriginX, canvasOriginY,
+                scaledCanvasWidth, scaledCanvasHeight, TFT_BLACK);
+            gifLoopClearPending = false;
+            gifFrameStateValid = false;
+        }
+        if (gifFrameStateValid && previousFrameDisposal == 2) {
+            clearPreviousGifFrame();
+        }
+        previousFrameDisposal = line->ucDisposalMethod;
+        previousFrameX = line->iX;
+        previousFrameY = line->iY;
+        previousFrameWidth = line->iWidth;
+        previousFrameHeight = line->iHeight;
+        previousFrameBackground = toPhosphor(line->pPalette[line->ucBackground]);
+        gifFrameStateValid = true;
+    }
 
     // Decode into one small destination scanline, then send contiguous runs
     // to the TFT in bulk. Per-pixel fillRect() calls made animation far too slow.
@@ -92,12 +148,7 @@ void drawGifScanline(GIFDRAW *line) {
         const uint8_t index = line->pPixels[pixel];
         if (line->ucHasTransparency && index == line->ucTransparent) continue;
 
-        const uint16_t source = line->pPalette[index];
-        const uint16_t r = static_cast<uint16_t>(((source >> 11) & 0x1F) * 255U / 31U);
-        const uint16_t g = static_cast<uint16_t>(((source >> 5) & 0x3F) * 255U / 63U);
-        const uint16_t b = static_cast<uint16_t>((source & 0x1F) * 255U / 31U);
-        const uint16_t lum = static_cast<uint16_t>((r * 77U + g * 150U + b * 29U) >> 8);
-        const uint16_t phosphor = static_cast<uint16_t>(((lum * 63U + 127U) / 255U) << 5);
+        const uint16_t phosphor = toPhosphor(line->pPalette[index]);
 
         const int16_t dx0 = static_cast<int16_t>(canvasOriginX +
             static_cast<int16_t>(sx * gifScale));
@@ -181,6 +232,9 @@ bool gifPlayerStart(const char *path, TFT_eSPI &display) {
     canvasOriginX = static_cast<int16_t>((kDisplayWidth - scaledCanvasWidth) / 2);
     canvasOriginY = static_cast<int16_t>(76 + (104 - scaledCanvasHeight) / 2);
     unsupportedFrame = false;
+    gifFrameStateValid = false;
+    gifLoopClearPending = false;
+    previousFrameDisposal = 0;
     nextFrameAtMs = 0;
     gifStartedAtMs = millis();
     return true;
@@ -252,7 +306,10 @@ bool gifPlayerTick(uint32_t nowMs) {
 
     // AnimatedGIF reports 0 after the final frame. Rewind immediately so
     // trailer bytes are never mistaken for another frame on the next tick.
-    if (result == 0) decoder->reset();
+    if (result == 0) {
+        decoder->reset();
+        gifLoopClearPending = true;
+    }
 
     if (delayMs < 20) delayMs = 20;
     if (delayMs > 5000) delayMs = 5000;
@@ -281,6 +338,9 @@ void gifPlayerStop() {
     scaledCanvasWidth = 0;
     scaledCanvasHeight = 0;
     unsupportedFrame = false;
+    gifFrameStateValid = false;
+    gifLoopClearPending = false;
+    previousFrameDisposal = 0;
 }
 
 bool gifPlayerIsActive() {
