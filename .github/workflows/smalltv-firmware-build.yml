@@ -74,11 +74,15 @@ jobs:
           for token in required:
               if token not in gif:
                   raise SystemExit(f"GIF viewport check failed: {token}")
-          if "gifTransitionUntilMs = nowMs + 1800UL" not in main:
-              raise SystemExit("GIF page-transition playback missing")
+          if "displayState.currentPage == DASHBOARD_PAGE_GIF" not in main:
+              raise SystemExit("GIF playback is not restricted to the archive page")
+          if "displayInvalidateRenderCache();" not in main:
+              raise SystemExit("Leaving the GIF archive does not force a clean page redraw")
+          if "gifTransitionUntilMs" in main or "gifTransitionActive" in main:
+              raise SystemExit("GIF page-transition overlay must remain disabled")
           if "void renderWeatherPage()" not in display or "VORHERSAGE" not in display:
               raise SystemExit("Readable weather renderer missing")
-          print("Verified: 104x104 GIF viewport, short page transitions, weather renderer")
+          print("Verified: compact GIF viewport, archive-only playback, clean page redraw, weather renderer")
           PY
 
       - name: Bundle official Bethesda Vault Boy animation
