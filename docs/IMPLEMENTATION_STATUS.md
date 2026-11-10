@@ -6,37 +6,36 @@
 - Aktuelles Theme: 7
 - Freier Speicher zuletzt gemeldet: 187.916 Bytes (ca. 183,5 KiB)
 
-## Verbindliche Displaystruktur
-Eine Wetterseite, eine Uhrseite und die vorhandenen GIF-Anzeigen dazwischen. Keine neuen Seiten. Wetter- und Uhrdaten bleiben erhalten; nur die Gestaltung wird angepasst.
+## Verbindliches Ziel
+Eine Wetterseite, eine Uhrseite und die vorhandenen GIF-Anzeigen dazwischen. Alle drei Bestandteile sollen ein zusammenhängendes Fallout-4-/Pip-Boy-3000-Mark-IV-Design erhalten. Wetter, Uhrzeit, Datum, WLAN und der bisherige Ablauf müssen erhalten bleiben. Keine unnötigen zusätzlichen Seiten.
 
-## Erstes Asset fertig
-- Zielpfad: `/gif/spaceman.gif`
-- 80×80 px, 9 Frames, 180 ms, Loop
-- ca. 14 KB
-- Phosphorgrün auf Schwarz
-- Eigenständiges retro-futuristisches Maskottchen, kein offizieller Bethesda-Asset
+## Was tatsächlich umgesetzt ist
+- Gerät, Firmwareversion und relevante Speicherwerte dokumentiert.
+- Vorhandene GIF-Dateien und ihre Größen erfasst.
+- Erste Designkonzepte und technische Bestandsaufnahme im Repository abgelegt.
+- Kompatibilitätsprüfung der Alternative smalltv-mod durchgeführt.
+- Ergebnis: smalltv-mods Theme-Uhr ist kein vollständiger Skin für die Stock-Wetterseite, Stock-Uhrseite und GIF-Rotation.
+- Entscheidung dokumentiert: kein Loader und kein Firmware-Flash als Abkürzung.
 
-## Paket erstellt
-`Ultra-TV-Fallout-Installpaket.zip` enthält:
-- `gif/spaceman.gif`
-- `INSTALL_SPACEMAN_WINDOWS.bat`
-- `README.txt`
+## Was ausdrücklich NICHT fertig ist
+- Kein vollständiger Fallout-Firmwarebuild.
+- Keine Wetter- oder Uhrseite im Gerät geändert.
+- Keine GIF-Datei am Gerät ersetzt.
+- Kein Installationspaket als flashfertiges Firmwareartefakt.
+- Keine Schreiboperation am Gerät ausgeführt.
 
-Das Skript prüft die Erreichbarkeit und versucht ein Backup der vorhandenen GIF-Datei. Es führt bewusst keinen Upload aus, solange der tatsächliche /gif-Uploadpfad und das Multipart-Feld auf V9.0.50 nicht eindeutig bestätigt sind.
+## Technischer Befund
+Die Stock-Firmware V9.0.50 ist als Hersteller-Binärpaket auffindbar; vollständiger Quellcode für das native Seiten-Rendering liegt bislang nicht vor. Die ausgelesenen Geräte-Endpunkte belegen Speicher- und Einstellungsdaten, aber keine unterstützte Schnittstelle zum Umbau der nativen Wetter-/Uhrgrafik.
 
-## API-Erkenntnisse
-Community-Quellen dokumentieren für Stock-Ultra:
-- `POST /doUpload?dir=/gif` für 80×80 Wetter-GIFs (Skill-Referenz)
-- `GET /set?gif=/gif/<datei>` zum Setzen der Wetter-GIF-Animation
-- `POST /doUpload?dir=/image/` für Album-Bilder
-- `GET /set?img=/image/<datei>` und Theme 3 für Fotoalbum
+Die Alternative smalltv-mod ersetzt die Stock-Firmware. Ihre Theme-Engine kann eine eigene Uhrenansicht mit Grafiken, Animationen, Formen, Text und begrenzten JSON-Datenquellen zeichnen, aber sie skinnt nicht die native Stock-Wetterseite und erhält nicht automatisch den Stock-GIF-Ablauf. Beim SmallTV Ultra ist die Installation außerdem zweistufig und erfordert einen Loader.
 
-Die Quellen widersprechen sich beim Multipart-Feldnamen (`image` vs. `file`). Deshalb keine automatisierte Schreibaktion, bis die tatsächliche Upload-Oberfläche der installierten V9.0.50 herangezogen wurde. Die Wetter-GIF-Funktion ist im Geräte-Webinterface dokumentiert. Quellen: AgentGlance API-Notizen, SmallTV Ultra Skill und GeekMagic Handbuch.
+Siehe [Kompatibilitätsentscheidung](ALTERNATIVE_FIRMWARE_COMPATIBILITY.md).
 
-## Noch offen
-1. GIF über die Geräte-Weboberfläche hochladen und Anzeige prüfen.
-2. Weitere vorhandene GIFs im selben Stil vorbereiten und einzeln austauschen.
-3. Wetter- und Uhrseite anhand der realen V9.0.50-Einstellungen gestalten. Keine nicht belegten Farb-/Layout-Parameter erfinden.
+## Nächster technischer Meilenstein
+Eine belastbare Methode für den Zugriff auf das Rendering der Stock-Firmware finden oder eine vollständige Ersatzfirmware mit Wetter, Uhr und GIF-Karussell spezifizieren. Vor einem Ersatzfirmware-Ansatz sind Wetterdatenquelle, Speicherbudget, Animation, WLAN-Konfiguration, Recovery und die genaue ESP8266-Hardware zu prüfen.
 
-## Sicherheitsstatus
-Keine Dateien auf dem Gerät verändert oder gelöscht, kein Theme geändert, kein Firmware-Flash. Das lokale Gerät ist für diesen Arbeitslauf nicht direkt erreichbar; die letzte bestätigte Geräteantwort stammt aus den zuvor dokumentierten Nutzerabfragen.
+## Sicherheit
+- Kein Flashen, Löschen oder Überschreiben.
+- Original-GIFs bleiben unangetastet.
+- Keine unbestätigten Upload-Endpunkte automatisiert verwenden.
+- Keine Behauptung eines erfolgreichen Builds ohne tatsächlichen Compile- und Validierungslauf.
