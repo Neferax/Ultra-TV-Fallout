@@ -75,8 +75,8 @@ void drawGifScanline(GIFDRAW *line) {
     // Keep every animation inside a dedicated 104x104 artwork viewport.
     const int16_t sourceY = static_cast<int16_t>(line->iY + line->y);
     if (sourceY < 0 || sourceY >= canvasHeight) return;
-    const int16_t dy0 = static_cast<int16_t>(canvasOriginY + floorf(sourceY * gifScale));
-    const int16_t dy1 = static_cast<int16_t>(canvasOriginY + floorf((sourceY + 1) * gifScale));
+    const int16_t dy0 = static_cast<int16_t>(canvasOriginY + static_cast<int16_t>(sourceY * gifScale));
+    const int16_t dy1 = static_cast<int16_t>(canvasOriginY + static_cast<int16_t>((sourceY + 1) * gifScale));
     if (dy1 <= dy0) return;
     for (int pixel = 0; pixel < line->iWidth; ++pixel) {
         const int16_t sx = static_cast<int16_t>(line->iX + pixel);
@@ -89,13 +89,15 @@ void drawGifScanline(GIFDRAW *line) {
         const uint16_t bl = static_cast<uint16_t>((source & 0x1F) * 255U / 31U);
         const uint16_t lum = static_cast<uint16_t>((r * 77U + g * 150U + bl * 29U) >> 8);
         const uint16_t color = static_cast<uint16_t>(((lum * 63U + 127U) / 255U) << 5);
-        const int16_t dx0 = static_cast<int16_t>(canvasOriginX + floorf(sx * gifScale));
-        const int16_t dx1 = static_cast<int16_t>(canvasOriginX + floorf((sx + 1) * gifScale));
+        const int16_t dx0 = static_cast<int16_t>(canvasOriginX + static_cast<int16_t>(sx * gifScale));
+        const int16_t dx1 = static_cast<int16_t>(canvasOriginX + static_cast<int16_t>((sx + 1) * gifScale));
         if (dx1 <= dx0 || dx1 <= 0 || dx0 >= kDisplayWidth) continue;
-        const int16_t x = max<int16_t>(0, dx0);
-        const int16_t y = max<int16_t>(0, dy0);
-        const int16_t w = min<int16_t>(kDisplayWidth, dx1) - x;
-        const int16_t h = min<int16_t>(kDisplayHeight, dy1) - y;
+        const int16_t x = dx0 > 0 ? dx0 : 0;
+        const int16_t y = dy0 > 0 ? dy0 : 0;
+        const int16_t right = dx1 < kDisplayWidth ? dx1 : kDisplayWidth;
+        const int16_t w = right - x;
+        const int16_t bottom = dy1 < kDisplayHeight ? dy1 : kDisplayHeight;
+        const int16_t h = bottom - y;
         if (w > 0 && h > 0) targetDisplay->fillRect(x, y, w, h, color);
     }
     yield();
@@ -150,9 +152,11 @@ bool gifPlayerStart(const char *path, TFT_eSPI &display) {
     }
     const float sx = static_cast<float>(kGifViewportWidth) / canvasWidth;
     const float sy = static_cast<float>(kGifViewportHeight) / canvasHeight;
-    gifScale = min(sx, sy);
-    scaledCanvasWidth = max<int16_t>(1, static_cast<int16_t>(canvasWidth * gifScale));
-    scaledCanvasHeight = max<int16_t>(1, static_cast<int16_t>(canvasHeight * gifScale));
+    gifScale = sx < sy ? sx : sy;
+    scaledCanvasWidth = static_cast<int16_t>(canvasWidth * gifScale);
+    if (scaledCanvasWidth < 1) scaledCanvasWidth = 1;
+    scaledCanvasHeight = static_cast<int16_t>(canvasHeight * gifScale);
+    if (scaledCanvasHeight < 1) scaledCanvasHeight = 1;
     canvasOriginX = static_cast<int16_t>((kDisplayWidth - scaledCanvasWidth) / 2);
     canvasOriginY = static_cast<int16_t>(76 + (104 - scaledCanvasHeight) / 2);
     unsupportedFrame = false;
