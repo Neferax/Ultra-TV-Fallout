@@ -31,6 +31,16 @@
 - Bei Erfolg wird `firmware.bin` als 14 Tage verfügbares Actions-Artefakt abgelegt.
 - Der erfolgreiche CI-Lauf bestätigt Patch-Anwendung und Kompilierung. Die Laufzeit-Allokation des Decoders im realen IRAM-Heap ist weiterhin nicht auf Hardware gemessen.
 
+## Zweistufiger OTA-Installationsweg
+
+- Ein eigener Minimal-Loader ist unter `firmware/loader.cpp` implementiert. Er startet das offene WLAN `SmallTV-Loader` und stellt den ESP8266-HTTP-Updater unter `/update` bereit.
+- Der Loader wird als separater PlatformIO-Target gebaut und nicht in die Hauptfirmware gelinkt.
+- Erfolgreicher Build mit beiden Images: [GitHub Actions Run 42805367195](https://github.com/Neferax/Ultra-TV-Fallout/actions/runs/42805367195).
+- Loader: 316.112 Bytes, SHA-256 `de86b968495f03ecb0e37edeef02247202a942d7fa96dda5534564a3eef0ab2f`.
+- Hauptfirmware: 701.600 Bytes, SHA-256 `9e530d102b92c251e9ed1ee36d7791077f43375d10693eff9b012619765d4df4`.
+- Installationsablauf: zuerst Loader über die Stock-Seite `http://192.168.178.70/update`; danach mit `SmallTV-Loader` verbinden und die Hauptfirmware über `http://192.168.4.1/update` hochladen. Vollständige Anleitung: [INSTALLATION.md](INSTALLATION.md).
+- Beide Dateien liegen gemeinsam im Actions-Artefakt `smalltv-ultra-fallout-install-package`. Der Build bestätigt die Kompilierung, nicht die Hardwarefunktion.
+
 ## Was noch offen ist
 1. Decoder-Instanzgröße und IRAM-Reserve auf dem realen Gerät messen.
 2. Geeignete GIFs testen: 11-Bit-LZW und vollständige Canvas-Frames; Transparenz wird schwarz dargestellt.
