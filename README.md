@@ -51,6 +51,7 @@ flashfertiges Firmware-Image vor. Der Buildstatus ist nicht bestätigt.
 
 Details: [Implementierungsstatus](docs/IMPLEMENTATION_STATUS.md) ·
 [GIF-Speicher- und Decoderanalyse](docs/GIF_DECODER_FEASIBILITY.md) ·
+[Offizielle Bethesda-GIF-Quellen](docs/FALLOUT_GIF_SOURCES.md) ·
 [Firmware-Integration](firmware/README.md)
 
 ## Sicherheitsregeln
