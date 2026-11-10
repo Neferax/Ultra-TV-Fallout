@@ -16,6 +16,9 @@ TFT_eSPI *targetDisplay = nullptr;
 uint32_t nextFrameAtMs = 0;
 int16_t canvasOriginX = 0;
 int16_t canvasOriginY = 0;
+int16_t canvasWidth = 0;
+int16_t canvasHeight = 0;
+bool unsupportedFrame = false;
 uint16_t scanline565[kDisplayWidth];
 
 void *openGifFile(const char *path, int32_t *fileSize) {
@@ -50,7 +53,17 @@ int32_t seekGifFile(GIFFILE *gifFile, int32_t position) {
 
 void drawGifScanline(GIFDRAW *line) {
     if (line == nullptr || targetDisplay == nullptr || line->pPixels == nullptr ||
-        line->pPalette == nullptr) return;
+        line->pPalette == nullptr || unsupportedFrame) return;
+
+    // No full-canvas framebuffer is available on this ESP8266. Accept only
+    // pre-flattened opaque frames; partial/transparency/disposal-2 frames need
+    // compositing state and would otherwise leave trails.
+    if (line->ucHasTransparency || line->ucDisposalMethod == 2 ||
+        line->iX != 0 || line->iY != 0 ||
+        line->iWidth != canvasWidth || line->iHeight != canvasHeight) {
+        unsupportedFrame = true;
+        return;
+    }
 
     const int16_t x = static_cast<int16_t>(canvasOriginX + line->iX);
     const int16_t y = static_cast<int16_t>(canvasOriginY + line->iY + line->y);
@@ -112,8 +125,11 @@ bool gifPlayerStart(const char *path, TFT_eSPI &display) {
         return false;
     }
 
-    canvasOriginX = static_cast<int16_t>((kDisplayWidth - decoder->getCanvasWidth()) / 2);
-    canvasOriginY = static_cast<int16_t>((kDisplayHeight - decoder->getCanvasHeight()) / 2);
+    canvasWidth = static_cast<int16_t>(decoder->getCanvasWidth());
+    canvasHeight = static_cast<int16_t>(decoder->getCanvasHeight());
+    canvasOriginX = static_cast<int16_t>((kDisplayWidth - canvasWidth) / 2);
+    canvasOriginY = static_cast<int16_t>((kDisplayHeight - canvasHeight) / 2);
+    unsupportedFrame = false;
     nextFrameAtMs = 0;
     return true;
 }
@@ -124,7 +140,8 @@ bool gifPlayerTick(uint32_t nowMs) {
 
     int delayMs = 100;
     const int result = decoder->playFrame(false, &delayMs, nullptr);
-    if (result < 0) {
+    if (result < 0 || unsupportedFrame) {
+        if (targetDisplay != nullptr) targetDisplay->fillScreen(TFT_BLACK);
         gifPlayerStop();
         return false;
     }
@@ -150,6 +167,9 @@ void gifPlayerStop() {
     nextFrameAtMs = 0;
     canvasOriginX = 0;
     canvasOriginY = 0;
+    canvasWidth = 0;
+    canvasHeight = 0;
+    unsupportedFrame = false;
 }
 
 bool gifPlayerIsActive() {
