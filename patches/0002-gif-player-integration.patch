@@ -167,7 +167,20 @@ diff --git a/src/feeds.cpp b/src/feeds.cpp
  #include "logger.h"
  #include <ArduinoJson.h>
  #include <ESP8266HTTPClient.h>
-@@ -2390,6 +2391,7 @@
+@@ -458,7 +459,11 @@
+     memset(&feedConfig, 0, sizeof(feedConfig));
+     feedConfig.version = FEEDS_CONFIG_VERSION;
+ 
+-    feedConfig.weather.source = WEATHER_FEED_DISABLED;
++    feedConfig.weather.source = WEATHER_FEED_OPEN_METEO;
++    copyString(feedConfig.weather.query, sizeof(feedConfig.weather.query), "47239 Duisburg");
++    copyString(feedConfig.weather.label, sizeof(feedConfig.weather.label), "DUISBURG // RUMELN-KALDENHAUSEN");
++    feedConfig.weather.latitude = 51.3948f;
++    feedConfig.weather.longitude = 6.65183f;
+     feedConfig.weather.refreshMinutes = 30;
+     feedConfig.weather.useFahrenheit = false;
+ 
+@@ -2390,6 +2395,7 @@
          if (slot.hasData && (slot.lastError[0] || now - slot.lastSuccessMs > staleAfterMs)) slot.stale = true;
      }
      if (feedsBusy()) {
@@ -175,7 +188,7 @@ diff --git a/src/feeds.cpp b/src/feeds.cpp
          pumpFeedJob();
          return;
      }
-@@ -2407,7 +2409,10 @@
+@@ -2407,7 +2413,10 @@
          if (feedsMarketConfigured(index) && (feedConfig.markets[index].source == MARKET_FEED_FINNHUB || feedConfig.markets[index].source == MARKET_FEED_COINGECKO) && due(feedRuntime.markets[index].lastAttemptMs, feedConfig.markets[index].refreshMinutes)) pendingSyncMask |= kMarketJobBase << index;
      }
      if (feedsHomeAssistantConfigured() && due(feedRuntime.homeAssistant.lastAttemptMs, feedConfig.homeAssistant.refreshMinutes)) pendingSyncMask |= kHomeAssistantJob;
