@@ -1,7 +1,7 @@
 diff --git a/src/display.cpp b/src/display.cpp
 --- a/src/display.cpp
 +++ b/src/display.cpp
-@@ -1,31 +1,70 @@
+@@ -1609,62 +1609,83 @@
  void renderClockPage() {
      const ThemePalette &theme = activeTheme();
 -    drawScreenChrome("ROBCO INDUSTRIES");
