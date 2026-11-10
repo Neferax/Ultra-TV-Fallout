@@ -63,7 +63,9 @@ the device before changing firmware, then upload compatible files through the
 new `/gif` page after installation.
 
 The exact board revision, flash partition layout, first-flash method, and
-recovery procedure still need verification. No firmware has been flashed and
+recovery procedure still need verification. Wi-Fi credentials from the Stock
+firmware are not guaranteed to migrate; the upstream failsafe access point may
+be needed to configure the new firmware. No firmware has been flashed and
 no device files have been changed.
 
 ## Validation status
