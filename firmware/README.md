@@ -64,8 +64,9 @@ No device flash or storage modification has been performed.
 ## GIF archive and player integration (prototype)
 
 The current implementation patch repurposes the existing Status page slot as a
-GIF page immediately after Weather in the dashboard rotation; it does not add
-a new dashboard page. A protected upload page is available at
+GIF page immediately after Weather in the dashboard rotation; it reuses the
+existing Status slot and does not add a dashboard page. By default, only Clock,
+Weather and GIF are enabled. A protected upload page is available at
 `http://<device-ip>/gif`. Uploaded files are stored in LittleFS under
 `/gif/`; the upload checks the GIF signature and 240×240 canvas, writes to a
 temporary file, and only replaces an existing filename after the complete write succeeds.
