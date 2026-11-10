@@ -52,16 +52,16 @@ clock_weather = r'''void renderClockPage() {
         const int temperatureFonts[] = {FONT_BODY, FONT_LABEL};
         drawAdaptiveText(formatWeatherTemperature(weather->temperature), 18, 178, 78,
                          TL_DATUM, temperatureFonts, 2, theme.text, theme.surface);
-        drawDisplayLabel(weather->condition[0] != '\\0' ? weather->condition : "AKTUELL",
+        drawDisplayLabel(weather->condition[0] != '\0' ? weather->condition : "AKTUELL",
                          220, 180, 126, TR_DATUM, theme.text, FONT_LABEL);
-        drawDisplayLabel(weather->location[0] != '\\0' ? weather->location : "DUISBURG",
+        drawDisplayLabel(weather->location[0] != '\0' ? weather->location : "DUISBURG",
                          18, 198, 204, TL_DATUM, theme.muted, FONT_INFO);
     } else if (feedRuntime.weather.syncing || weatherWaitingForSync()) {
         drawDisplayLabel("WETTERDATEN WERDEN GELADEN",
                          120, 181, 204, TC_DATUM, theme.text, FONT_LABEL);
         drawDisplayLabel("OPEN-METEO // VERBINDUNG AKTIV",
                          120, 199, 204, TC_DATUM, theme.muted, FONT_INFO);
-    } else if (feedRuntime.weather.lastError[0] != '\\0') {
+    } else if (feedRuntime.weather.lastError[0] != '\0') {
         drawDisplayLabel("WETTERDATEN NICHT VERFUEGBAR",
                          120, 179, 204, TC_DATUM, theme.warning, FONT_LABEL);
         drawDisplayLabel(feedRuntime.weather.lastError,
@@ -88,7 +88,7 @@ void renderWeatherPage() {
                              120, 119, 208, TC_DATUM, theme.text, FONT_LABEL);
             drawDisplayLabel("OPEN-METEO // DUISBURG", 120, 145, 208,
                              TC_DATUM, theme.muted, FONT_INFO);
-        } else if (feedRuntime.weather.lastError[0] != '\\0') {
+        } else if (feedRuntime.weather.lastError[0] != '\0') {
             drawDisplayLabel("DATENVERBINDUNG FEHLGESCHLAGEN",
                              120, 115, 208, TC_DATUM, theme.warning, FONT_LABEL);
             drawDisplayLabel(feedRuntime.weather.lastError, 120, 143, 208,
@@ -106,7 +106,7 @@ void renderWeatherPage() {
     tft.fillRect(9, 64, 222, 91, theme.surface);
     tft.drawRect(9, 64, 222, 91, theme.accent);
     tft.drawRect(12, 67, 216, 85, theme.accentSoft);
-    drawDisplayLabel(weather->location[0] != '\\0' ? weather->location : "DUISBURG // 47239",
+    drawDisplayLabel(weather->location[0] != '\0' ? weather->location : "DUISBURG // 47239",
                      18, 71, 204, TL_DATUM, theme.muted, FONT_INFO);
     const int temperatureFonts[] = {FONT_HUGE, FONT_TITLE, FONT_BODY, FONT_LABEL};
     drawAdaptiveText(formatWeatherTemperature(weather->temperature), 20, 88, 128,
@@ -144,7 +144,7 @@ void renderWeatherPage() {
         }
     }
 
-    drawDisplayLabel(weather->condition[0] != '\\0' ? weather->condition : "AKTUELLE LAGE",
+    drawDisplayLabel(weather->condition[0] != '\0' ? weather->condition : "AKTUELLE LAGE",
                      120, 135, 204, TC_DATUM, theme.accent, FONT_INFO);
     String currentRange = "HOCH " + String(weather->high) + "C   TIEF " +
                           String(weather->low) + "C   REGEN " +
