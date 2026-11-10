@@ -257,7 +257,7 @@ diff --git a/src/main.cpp b/src/main.cpp
      timeServicesStarted = true;
      logPrint(F("Time services started"));
      logHeapState("time services init");
-@@ -712,6 +719,24 @@
+@@ -712,6 +719,25 @@
          lastPageRotation = millis();
      }
  
