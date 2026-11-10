@@ -60,13 +60,14 @@ Ohne Compositing-Framebuffer kann der Player keine beliebigen GIF-Frames korrekt
 zusammensetzen. Er akzeptiert daher nur:
 - Canvas maximal 240 × 240 Pixel.
 - Vollständige, deckende Frames, die jeweils das ganze GIF-Canvas abdecken.
-- Keine transparenten Pixel.
+- Transparente Pixel werden beim Zeichnen zu Schwarz abgeflacht.
 - Keine Disposal-Methode 2.
 - LZW-Codegröße maximal 11 Bit.
 - Dateigröße maximal 300 KiB.
 
-Partielle oder transparente Frames werden abgewiesen, statt Bildreste oder
-fehlerhafte Transparenz anzuzeigen. Die Dateien müssen entsprechend vorbereitet
+Partielle Frames und Disposal-Methode 2 werden abgewiesen. Transparenz wird
+auf schwarzem Hintergrund abgeflacht. Alle sichtbaren GIF-Farben werden in
+monochromes Pip-Boy-Phosphorgrün umgerechnet. Die Dateien müssen entsprechend vorbereitet
 sein. Die vorhandenen Stock-GIFs wurden noch nicht gegen diese Anforderungen
 geprüft.
 
