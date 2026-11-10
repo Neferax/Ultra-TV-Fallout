@@ -88,9 +88,8 @@ void renderWeatherPage() {
     }
 }'''
 
-pattern = re.compile(r"void renderClockPage\\(\\) \\{.*?(?=void renderMarketsPage\\(\\) \\{)", re.S)
-updated, count = pattern.subn(replacement + "\\n\\n", source, count=1)
-if count != 1:
-    raise SystemExit("Could not locate the clock/weather renderer block")
+start = source.index("void renderClockPage() {")
+end = source.index("void renderMarketsPage() {", start)
+updated = source[:start] + replacement + "\n\n" + source[end:]
 path.write_text(updated, encoding="utf-8")
 print("Pip-Boy clock and weather renderers applied")
