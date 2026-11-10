@@ -11,7 +11,7 @@
 - `patches/0001-fallout-pipboy-renderers.patch` gestaltet Uhr und Wetter mit RobCo-/Vault-Tec-Panels neu. NTP- und Open-Meteo-Datenpfade bleiben erhalten.
 - Ausgangsblob des Upstream-`src/display.cpp`: `ef482ea3cc556eb414fff6178fcc7a4d136563a9`.
 - Terminal-Farbpalette (Theme-ID 2) ist als Ausgangsbasis dokumentiert.
-- Der Renderer-Patch wurde noch nicht lokal mit `git apply` oder einem Compiler validiert.
+- Beide Renderer-/Integrationspatches wurden im GitHub-Actions-Lauf erfolgreich angewendet; der anschließende PlatformIO-Build war erfolgreich.
 
 ## GIF-Player und Album
 - AnimatedGIF wurde mit Apache-2.0-Lizenz lokal unter `lib/AnimatedGIF/` vendort.
@@ -29,20 +29,18 @@
 - GitHub-Actions-Workflow: [smalltv-firmware-build.yml](../.github/workflows/smalltv-firmware-build.yml).
 - Er checkt den auditierten Upstream-Commit `6113fb9c86e2e2024883253fd99a3d2550ffccb2` fest aus, prüft zusätzlich den erwarteten `display.cpp`-Blob, wendet beide Patches an, kopiert die lokale Decoderbibliothek und den Player hinein und baut mit `pio run -e nodemcuv2`.
 - Bei Erfolg wird `firmware.bin` als 14 Tage verfügbares Actions-Artefakt abgelegt.
-- Die verfügbaren GitHub-Abfragen liefern bislang keine bestätigten Workflow-Checks. Deshalb sind Patch-Anwendung, Compile-Erfolg, tatsächliche Instanzgröße, IRAM-Allokation und Binärgröße **noch nicht verifiziert**.
+- Der erfolgreiche CI-Lauf bestätigt Patch-Anwendung und Kompilierung. Die Laufzeit-Allokation des Decoders im realen IRAM-Heap ist weiterhin nicht auf Hardware gemessen.
 
 ## Was noch offen ist
-1. GitHub-Actions-Build tatsächlich erfolgreich durchlaufen lassen und Fehler korrigieren.
-2. Auf dem Build die echte Decoder-Instanzgröße und IRAM-Reserve protokollieren.
-3. Geeignete GIFs testen: 11-Bit-LZW und vollständige Canvas-Frames; Transparenz wird schwarz dargestellt.
-4. Laufzeit prüfen: Framerate, Seitenwechsel, TLS-Feed, OTA, Watchdog und Speicherfragmentierung.
-5. Backup-/Restore- und Recovery-Weg für genau diese Hardware-/Partitionsvariante prüfen.
+1. Decoder-Instanzgröße und IRAM-Reserve auf dem realen Gerät messen.
+2. Geeignete GIFs testen: 11-Bit-LZW und vollständige Canvas-Frames; Transparenz wird schwarz dargestellt.
+3. Laufzeit prüfen: Framerate, Seitenwechsel, TLS-Feed, OTA, Watchdog und Speicherfragmentierung.
+4. Backup-/Restore- und Recovery-Weg für genau diese Hardware-/Partitionsvariante prüfen.
 
 ## Sicherheit und Gerätestatus
 - Keine Firmware wurde geflasht.
 - Keine Stock-GIFs, Einstellungen oder Dateien wurden gelöscht oder überschrieben.
-- Es gibt noch kein nachweislich flashfertiges Firmware-Image.
-- Der Build-/Laufzeitstatus wird nicht als erfolgreich bezeichnet, bevor die Tests tatsächlich vorliegen.
+- Ein erfolgreich kompiliertes Firmware-Binary liegt vor; die Hardware-Kompatibilität und der reale Laufzeitbetrieb sind noch nicht getestet.
 
 - Konfigurationsmigration: Alte Dashboard-Konfigurationen (Schema 3) übernehmen nicht mehr die früheren Seiten-IDs; die neuen Standardseiten Uhr, Wetter und GIF-Archiv bleiben aktiv. Alte Feed-Konfigurationen (Schema 2) behalten Markt-/Home-Assistant-Einstellungen, übernehmen aber die neue Open-Meteo-Wettervoreinstellung.
 - LittleFS-Uploadpfade: Temporäre Datei und Sicherung verwenden feste kurze Namen, damit gültige GIF-Dateinamen bis zur LittleFS-Komponentengrenze nicht durch angehängte Endungen unbrauchbar werden.
