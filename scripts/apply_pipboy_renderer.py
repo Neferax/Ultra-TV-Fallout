@@ -115,8 +115,6 @@ clock_weather = r'''void renderClockPage() {
     tft.drawRect(8, 68, 224, 80, theme.accent);
     tft.drawRect(11, 71, 218, 74, theme.accentSoft);
     tft.fillRect(14, 74, 212, 5, theme.surface);
-    drawDisplayLabel("LOCAL TIME // EUROPE-BERLIN", 120, 75, 204,
-                     TC_DATUM, theme.accent, FONT_INFO);
     updateClockDynamicArea();
 
     // Live environmental status card.
@@ -182,7 +180,9 @@ void renderWeatherPage() {
     tft.drawLine(34, 127, 29, 132, theme.accent);
     tft.drawLine(64, 127, 69, 132, theme.accent);
     tft.drawHeroText; // placeholder removed below
-    drawHeroText(formatWeatherTemperature(weather->temperature), 91, 52, theme.text, 3);
+    const int temperatureFonts[] = {FONT_BODY, FONT_LABEL};
+    drawAdaptiveText(formatWeatherTemperature(weather->temperature), 157, 99, 132,
+                     TC_DATUM, temperatureFonts, 2, theme.text, theme.background);
     drawDisplayLabel(weather->condition[0] != '\0' ? weather->condition : "CURRENT CONDITIONS",
                      120, 139, 204, TC_DATUM, theme.accent, FONT_INFO);
 
@@ -202,8 +202,8 @@ void renderWeatherPage() {
                          valueFonts, sizeof(valueFonts) / sizeof(valueFonts[0]),
                          theme.text, theme.background);
     }
-    drawDisplayLabel("DATA LINK // OPEN-METEO", 120, 218, 204,
-                     TC_DATUM, theme.muted, FONT_INFO);
+    drawDisplayLabel("OPEN-METEO // LIVE DATA", 230, 218, 128,
+                     TR_DATUM, theme.muted, FONT_INFO);
 }'''
 # Remove accidental placeholder line before writing generated script.
 clock_weather = clock_weather.replace("    tft.drawHeroText; // placeholder removed below\n", "")
