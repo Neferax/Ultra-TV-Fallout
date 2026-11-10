@@ -262,7 +262,7 @@ bool gifPlayerUploadStart(const char *filename) {
     String name(filename);
     int slash = max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
     if (slash >= 0) name = name.substring(slash + 1);
-    if (name.length() == 0 || name.length() > 36 ||
+    if (name.length() == 0 || name.length() > 31 ||
         (!name.endsWith(".gif") && !name.endsWith(".GIF"))) return false;
 
     for (size_t i = 0; i < name.length(); ++i) {
