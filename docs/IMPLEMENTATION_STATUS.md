@@ -26,7 +26,7 @@
 
 ## Reproduzierbarer Build
 - GitHub-Actions-Workflow: [smalltv-firmware-build.yml](../.github/workflows/smalltv-firmware-build.yml).
-- Er checkt den erwarteten Upstream-Quellstand aus, wendet beide Patches an, kopiert die lokale Decoderbibliothek und den Player hinein und baut mit `pio run -e nodemcuv2`.
+- Er checkt den auditierten Upstream-Commit `6113fb9c86e2e2024883253fd99a3d2550ffccb2` fest aus, prüft zusätzlich den erwarteten `display.cpp`-Blob, wendet beide Patches an, kopiert die lokale Decoderbibliothek und den Player hinein und baut mit `pio run -e nodemcuv2`.
 - Bei Erfolg wird `firmware.bin` als 14 Tage verfügbares Actions-Artefakt abgelegt.
 - Die verfügbaren GitHub-Abfragen liefern bislang keine bestätigten Workflow-Checks. Deshalb sind Patch-Anwendung, Compile-Erfolg, tatsächliche Instanzgröße, IRAM-Allokation und Binärgröße **noch nicht verifiziert**.
 
