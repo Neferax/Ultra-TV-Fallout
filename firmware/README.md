@@ -71,7 +71,7 @@ filename after the complete write succeeds.
 
 The decoder is intentionally constrained for the ESP8266:
 - Maximum canvas width: 240 pixels.
-- Maximum file size: 300 KiB per GIF; at most eight files are indexed.
+- Maximum file size: 300 KiB per GIF; at most twelve files are indexed.
 - LZW code size must stay at or below 10 bits.
 - Frames must be full-canvas and opaque. Transparent or partial frames are
   rejected because the player deliberately avoids a 240x240 compositing buffer.
