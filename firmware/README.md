@@ -9,7 +9,7 @@ It does **not** yet contain a verified flash-ready binary.
 
 - Clock and weather renderers use RobCo / Vault-Tec terminal framing.
 - Live NTP time and Open-Meteo weather data paths are retained.
-- The built-in Terminal theme (theme ID 2) provides the green-on-dark baseline.
+- The built-in Terminal theme (theme ID 2) is selected by default and provides the green-on-dark baseline. The default page rotation interval is 20 seconds.
 - The existing Status page slot is reused as the GIF archive page immediately
   after Weather. No extra dashboard page is added.
 - Only Clock, Weather and GIF are enabled by default.
