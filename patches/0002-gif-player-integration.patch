@@ -82,6 +82,15 @@ diff --git a/src/display.cpp b/src/display.cpp
          default:
              renderClockPage();
              break;
+@@ -1792,7 +1805,7 @@
+         updateDashboardDynamicArea(pageId);
+         renderCache.dynamicHash = dynamicHash;
+     }
+-    updateFooterClock();
++    if (pageId != DASHBOARD_PAGE_GIF) updateFooterClock();
+ }
+ 
+ }  // namespace
 diff --git a/src/feeds.cpp b/src/feeds.cpp
 --- a/src/feeds.cpp
 +++ b/src/feeds.cpp
