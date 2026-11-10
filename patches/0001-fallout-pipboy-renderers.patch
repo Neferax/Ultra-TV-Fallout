@@ -1,7 +1,7 @@
 diff --git a/src/display.cpp b/src/display.cpp
 --- a/src/display.cpp
 +++ b/src/display.cpp
-@@ -1609,43 +1609,81 @@
+@@ -1549,44 +1549,82 @@
 -void renderClockPage() {
 -    const ThemePalette &theme = activeTheme();
 -    drawScreenChrome("Clock");
@@ -126,3 +126,4 @@ diff --git a/src/display.cpp b/src/display.cpp
 +                         valueFonts, sizeof(valueFonts) / sizeof(valueFonts[0]), theme.text, theme.background);
 +    }
 +}
+ void renderMarketsPage() {
