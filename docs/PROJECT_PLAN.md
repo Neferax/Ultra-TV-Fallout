@@ -1,50 +1,63 @@
 # Ultra-TV-Fallout – Projektplan
 
 ## Ziel
-Die GeekMagic SmallTV Ultra mit Firmware **Ultra-V9.0.50** soll eine Fallout-inspirierte RobCo-/Pip-Boy-Oberfläche erhalten. Zielplattform laut bisheriger Gerätezuordnung: ESP8266 (ESP-12F), 240 × 240 Pixel, ST7789. Diese Hardwaredaten und die Firmwarekompatibilität werden vor Änderungen anhand der Originaldateien verifiziert.
+Die GeekMagic SmallTV Ultra mit Stock-Firmware `Ultra-V9.0.50` soll eine
+durchgängige Fallout-4-/Pip-Boy-/RobCo-Anzeige erhalten. Zielplattform laut
+Upstream-Hardwareprüfung: ESP8266 (ESP-12F), 240×240 Pixel, ST7789.
+
+## Verbindliche Displaystruktur
+- Clock
+- Weather
+- GIF-Archiv
+
+Der vorhandene Status-Seitenslot der alternativen Firmware wird als GIF-Seite
+direkt nach Weather wiederverwendet. Die Seitenzahl wird nicht erhöht. Nur diese
+drei Seiten sind standardmäßig aktiv.
 
 ## Leitlinien
-1. **Bestehende Funktionen erhalten.** Uhr, Wetter, Vorhersage, Standort und vorhandene Datenquellen sollen weiter funktionieren.
-2. **Keine unnötigen neuen Seiten.** Zuerst vorhandene Seiten und deren Konfigurationsmöglichkeiten inventarisieren.
-3. **Jede Seite bekommt eine eigene Informationshierarchie.** Gemeinsame Fallout-Bildsprache, aber keine identischen Layouts.
-4. **Stock-Firmware zuerst.** Zunächst prüfen, was V9.0.50 über Weboberfläche, Konfiguration, HTTP-Schnittstellen und Grafik-Uploads erlaubt.
-5. **Keine Firmware-Experimente am Gerät, bevor ein Rückweg existiert.** Original-Firmware, Konfiguration und Wiederherstellungsweg dokumentieren.
-6. **Kleine Displayfläche respektieren.** 240 × 240 Pixel; Lesbarkeit und Datenpriorität gehen vor dekorativen Effekten.
-7. **Keine unbelegten Kompatibilitätsannahmen.** Änderungen werden erst nach Prüfung der konkreten Firmwaredateien umgesetzt.
+1. Live-Uhrzeit, Datum, Wetter und WLAN-Funktion erhalten.
+2. Keine unnötigen Dashboard-Seiten oder zusätzlichen Hintergrunddienste.
+3. Lesbarkeit auf 240×240 Pixeln hat Vorrang vor Effekten.
+4. Phosphorgrün auf tiefschwarzem Hintergrund, keine generischen Neonfarben.
+5. GIF-Wiedergabe darf Feed-/TLS-Arbeit nicht destabilisieren.
+6. Originaldateien sichern; kein Flashen ohne nachgewiesenen Rückweg.
+7. Build- und Hardwaretests nicht als erfolgreich ausgeben, solange sie nicht
+   tatsächlich bestätigt wurden.
 
-## Geplanter Ablauf
-### Phase 0 – Bestand sichern und analysieren
-- Original-Firmware V9.0.50 beschaffen.
-- Firmwaredatei, Dateigröße, Prüfsumme und Herkunft dokumentieren.
-- Weboberfläche und vorhandene Displayseiten erfassen.
-- Verfügbare Konfigurations- und HTTP-Schnittstellen prüfen.
-- Backup- und Recovery-Verfahren festhalten.
+## Bereits umgesetzt (Quellcode/Projekt)
+- Stock-Firmware-Endpunkte read-only untersucht; Gerätedateien dokumentiert.
+- Open-Source-Firmwarebasis mit SmallTV-Ultra-Unterstützung identifiziert.
+- RobCo-/Pip-Boy-C++-Renderer-Patch für Clock und Weather erstellt.
+- Standardkonfiguration auf Terminal-Theme, 20 Sekunden Seitenwechsel,
+  Open-Meteo-Wetter für PLZ 47239 und Europe/Berlin mit automatischer
+  Sommerzeit ausgerichtet.
+- AnimatedGIF-Bibliothek für den ESP8266 speicherschonend konfiguriert.
+- LittleFS-/TFT-Scanline-Player mit grüner Farbkonvertierung und schwarzem
+  Transparenzhintergrund als Prototyp erstellt.
+- Geschützte GIF-Uploadseite, Albumrotation und Feed-/TLS-/OTA-Speichersteuerung
+  als Integrationspatch erstellt.
+- GitHub-Actions-Workflow für Patch-Anwendung und PlatformIO-Build angelegt.
 
-### Phase 1 – Designsystem
-- Fallout-4-Pip-Boy / RobCo als visuelle Referenz.
-- Dunkler Hintergrund und monochromes Phosphorgrün.
-- Gut lesbare Bitmap-/Monospace-Schrift.
-- Zurückhaltende CRT-Scanlines und Glow-Effekte.
-- Originale bzw. nachvollziehbar lizenzierte Grafiken; keine ungeprüfte Weiterverteilung urheberrechtlich geschützter Assets.
+## Offene Arbeit
+1. GitHub-Actions-Build erfolgreich bestätigen und Compilerfehler beheben.
+2. Tatsächliche Decodergröße und IRAM-/DRAM-Reserve messen.
+3. Offizielle Bethesda-GIFs und vorhandene Stock-GIFs auf Decoderkompatibilität
+   prüfen.
+4. Framerate, Seitenwechsel, NTP, Open-Meteo, TLS, OTA, Watchdog und
+   Langzeitstabilität auf echter Hardware testen.
+5. Exakte Boardrevision, Flashlayout, First-Flash- und Recovery-Weg verifizieren.
+6. Erst danach ein flashfertiges Release-Paket erstellen.
 
-### Phase 2 – Vorhandene Ansichten gestalten
-- Haupt-/Uhransicht: STAT-ähnliche Statusübersicht.
-- Wettervorhersage: eigene DATA / ATMOS-Ansicht mit Tageszeilen und Wetter-Icons.
-- Weitere vorhandene Ansichten werden erst nach der Bestandsaufnahme zugeordnet.
-- Keine zusätzlichen Seiten, solange vorhandene Ansichten die Anforderungen abdecken.
+## Bekannte Einschränkungen
+- GIF-Canvas maximal 240×240 Pixel.
+- Maximal 300 KiB pro Datei, bis zu zwölf Albumdateien.
+- LZW-Codegröße maximal 11 Bit.
+- Frames müssen das vollständige Canvas abdecken; transparente Pixel werden
+  schwarz dargestellt. Alle Farben werden in Pip-Boy-Grün umgerechnet.
+- Stock-GIFs und WLAN-Zugangsdaten werden nicht garantiert automatisch migriert.
+- Die GIF-Dateien wurden noch nicht auf die Einschränkungen geprüft.
 
-### Phase 3 – Prototyp und Tests
-- Layouts zunächst als statische 240 × 240-Pixel-Mockups erstellen.
-- Danach auf dem tatsächlich unterstützten Anpassungsweg implementieren.
-- Prüfen: Lesbarkeit, Datenaktualität, WLAN-Ausfälle, Neustart, Speicherverbrauch, Bildrate und Langzeitstabilität.
-- Erst nach erfolgreichem Test auf dem Gerät installieren.
-
-## Aktuell bekannte Ausgangslage
-- Gerät: GeekMagic SmallTV Ultra.
-- Weboberfläche meldet: SmallTV-Ultra, Ultra-V9.0.50.
-- Repository ist zunächst leer bis auf die README.
-- Die zwei vom Nutzer bereitgestellten Fotos zeigen eine farbige Haupt-/Wetteranzeige sowie eine Drei-Tage-Vorhersage.
-- Die Original-Firmwaredatei liegt diesem Projekt noch nicht bei.
-
-## Benötigter nächster Input
-Die unveränderte Original-Firmware V9.0.50 als ZIP bzw. die vollständigen Herstellerdateien sowie – falls verfügbar – Screenshots der Einstellungsseiten und der Liste aller Display-Modi.
+## Sicherheitsstatus
+Am Gerät wurde nichts verändert. Kein Flashen, kein Löschen und kein
+Überschreiben. Der Firmwarebuild und die Hardwarelaufzeit sind noch nicht
+bestätigt; es existiert noch kein nachweislich flashfertiges Image.
