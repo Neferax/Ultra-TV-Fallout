@@ -1,0 +1,203 @@
+diff --git a/src/dashboard.h b/src/dashboard.h
+--- a/src/dashboard.h
++++ b/src/dashboard.h
+@@
+-#define DASHBOARD_CONFIG_VERSION 3
++#define DASHBOARD_CONFIG_VERSION 4
+@@
+     DASHBOARD_PAGE_QUOTE,
+     DASHBOARD_PAGE_STATUS,
++    DASHBOARD_PAGE_GIF,
+     DASHBOARD_PAGE_COUNT
+ };
+diff --git a/src/dashboard.cpp b/src/dashboard.cpp
+--- a/src/dashboard.cpp
++++ b/src/dashboard.cpp
+@@
+     pages["quote"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_QUOTE];
+     pages["status"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_STATUS];
++    pages["gif"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF];
+@@
+     if (!pages["status"].isNull()) {
+         dashboardConfig.enabledPages[DASHBOARD_PAGE_STATUS] = pages["status"].as<bool>();
+     }
++    if (!pages["gif"].isNull()) {
++        dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF] = pages["gif"].as<bool>();
++    }
+@@
+         case DASHBOARD_PAGE_STATUS:
+             return "status";
++        case DASHBOARD_PAGE_GIF:
++            return "gif";
+         default:
+             return "clock";
+     }
+diff --git a/src/display.cpp b/src/display.cpp
+--- a/src/display.cpp
++++ b/src/display.cpp
+@@
+ #include "feeds.h"
++#include "gif_player.h"
+@@
+         case DASHBOARD_PAGE_STATUS:
+             return hasStatusContent();
++        case DASHBOARD_PAGE_GIF:
++            return gifPlayerHasFiles();
+         default:
+             return false;
+@@
+         case DASHBOARD_PAGE_STATUS:
+             renderStatusPage();
+             break;
++        case DASHBOARD_PAGE_GIF: {
++            const ThemePalette &theme = activeTheme();
++            drawScreenChrome("ROBCO // VISUAL ARCHIVE");
++            tft.drawRect(4, 38, 232, 164, theme.accent);
++            drawDisplayLabel("VAULT-TEC ANIMATION DATA", 120, 48, 220,
++                             TC_DATUM, theme.accent, FONT_INFO);
++            drawDisplayLabel("DECODING FRAME STREAM...", 120, 190, 220,
++                             TC_DATUM, theme.muted, FONT_INFO);
++            break;
++        }
+         default:
+             renderClockPage();
+             break;
+diff --git a/src/feeds.cpp b/src/feeds.cpp
+--- a/src/feeds.cpp
++++ b/src/feeds.cpp
+@@
+ #include "feeds.h"
++#include "gif_player.h"
+@@
+     if (feedsBusy()) {
++        gifPlayerStop();
+         pumpFeedJob();
+         return;
+@@
+-    if (pendingSyncMask) feedJobsCancelled = false;
++    if (pendingSyncMask) {
++        feedJobsCancelled = false;
++        gifPlayerStop();
++    }
+     pumpFeedJob();
+ }
+diff --git a/src/main.cpp b/src/main.cpp
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@
+ #include "feeds.h"
++#include "gif_player.h"
+@@
+ unsigned long lastPageRotation = 0;
++uint32_t lastGifStartAttemptMs = 0;
+@@
+     if (!wifiFailsafeMode &&
+         !networkActionBusy &&
+         !displayState.apMode &&
+@@
+         lastPageRotation = millis();
+     }
+ 
++    if (!wifiFailsafeMode &&
++        !networkActionBusy &&
++        !feedsBusy() &&
++        !displayState.apMode &&
++        displayState.currentPage == DASHBOARD_PAGE_GIF) {
++        if (!gifPlayerIsActive() && millis() - lastGifStartAttemptMs >= 1000UL) {
++            lastGifStartAttemptMs = millis();
++            gifPlayerStartNext(tft);
++        }
++        if (gifPlayerIsActive()) gifPlayerTick(millis());
++    } else if (gifPlayerIsActive()) {
++        gifPlayerStop();
++    }
++
+     maybeEnableClockSprite();
+diff --git a/src/webserver.cpp b/src/webserver.cpp
+--- a/src/webserver.cpp
++++ b/src/webserver.cpp
+@@
+ #include "feeds.h"
++#include "gif_player.h"
+@@
+ bool otaUploadComplete = false;
+ String otaUploadError;
++bool gifUploadComplete = false;
++String gifUploadError;
+@@
+-void handleOTAForm() {
++void handleGifForm() {
++    static const char html[] PROGMEM =
++        "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>"
++        "<title>ROBCO GIF ARCHIVE</title><style>body{background:#071008;color:#7cff75;font:16px monospace;"
++        "max-width:520px;margin:32px auto;padding:16px}fieldset{border:1px solid #4c9b4a;padding:18px}"
++        "button,input{font:inherit;margin:12px 0}button{background:#17351a;color:#a5ff9a;border:1px solid #7cff75;"
++        "padding:10px 16px}</style></head><body><h2>ROBCO // VISUAL ARCHIVE</h2>"
++        "<p>Upload a GIF to the device album. Maximum 300 KiB per file; up to eight files are indexed.</p>"
++        "<p>GIFs must be 240 px or narrower, use 10-bit-or-smaller LZW codes, and contain flattened opaque full-canvas frames.</p>"
++        "<form action='/gif/upload' method='post' enctype='multipart/form-data'>"
++        "<fieldset><input type='file' name='file' accept='.gif,image/gif' required><br>"
++        "<button type='submit'>UPLOAD TO ARCHIVE</button></fieldset></form>"
++        "<p>Existing files with the same name are replaced only after a complete upload.</p></body></html>";
++    server.send_P(200, PSTR("text/html"), reinterpret_cast<PGM_P>(html), sizeof(html));
++}
++
++void handleGifUpload() {
++    HTTPUpload &upload = server.upload();
++    if (upload.status == UPLOAD_FILE_START) {
++        gifUploadComplete = false;
++        gifUploadError = "";
++        if (feedsBusy() || webserverHasPendingNetworkAction()) {
++            gifUploadError = "Another network task is running";
++            return;
++        }
++        if (!gifPlayerUploadStart(upload.filename.c_str())) {
++            gifUploadError = "Invalid GIF filename or storage unavailable";
++        }
++    } else if (upload.status == UPLOAD_FILE_WRITE && gifUploadError.isEmpty()) {
++        if (!gifPlayerUploadChunk(upload.buf, upload.currentSize)) {
++            gifUploadError = "GIF write failed or file exceeds 300 KiB";
++            gifPlayerUploadAbort();
++        }
++    } else if (upload.status == UPLOAD_FILE_ABORTED) {
++        gifPlayerUploadAbort();
++        gifUploadError = "GIF upload aborted";
++    } else if (upload.status == UPLOAD_FILE_END && gifUploadError.isEmpty()) {
++        if (gifPlayerUploadEnd()) {
++            gifUploadComplete = true;
++        } else {
++            gifPlayerUploadAbort();
++            gifUploadError = "GIF could not be committed to storage";
++        }
++    }
++}
++
++void handleGifUploadDone() {
++    if (gifUploadComplete && gifUploadError.isEmpty()) {
++        sendTextResponse(200, F("GIF uploaded"));
++    } else {
++        sendTextResponse(400, gifUploadError.length() ? gifUploadError : String("Incomplete GIF upload"));
++    }
++}
++
++void handleOTAForm() {
+@@
+     registerProtectedRoute("/feeds/job", HTTP_GET, handleFeedJob);
+     registerProtectedRoute("/feeds/search", HTTP_GET, handleFeedSearch);
++    registerProtectedRoute("/gif", HTTP_GET, handleGifForm);
+@@
+     server.on("/update", HTTP_POST,
+@@
+               });
++
++    server.on("/gif/upload", HTTP_POST,
++              []() {
++                  if (!ensureAuthenticatedRequest()) return;
++                  handleGifUploadDone();
++              },
++              []() {
++                  if (!requestHasValidSession()) return;
++                  handleGifUpload();
++              });
+ 
+     server.onNotFound([]() {
