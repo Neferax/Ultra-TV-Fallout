@@ -115,11 +115,11 @@ weather = r'''void renderWeatherPage() {
                          12, 76, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
 
         String temperature = String(weather->temperature);
-        const int heroFonts[] = {FONT_TITLE, FONT_BODY, FONT_LABEL};
-        drawAdaptiveText(temperature, 12, 91, 130,
-                         TL_DATUM, heroFonts, 3, 0xAFE5, TFT_BLACK);
-        drawDisplayLabel(weatherUnitSymbol(), 12 + tft.textWidth(temperature, FONT_TITLE) + 5,
-                         107, 36, TL_DATUM, 0xAFE5, FONT_BODY);
+        const int heroFonts[] = {FONT_BODY, FONT_LABEL};
+        drawAdaptiveText(temperature, 12, 92, 130,
+                         TL_DATUM, heroFonts, 2, 0xAFE5, TFT_BLACK);
+        drawDisplayLabel(weatherUnitSymbol(), 12 + tft.textWidth(temperature, FONT_BODY) + 5,
+                         98, 36, TL_DATUM, 0xAFE5, FONT_BODY);
 
         String condition = weather->condition;
         if (condition == "Partly cloudy") condition = "TEILWEISE BEWOELKT";
@@ -132,7 +132,7 @@ weather = r'''void renderWeatherPage() {
         else if (condition == "Fog") condition = "NEBEL";
         condition.toUpperCase();
         if (condition.length() > 19) condition = "WETTERLAGE";
-        drawDisplayLabel(condition, 12, 128, 216, TL_DATUM, 0x07E0, FONT_LABEL);
+        drawDisplayLabel(condition, 12, 122, 216, TL_DATUM, 0x07E0, FONT_LABEL);
 
         const int direction = ((weather->windDirection + 22) / 45) % 8;
         const char *directions[] = {"N", "NO", "O", "SO", "S", "SW", "W", "NW"};
@@ -144,21 +144,21 @@ weather = r'''void renderWeatherPage() {
                                String(abs(weather->precipitation % 10)) + " MM";
         String chance = "CHANCE " + String(weather->rainChance) + "%";
         String uv = "UV " + String(weather->uvIndex);
-        drawDisplayLabel(feel, 12, 148, 108, TL_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel(humidity, 228, 148, 108, TR_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel(wind, 12, 166, 130, TL_DATUM, 0x3DE7, FONT_LABEL);
-        drawDisplayLabel(gust, 228, 166, 100, TR_DATUM, 0x3DE7, FONT_LABEL);
-        drawDisplayLabel(precipitation, 12, 184, 108, TL_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel(chance, 228, 184, 108, TR_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel(uv, 12, 202, 70, TL_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(feel, 12, 143, 108, TL_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel(humidity, 228, 143, 108, TR_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel(wind, 12, 160, 130, TL_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(gust, 228, 160, 100, TR_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(precipitation, 12, 177, 108, TL_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel(chance, 228, 177, 108, TR_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel(uv, 12, 194, 70, TL_DATUM, 0x3DE7, FONT_LABEL);
         String sun = "SONNE " + String(weather->sunrise) + "-" + String(weather->sunset);
-        drawDisplayLabel(sun, 228, 202, 140, TR_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(sun, 228, 194, 140, TR_DATUM, 0x3DE7, FONT_LABEL);
         return;
     }
 
     const char *labels[] = {"MORGEN", "UEBERMORGEN", "IN 3 TAGEN"};
     for (uint8_t slot = 0; slot < 3; ++slot) {
-        const int y = 78 + static_cast<int>(slot) * 45;
+        const int y = 74 + static_cast<int>(slot) * 43;
         if (slot > 0) tft.drawFastHLine(12, y - 7, 216, 0x03E0);
         if (weather->forecastCount > slot + 1) {
             const WeatherForecastDay &day = weather->forecast[slot + 1];
@@ -177,7 +177,7 @@ weather = r'''void renderWeatherPage() {
             drawDisplayLabel(condition, 12, y + 17, 130, TL_DATUM, 0x3DE7, FONT_LABEL);
             String range = String(day.low) + "° / " + String(day.high) + "°C";
             drawDisplayLabel(range, 228, y + 17, 100, TR_DATUM, 0xAFE5, FONT_LABEL);
-            drawDisplayLabel("REGEN " + String(day.rainChance) + "%", 228, y + 32,
+            drawDisplayLabel("REGEN " + String(day.rainChance) + "%", 228, y + 30,
                              100, TR_DATUM, 0x3DE7, FONT_LABEL);
         } else {
             drawDisplayLabel(String(labels[slot]) + " // KEINE DATEN",
