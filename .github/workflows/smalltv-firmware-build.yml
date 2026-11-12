@@ -285,6 +285,7 @@ jobs:
                   assert samples == sorted(samples), samples
                   assert samples[0] <= 2 and samples[-1] >= 253, samples
               print("GIF gradient test passed: increasing source luminance remains increasing green luminance")
+          PY
 
       - name: Create an honest RADIO preview from the decoder-compatible bundled GIF frame
         run: |
