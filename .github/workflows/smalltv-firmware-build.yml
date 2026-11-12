@@ -229,6 +229,29 @@ jobs:
           mkdir -p fallout/package
           python fallout/scripts/prepare_compatible_gif.py firmware/data/gif/bethesda-vaultboy.gif fallout/package/bethesda-vaultboy.gif
           file fallout/package/bethesda-vaultboy.gif
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          path = Path("fallout/package/bethesda-vaultboy.gif")
+          with Image.open(path) as gif:
+              if gif.size != (104, 104) or gif.n_frames < 2:
+                  raise SystemExit("Bundled Vault Boy must be a multi-frame 104x104 GIF")
+              if gif.info.get("transparency") is not None:
+                  raise SystemExit("Bundled Vault Boy GIF must be opaque")
+              frames = set()
+              duration = 0
+              for index in range(gif.n_frames):
+                  gif.seek(index)
+                  if gif.info.get("transparency") is not None:
+                      raise SystemExit(f"Bundled GIF frame {index} is transparent")
+                  if not gif.tile or gif.tile[0][1] != (0, 0, 104, 104):
+                      raise SystemExit(f"Bundled GIF frame {index} is not full-canvas")
+                  frames.add(gif.convert("RGB").tobytes())
+                  duration += gif.info.get("duration", 0)
+              if len(frames) < 2 or duration <= 0:
+                  raise SystemExit("Bundled Vault Boy animation has no visible frame changes")
+              print(f"Bundled GIF verified: {gif.n_frames} full-canvas frames, {len(frames)} unique, {duration} ms")
+          PY
 
       - name: Test GIF conversion with synthetic multi-frame animation
         run: |
