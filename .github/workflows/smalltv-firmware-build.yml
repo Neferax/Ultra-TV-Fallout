@@ -211,6 +211,39 @@ jobs:
           python fallout/scripts/prepare_compatible_gif.py firmware/data/gif/bethesda-vaultboy.gif fallout/package/bethesda-vaultboy.gif
           file fallout/package/bethesda-vaultboy.gif
 
+      - name: Test GIF conversion with synthetic multi-frame animation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import subprocess
+          import tempfile
+
+          converter = Path("fallout/scripts/prepare_compatible_gif.py")
+          with tempfile.TemporaryDirectory() as folder:
+              folder = Path(folder)
+              source = folder / "source.gif"
+              output = folder / "compatible.gif"
+              frames = [Image.new("RGB", (240, 240), (v, v, v)) for v in (0, 64, 128, 255)]
+              frames[0].save(source, format="GIF", save_all=True, append_images=frames[1:],
+                             duration=[80, 100, 120, 140], loop=0, disposal=2, optimize=False)
+              subprocess.run(["python", str(converter), str(source), str(output)], check=True)
+              with Image.open(output) as gif:
+                  assert gif.size == (104, 104), gif.size
+                  assert gif.n_frames == 4, gif.n_frames
+                  assert gif.info.get("transparency") is None
+                  observed = []
+                  for index in range(gif.n_frames):
+                      gif.seek(index)
+                      assert gif.info.get("transparency") is None
+                      assert gif.tile and gif.tile[0][1] == (0, 0, 104, 104), (index, gif.tile)
+                      pixel = gif.convert("RGB").getpixel((52, 52))
+                      assert pixel[0] == 0 and pixel[2] == 0, pixel
+                      observed.append(pixel[1])
+                  assert observed == sorted(observed) and observed[-1] == 255, observed
+                  assert observed[0] == 0 and observed[1] > 0 and observed[2] > observed[1], observed
+              print("GIF converter test passed: 4 full-canvas frames, opaque, ordered green luminance")
+
       - name: Create an honest RADIO preview from the decoder-compatible bundled GIF frame
         run: |
           python - <<'PY'
