@@ -251,6 +251,14 @@ bool gifPlayerStart(const char *path, TFT_eSPI &display) {
 
 bool gifPlayerTick(uint32_t nowMs) {
     if (fallbackAnimationActive && decoder == nullptr && targetDisplay != nullptr) {
+        // Do not let one damaged or unsupported album entry pin RADIO forever.
+        // Rotate after the same 20-second dwell used for valid GIFs.
+        if (nowMs - gifStartedAtMs >= 20000UL) {
+            TFT_eSPI *display = targetDisplay;
+            gifPlayerStop();
+            if (display != nullptr) gifPlayerStartNext(*display);
+            return true;
+        }
         if (static_cast<int32_t>(nowMs - fallbackFrameAtMs) < 0) return false;
         fallbackFrameAtMs = nowMs + 110UL;
         TFT_eSPI &display = *targetDisplay;
