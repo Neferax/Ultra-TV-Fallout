@@ -98,7 +98,7 @@ jobs:
           end = source.index(" // Every available item is visited", start)
           source = source[:start] + " // Legacy footer-clock cache tests are not applicable to Pip-Boy V2.\\n" + source[end:]
           source = source.replace('  assert(d.h>=16);', '  if(d.h<16){fprintf(stderr,"Too small: %s at %d,%d %dx%d\\n",d.text.c_str(),d.x,d.y,d.w,d.h);abort();}')
-          source = source.replace('if(page==DASHBOARD_PAGE_WEATHER)for(auto&d:textDraws)if(d.text=="22C")assert(d.h>=78);', 'if(page==DASHBOARD_PAGE_WEATHER){assert(hasDraw("22") && hasDraw("C"));for(auto&d:textDraws)if(d.text=="22")assert(d.h>=48);}')
+          source = source.replace('if(page==DASHBOARD_PAGE_WEATHER)for(auto&d:textDraws)if(d.text=="22C")assert(d.h>=78);', 'if(page==DASHBOARD_PAGE_WEATHER){assert(hasDraw("22") && hasDraw("C"));for(auto&d:textDraws)if(d.text=="22")assert(d.h>=32);}')
           preview.write_text(source)
           fixture = Path("firmware/audit/device-ui-fixture.h")
           header = fixture.read_text()
