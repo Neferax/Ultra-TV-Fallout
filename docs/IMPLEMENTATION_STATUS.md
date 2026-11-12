@@ -2,9 +2,9 @@
 
 ## Aktueller Stand
 
-**Status: Design-Neuaufbau erforderlich.** Die bisherigen Firmware-Layouts sind nicht freigegeben. Der Nutzer hat die Anzeige als unlesbar und funktional unzureichend bewertet. Ein erfolgreicher CI-Build ist kein Nachweis für ein brauchbares Display.
+**Build 298 erfolgreich; native 240x240-Vorschauen visuell geprüft. Hardwaretest offen.**
 
-Build 186 (Commit e9afbe545b4e6223daa51b560f19b6ac16957910) wurde von GitHub Actions erfolgreich kompiliert. Die tatsächliche Darstellung auf dem Gerät wurde nicht verifiziert. Build 186 ist deshalb kein empfohlener Design- oder Release-Stand.
+Aktueller Commit: `4eeec30f616a35e4ae198183a3f13edf62fa9e87`. GitHub Actions hat ESP8266-Anwendung und OTA-Loader erfolgreich kompiliert. Die nativen Vorschauen wurden geprüft: STAT mit großer Uhr, DATA heute mit den wesentlichen Detailwerten in zwei Spalten, DATA mit drei Folgetagen und RADIO mit einem echten Frame aus dem gebündelten Vault-Boy-GIF. Die reale Darstellung und GIF-Wiedergabe auf dem Gerät sind noch nicht verifiziert.
 
 ## Recherche vorhandener SmallTV-Projekte
 
