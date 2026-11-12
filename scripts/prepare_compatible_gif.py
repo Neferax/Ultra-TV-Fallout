@@ -67,9 +67,10 @@ def main() -> None:
         optimize=False,
     )
 
-    if target.stat().st_size > MAX_BYTES:
+    output_size = target.stat().st_size
+    if output_size > MAX_BYTES:
         target.unlink(missing_ok=True)
-        raise SystemExit(f"Converted GIF exceeds 300 KiB: {target.stat().st_size} bytes")
+        raise SystemExit(f"Converted GIF exceeds 300 KiB: {output_size} bytes")
 
     # Re-open the result and verify the logical canvas and opaque full-frame output.
     with Image.open(target) as check:
