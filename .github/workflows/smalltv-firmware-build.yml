@@ -291,6 +291,32 @@ jobs:
                   assert samples == sorted(samples), samples
                   assert samples[0] <= 2 and samples[-1] >= 253, samples
               print("GIF gradient test passed: increasing source luminance remains increasing green luminance")
+
+              # The decoder has a small archive footprint. Long source animations
+              # must be sampled to 36 frames without losing total playback time.
+              long_source = folder / "long-animation.gif"
+              long_output = folder / "long-animation-compatible.gif"
+              long_frames = []
+              for index in range(40):
+                  frame = Image.new("RGB", (240, 240), (0, 0, 0))
+                  from PIL import ImageDraw
+                  ImageDraw.Draw(frame).rectangle((index * 5, 80, index * 5 + 24, 160),
+                                                  fill=(255, 255, 255))
+                  long_frames.append(frame)
+              long_frames[0].save(long_source, format="GIF", save_all=True,
+                                  append_images=long_frames[1:], duration=[100] * 40,
+                                  loop=0, disposal=2, optimize=False)
+              subprocess.run([ "python", str(converter), str(long_source), str(long_output) ],
+                             check=True)
+              with Image.open(long_output) as gif:
+                  assert gif.n_frames == 36, gif.n_frames
+                  total_duration = 0
+                  for index in range(gif.n_frames):
+                      gif.seek(index)
+                      total_duration += gif.info.get("duration", 0)
+                  assert total_duration == 4000, total_duration
+              assert long_output.stat().st_size <= 300 * 1024
+              print("GIF frame-cap test passed: 40 source frames sampled to 36, 4-second duration preserved")
           PY
 
       - name: Create an honest RADIO preview from the decoder-compatible bundled GIF frame
