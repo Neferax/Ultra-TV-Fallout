@@ -114,7 +114,7 @@ weather = r'''void renderWeatherPage() {
                      12, 78, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
     const int heroFonts[] = {FONT_HUGE, FONT_TITLE, FONT_BODY};
     String temperature = formatWeatherTemperature(weather->temperature);
-    String unit = temperature.substring(temperature.length() - 1);
+    String unit = temperature.substr(temperature.length() - 1);
     temperature.remove(temperature.length() - 1);
     const int temperatureWidth = tft.textWidth(temperature, FONT_HUGE);
     drawAdaptiveText(temperature, 12, 96, 216,
