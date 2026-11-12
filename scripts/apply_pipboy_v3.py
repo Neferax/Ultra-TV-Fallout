@@ -93,7 +93,7 @@ weather = r'''void renderWeatherPage() {
         drawDisplayLabel(gust, 228, 160, 108, TR_DATUM, 0x3DE7, FONT_BODY);
         drawDisplayLabel(precipitation, 12, 177, 108, TL_DATUM, 0xAFE5, FONT_BODY);
         drawDisplayLabel(chance, 228, 177, 108, TR_DATUM, 0xAFE5, FONT_BODY);
-        drawDisplayLabel(uv, 12, 194, 108, TL_DATUM, 0x3DE7, FONT_BODY);
+        drawDisplayLabel(uv, 12, 194, 108, TL_DATUM, 0x3DE7, FONT_LABEL);
         drawDisplayLabel(sun, 228, 194, 108, TR_DATUM, 0x3DE7, FONT_LABEL);
         return;
     }
