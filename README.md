@@ -53,3 +53,8 @@ Diese Projekte liefern Layout-, Test- und Technikreferenzen. Ihre Firmware-Image
 - Uhr-Zeitzone: Europe/Berlin
 
 Fallout, Pip-Boy, RobCo und Vault-Tec sind Marken bzw. geschützte Inhalte ihrer Rechteinhaber. Dieses Repository ist ein unabhängiges Fanprojekt.
+
+
+### Wetteranzeige
+
+Das Register DATA wechselt zwischen einer Detailansicht für heute und einer separaten Drei-Tage-Vorschau. Die Detailansicht zeigt gefühlte Temperatur, Luftfeuchte, Wind und Böen, Niederschlag, Regenwahrscheinlichkeit, UV-Index sowie Sonnenauf- und -untergang. Die Vorschau zeigt morgen und die zwei darauffolgenden Tage mit Datum, Wetterlage, Temperaturbereich und Regenwahrscheinlichkeit. Die Ansichten wechseln automatisch im 12-Sekunden-Takt.
