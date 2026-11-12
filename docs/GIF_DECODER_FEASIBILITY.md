@@ -45,12 +45,13 @@ Der Player hat keinen Compositing-Framebuffer. Deshalb akzeptiert er nur:
 
 Frames mit Teilbild-Offsets, abweichender Framegröße oder Transparenz werden
 beim Decodieren erkannt und abgebrochen. Die finale Build-Transformation
-entfernt die frühere Fallback-Animation: Bei einem inkompatiblen GIF wird die
-Wiedergabe gestoppt und die RADIO-Seite bleibt ohne Animation stehen. Ein
-automatischer Sprung zum nächsten Eintrag nach einem Decode-Fehler ist derzeit
-nicht implementiert. Damit werden Bildreste durch unvollständiges Compositing
-vermieden. Die GIF-Farben werden in monochromes Pip-Boy-Phosphorgrün
-umgerechnet.
+entfernt die frühere Fallback-Animation. Inkompatible oder beschädigte Einträge
+werden für den aktuellen Durchlauf markiert und beim nächsten Startversuch
+übersprungen. Sind alle Einträge ungeeignet, bleibt die RADIO-Seite ohne
+Animation stehen; beim nächsten expliziten Aufruf oder nach einer Aktualisierung
+des Archivs werden die Einträge erneut geprüft. Damit werden Bildreste durch
+unvollständiges Compositing vermieden. Die GIF-Farben werden in monochromes
+Pip-Boy-Phosphorgrün umgerechnet.
 
 Die Upload-Prüfung kontrolliert Dateisignatur und Canvas-Abmessungen. Sie
 validiert nicht vorab sämtliche Frame- und Transparenzeigenschaften; diese
