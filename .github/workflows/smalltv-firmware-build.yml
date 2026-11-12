@@ -102,6 +102,7 @@ jobs:
           preview.write_text(source)
           fixture = Path("firmware/audit/device-ui-fixture.h")
           header = fixture.read_text()
+          header = header.replace('strcpy(w.location,"Tokyo");', 'strcpy(w.location,"Duisburg");')
           if "#define TFT_BLACK" not in header:
               header = "#define TFT_BLACK 0x0000" + chr(10) + header
           header = header.replace(
