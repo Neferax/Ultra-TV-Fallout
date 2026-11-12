@@ -95,7 +95,7 @@ weather = r'''void renderWeatherPage() {
 
     String condition = weather->condition;
     condition.toUpperCase();
-    if (condition.length() > 15) condition = condition.substr(0, 15);
+    if (condition.length() > 15) condition.remove(15, condition.length() - 15);
     drawDisplayLabel(condition, 232, 116, 92, TR_DATUM, 0x07E0, FONT_INFO);
 
     tft.drawFastHLine(12, 151, 216, 0x03E0);
