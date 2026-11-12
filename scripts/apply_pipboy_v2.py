@@ -168,7 +168,7 @@ weather = r'''void renderWeatherPage() {
             String heading = String(labels[slot]) + " // " + String(day.date);
             drawDisplayLabel(heading, 12, y, 216, TL_DATUM, 0x07E0, FONT_LABEL);
             String condition = day.condition;
-            if (condition == "Partly cloudy") condition = "TEILW. BEWOELKT";
+            if (condition == "Partly cloudy") condition = "TEILWOLKIG";
             else if (condition == "Mostly cloudy") condition = "STARK BEWOELKT";
             else if (condition == "Cloudy" || condition == "Overcast") condition = "BEWOELKT";
             else if (condition == "Clear" || condition == "Mainly clear") condition = "KLAR";
@@ -178,7 +178,7 @@ weather = r'''void renderWeatherPage() {
             else if (condition == "Fog") condition = "NEBEL";
             condition.toUpperCase();
             drawDisplayLabel(condition, 12, y + 17, 142, TL_DATUM, 0x3DE7, FONT_LABEL);
-            String range = String(day.low) + "-" + String(day.high) + "C";
+            String range = String(day.low) + "/" + String(day.high) + "C";
             drawDisplayLabel(range, 228, y + 17, 76, TR_DATUM, 0xAFE5, FONT_LABEL);
             drawDisplayLabel("REGEN " + String(day.rainChance) + "%",
                              12, y + 32, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
