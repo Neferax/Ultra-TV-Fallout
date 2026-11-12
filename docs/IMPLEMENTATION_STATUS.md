@@ -22,7 +22,7 @@ Details und technische Bewertung: [DESIGN_REFERENCE_COMPARISON.md](DESIGN_REFERE
 Die drei vorhandenen Slots werden als STAT, DATA und RADIO neu gestaltet:
 
 - STAT: große Uhrzeit, deutscher Wochentag und Datum; keine überflüssigen Zusatzfelder.
-- DATA: große aktuelle Temperatur und Wetterzustand, darunter Luftfeuchtigkeit, Regen und Wind sowie kurze Vorhersage.
+- DATA: zwei interne Ansichten im 12-Sekunden-Wechsel. HEUTE zeigt Temperatur, Wetterlage, gefühlte Temperatur, Luftfeuchte, Wind/Böen, Niederschlag, Regenwahrscheinlichkeit, UV sowie Sonnenauf-/untergang. Die zweite Ansicht zeigt die drei Folgetage mit Datum, Wetterlage, Temperaturbereich und Regenwahrscheinlichkeit. „Hoch/Tief“ als Labels entfallen.
 - RADIO: eigenständiges Animationsfenster; keine GIF-Overlays auf Uhr oder Wetter.
 
 Designreferenz ist Fallout 4 / Pip-Boy 3000 Mark IV: monochromes Grün auf Schwarz, klare Registerleiste, dünne Trenner, knappe Labels und wenige gezielte Grafiken. Keine Neon-Verläufe, pseudo-3D-Karten oder dekorativen Vollbild-Effekte.
