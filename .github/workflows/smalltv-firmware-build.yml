@@ -273,10 +273,10 @@ jobs:
               # the output palette contains green entries.
               gradient_source = folder / "gradient.gif"
               gradient_output = folder / "gradient-compatible.gif"
-              gradient = Image.new("L", (256, 64))
-              for x in range(256):
+              gradient = Image.new("L", (240, 64))
+              for x in range(240):
                   for y in range(64):
-                      gradient.putpixel((x, y), x)
+                      gradient.putpixel((x, y), round(x * 255 / 239))
               gradient.save(gradient_source, format="GIF")
               subprocess.run(["python", str(converter), str(gradient_source), str(gradient_output)], check=True)
               with Image.open(gradient_output) as gif:
