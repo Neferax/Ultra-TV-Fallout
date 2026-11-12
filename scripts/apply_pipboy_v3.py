@@ -84,14 +84,14 @@ weather = r'''void renderWeatherPage() {
         String gust = "BOEEN " + String(weather->windGusts) + " KM/H";
         String precipitation = "REGEN " + String(weather->precipitation / 10) + "." +
                                String(abs(weather->precipitation % 10)) + " MM";
-        String chance = String(weather->rainChance) + "%";
+        String chance = "CHANCE " + String(weather->rainChance) + "%";
         String uv = "UV " + String(weather->uvIndex);
         String sun = "SONNE " + String(weather->sunrise) + "-" + String(weather->sunset);
         drawDisplayLabel(feel, 12, 143, 108, TL_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel(humidity, 228, 143, 108, TR_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel(wind, 12, 160, 108, TL_DATUM, 0x3DE7, FONT_LABEL);
         drawDisplayLabel(gust, 228, 160, 108, TR_DATUM, 0x3DE7, FONT_LABEL);
-        drawDisplayLabel(precipitation + " // " + chance + " REGEN // " + uv,
+        drawDisplayLabel(precipitation + " // " + String(weather->rainChance) + "% // " + uv,
                          12, 177, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel(sun, 120, 194, 216, TC_DATUM, 0x3DE7, FONT_LABEL);
         return;
