@@ -116,7 +116,8 @@ weather = r'''void renderWeatherPage() {
         if (slot > 0) tft.drawFastHLine(12, y - 5, 216, 0x03E0);
         if (weather->forecastCount > slot + 1) {
             const WeatherForecastDay &day = weather->forecast[slot + 1];
-            String heading = String(labels[slot]) + " " + String(day.date);
+            String heading = String(labels[slot]) + " " + String(day.date) +
+                            " // " + String(day.rainChance) + "%";
             drawDisplayLabel(heading, 12, y, 216, TL_DATUM, 0x07E0, FONT_LABEL);
             String condition = day.condition;
             if (condition == "Partly cloudy") condition = "WOLKIG";
@@ -133,8 +134,7 @@ weather = r'''void renderWeatherPage() {
             else if (condition == "Weather") condition = "WETTER";
             condition.toUpperCase();
             String range = String(day.low) + "-" + String(day.high) + " C";
-            String outlook = condition + " " + String(day.rainChance) + "%";
-            drawDisplayLabel(outlook, 12, y + 25, 132,
+            drawDisplayLabel(condition, 12, y + 25, 132,
                              TL_DATUM, 0xAFE5, FONT_BODY);
             drawDisplayLabel(range, 228, y + 25, 78,
                              TR_DATUM, 0xAFE5, FONT_BODY);
