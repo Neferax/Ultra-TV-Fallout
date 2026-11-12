@@ -60,9 +60,20 @@ jobs:
       - name: Apply complete Pip-Boy V2 display redesign
         run: python fallout/scripts/apply_pipboy_v2.py firmware
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PlatformIO and preview dependencies
+        run: python -m pip install --upgrade platformio Pillow
+
+      - name: Compile ESP8266 firmware before native renderer audit
+        working-directory: firmware
+        run: pio run -e nodemcuv2
+
       - name: Render and test native 240x240 firmware pages
         run: |
-          python -m pip install Pillow
           python - <<'PY'
           from pathlib import Path
           preview = Path("firmware/audit/device-ui-preview.py")
@@ -147,14 +158,6 @@ jobs:
           mkdir -p fallout/package
           cp firmware/data/gif/bethesda-vaultboy.gif fallout/package/bethesda-vaultboy.gif
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install PlatformIO
-        run: python -m pip install --upgrade platformio
-
       - name: Add minimal OTA loader source and build target
         working-directory: firmware
         run: |
@@ -173,10 +176,6 @@ jobs:
       - name: Compile OTA loader
         working-directory: firmware
         run: pio run -e nodemcuv2_loader
-
-      - name: Compile ESP8266 firmware
-        working-directory: firmware
-        run: pio run -e nodemcuv2
 
       - name: Upload loader, firmware and native display previews
         uses: actions/upload-artifact@v4
