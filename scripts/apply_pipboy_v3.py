@@ -107,7 +107,7 @@ weather = r'''void renderWeatherPage() {
             String condition = day.condition;
             if (condition == "Partly cloudy") condition = "TEILW.";
             else if (condition == "Mostly cloudy") condition = "WOLKIG";
-            else if (condition == "Cloudy" || condition == "Overcast") condition = "BEWOELKT";
+            else if (condition == "Cloudy" || condition == "Overcast") condition = "WOLKIG";
             else if (condition == "Clear" || condition == "Mainly clear") condition = "KLAR";
             else if (condition == "Rain" || condition == "Drizzle") condition = "REGEN";
             else if (condition == "Snow") condition = "SCHNEE";
