@@ -39,11 +39,11 @@ Diese Projekte liefern Layout-, Test- und Technikreferenzen. Ihre Firmware-Image
 
 ## Technischer Stand
 
-- Build 368: ESP8266-Firmware und OTA-Loader erfolgreich kompiliert; das Installationspaket wurde heruntergeladen und auf enthaltene Dateien geprüft.
+- Build 376: ESP8266-Firmware und OTA-Loader erfolgreich kompiliert; das Installationspaket wurde heruntergeladen und auf enthaltene Dateien geprüft. Die nativen 240×240-Renderer-Tests liefen erfolgreich.
 - Native Vorschauen für STAT, DATA heute, DATA 3-Tage und RADIO wurden in 240x240 Pixeln geprüft.
 - Das Paket enthält ein separates Vault-Boy-GIF (104×104, sieben unterschiedliche Frames, Endlosschleife). Die RADIO-Seitenvorschau ist kein Nachweis der Animation auf dem Gerät.
 - Die heutige Wetterseite zeigt gefühlte Temperatur, Luftfeuchte, Wind, Böen, Niederschlag, Regenwahrscheinlichkeit, UV und Sonnenauf/-untergang.
-- Die Drei-Tage-Vorschau zeigt Datum, Wetterlage, Temperaturbereich und Regenwahrscheinlichkeit je Tag.
+- Die Drei-Tage-Vorschau zeigt Datum, Wetterlage, Temperaturbereich und Regenwahrscheinlichkeit je Tag. Celsiuswerte erhalten ein grafisch gezeichnetes Gradzeichen, damit keine fehlende Font-Glyph die Einheit verschluckt.
 - Die Firmware wurde nicht auf dem echten Gerät verifiziert. GIF-Laufzeit, WLAN-/Wetterabruf und Langzeitstabilität bleiben Hardwaretests; keine Hardwarefreigabe.
 
 ## Gerätereferenz
