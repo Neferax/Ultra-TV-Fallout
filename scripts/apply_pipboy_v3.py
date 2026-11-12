@@ -52,16 +52,16 @@ weather = r'''void renderWeatherPage() {
     const WeatherData *weather = effectiveWeatherData();
     if (!forecastPage) {
         drawDisplayLabel(weather->location[0] ? weather->location : "DUISBURG // 47239",
-                         12, 76, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
+                         12, 62, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
 
         String temperature = String(weather->temperature);
         const int heroFonts[] = {FONT_BODY, FONT_LABEL};
-        drawAdaptiveText(temperature, 12, 91, 130,
+        drawAdaptiveText(temperature, 12, 77, 130,
                          TL_DATUM, heroFonts, 2, 0xAFE5, TFT_BLACK);
         String unit;
         unit += weatherUnitSymbol();
         drawDisplayLabel(unit, 12 + tft.textWidth(temperature, FONT_BODY) + 5,
-                         97, 36, TL_DATUM, 0xAFE5, FONT_BODY);
+                         83, 36, TL_DATUM, 0xAFE5, FONT_BODY);
 
         String condition = weather->condition;
         if (condition == "Partly cloudy") condition = "TEILWEISE BEWOELKT";
@@ -74,7 +74,7 @@ weather = r'''void renderWeatherPage() {
         else if (condition == "Fog") condition = "NEBEL";
         condition.toUpperCase();
         if (condition.length() > 19) condition = "WETTERLAGE";
-        drawDisplayLabel(condition, 12, 125, 216, TL_DATUM, 0x07E0, FONT_LABEL);
+        drawDisplayLabel(condition, 12, 110, 216, TL_DATUM, 0x07E0, FONT_LABEL);
 
         const int direction = ((weather->windDirection + 22) / 45) % 8;
         const char *directions[] = {"N", "NO", "O", "SO", "S", "SW", "W", "NW"};
@@ -89,16 +89,16 @@ weather = r'''void renderWeatherPage() {
         String uv = "UV " + String(weather->uvIndex);
         String sun = "SONNE " + String(weather->sunrise) + "-" + String(weather->sunset);
         // Three compact, separated detail rows; the large hero remains the focus.
-        drawDisplayLabel(feel, 12, 137, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel(wind, 12, 160, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
-        drawDisplayLabel(precipitation, 12, 183, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel(feel, 12, 135, 216, TL_DATUM, 0xAFE5, FONT_BODY);
+        drawDisplayLabel(wind, 12, 160, 216, TL_DATUM, 0x3DE7, FONT_BODY);
+        drawDisplayLabel(precipitation, 12, 185, 216, TL_DATUM, 0xAFE5, FONT_BODY);
         return;
     }
 
     const char *labels[] = {"MORGEN", "IN 2 TAGEN", "IN 3 TAGEN"};
     // Two large, uncluttered lines per day: date first, then condition and Celsius range.
     for (uint8_t slot = 0; slot < 3; ++slot) {
-        const int y = 56 + static_cast<int>(slot) * 48;
+        const int y = 52 + static_cast<int>(slot) * 54;
         if (slot > 0) tft.drawFastHLine(12, y - 5, 216, 0x03E0);
         if (weather->forecastCount > slot + 1) {
             const WeatherForecastDay &day = weather->forecast[slot + 1];
@@ -114,7 +114,7 @@ weather = r'''void renderWeatherPage() {
             else if (condition == "Fog") condition = "NEBEL";
             condition.toUpperCase();
             String range = String(day.low) + "-" + String(day.high) + " C";
-            drawDisplayLabel(condition + "  " + range, 12, y + 24, 216,
+            drawDisplayLabel(condition + "  " + range, 12, y + 27, 216,
                              TL_DATUM, 0xAFE5, FONT_BODY);
         } else {
             drawDisplayLabel(String(labels[slot]) + " // KEINE DATEN",
