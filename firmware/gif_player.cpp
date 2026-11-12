@@ -24,6 +24,8 @@ bool gifFileListDirty = true;
 char gifPaths[12][48] = {{0}};
 uint8_t gifPathCount = 0;
 uint8_t nextGifIndex = 0;
+uint8_t currentGifIndex = 0;
+bool rejectedGifPaths[12] = {false};
 int16_t canvasOriginX = 0;
 int16_t canvasOriginY = 0;
 int16_t canvasWidth = 0;
@@ -318,6 +320,7 @@ size_t gifPlayerDecoderBytes() {
 
 bool gifPlayerRefreshFiles() {
     gifPathCount = 0;
+    memset(rejectedGifPaths, 0, sizeof(rejectedGifPaths));
     const char *directories[] = {"/gif", "/image"};
     for (uint8_t directoryIndex = 0; directoryIndex < 2 && gifPathCount < 12; ++directoryIndex) {
         Dir dir = LittleFS.openDir(directories[directoryIndex]);
@@ -356,24 +359,23 @@ bool gifPlayerHasFiles() {
 
 bool gifPlayerStartNext(TFT_eSPI &display) {
     if (gifFileListDirty) gifPlayerRefreshFiles();
-    if (gifPathCount == 0) {
-        targetDisplay = &display;
-        fallbackAnimationActive = true;
-        fallbackFrameAtMs = 0;
-        gifStartedAtMs = millis();
-        return true;
+    if (gifPathCount == 0) return false;
+
+    for (uint8_t attempt = 0; attempt < gifPathCount; ++attempt) {
+        const uint8_t selected = nextGifIndex;
+        nextGifIndex = static_cast<uint8_t>((nextGifIndex + 1) % gifPathCount);
+        if (rejectedGifPaths[selected]) continue;
+        if (gifPlayerStart(gifPaths[selected], display)) {
+            currentGifIndex = selected;
+            return true;
+        }
+        rejectedGifPaths[selected] = true;
     }
 
-    const uint8_t selected = nextGifIndex;
-    nextGifIndex = static_cast<uint8_t>((nextGifIndex + 1) % gifPathCount);
-    if (gifPlayerStart(gifPaths[selected], display)) return true;
-
-    // An incompatible or damaged album entry must not leave RADIO blank.
-    targetDisplay = &display;
-    fallbackAnimationActive = true;
-    fallbackFrameAtMs = 0;
-    gifStartedAtMs = millis();
-    return true;
+    // Every entry was rejected or could not be opened. Retry only on the next
+    // explicit RADIO entry or after the archive is refreshed.
+    memset(rejectedGifPaths, 0, sizeof(rejectedGifPaths));
+    return false;
 }
 
 bool gifPlayerUploadStart(const char *filename) {
