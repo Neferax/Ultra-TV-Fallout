@@ -51,8 +51,8 @@ chrome = r'''void drawScreenChrome(const String &title) {
 
     // Fallout 4 Pip-Boy: restrained phosphor, fixed register strip, no cards.
     tft.fillRect(0, 0, 240, 20, 0x0100);
-    drawDisplayLabel("ROBCO INDUSTRIES", 8, 5, 140, TL_DATUM, 0x07E0, FONT_INFO);
-    drawDisplayLabel("PIP-OS 3000", 232, 5, 100, TR_DATUM, 0xAFE5, FONT_INFO);
+    drawDisplayLabel("ROBCO", 8, 3, 90, TL_DATUM, 0x07E0, FONT_LABEL);
+    drawDisplayLabel("PIP-OS", 232, 3, 90, TR_DATUM, 0xAFE5, FONT_LABEL);
     tft.drawFastHLine(8, 21, 224, 0x07E0);
 
     const char *tabs[] = {"STAT", "DATA", "RADIO"};
@@ -67,8 +67,8 @@ chrome = r'''void drawScreenChrome(const String &title) {
     tft.drawFastHLine(8, 49, 224, 0x03E0);
     drawDisplayLabel(title, 10, 56, 220, TL_DATUM, 0x07E0, FONT_INFO);
     tft.drawFastHLine(8, 224, 224, 0x03E0);
-    drawDisplayLabel("ROBCO // VAULT-TEC", 8, 230, 150, TL_DATUM, 0x3DE7, FONT_INFO);
-    drawDisplayLabel("MK IV", 232, 230, 60, TR_DATUM, 0x3DE7, FONT_INFO);
+    drawDisplayLabel("VAULT-TEC", 8, 226, 120, TL_DATUM, 0x3DE7, FONT_LABEL);
+    drawDisplayLabel("MK IV", 232, 226, 60, TR_DATUM, 0x3DE7, FONT_LABEL);
     // No moving footer clock: reserve the bottom strip for stable device identity.
 }'''
 s = replace_function(s, "void drawScreenChrome(const String &title) {", "void drawPlaceholder(", chrome)
