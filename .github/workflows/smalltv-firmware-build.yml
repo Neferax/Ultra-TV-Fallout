@@ -166,7 +166,7 @@ jobs:
               raise SystemExit("Leaving the GIF archive does not force a clean page redraw")
           if "gifTransitionUntilMs" in main or "gifTransitionActive" in main:
               raise SystemExit("GIF page-transition overlay must remain disabled")
-          if "void renderWeatherPage()" not in display or "VORHERSAGE" not in display:
+          if "void renderWeatherPage()" not in display or "KEINE PROGNOSE" not in display:
               raise SystemExit("Readable weather renderer missing")
           print("Verified: compact GIF viewport, archive-only playback, clean page redraw, weather renderer")
           PY
