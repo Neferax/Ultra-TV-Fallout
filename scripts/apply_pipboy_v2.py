@@ -111,7 +111,7 @@ weather = r'''void renderWeatherPage() {
     const WeatherData *weather = effectiveWeatherData();
     // Current temperature and condition use the largest free area.
     drawDisplayLabel(weather->location[0] ? weather->location : "DUISBURG // 47239",
-                     12, 78, 216, TL_DATUM, 0x3DE7, FONT_INFO);
+                     12, 78, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
     const int heroFonts[] = {FONT_HUGE, FONT_TITLE, FONT_BODY};
     drawAdaptiveText(formatWeatherTemperature(weather->temperature), 12, 96, 122,
                      TL_DATUM, heroFonts, 3, 0xAFE5, TFT_BLACK);
