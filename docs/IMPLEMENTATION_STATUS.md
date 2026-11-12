@@ -1,66 +1,48 @@
-# Implementierungsstatus – 10.11.2026
+# Implementierungsstatus – 12.11.2026
 
-## Gerät und Ziel
-- GeekMagic SmallTV Ultra, Stock-Firmware `Ultra-V9.0.50`
-- Geräte-IP bei der letzten Auslesung: `192.168.178.70`
-- Stock-GIFs und Dateigrößen wurden read-only dokumentiert; keine Datei wurde auf dem Gerät verändert.
-- Ziel: Uhr- und Wetterseite sowie GIF-Anzeigen in einem durchgängigen Fallout-4-/Pip-Boy-/RobCo-Stil. GIF-Seite direkt nach Wetter, keine unnötigen Zusatzseiten.
+## Aktueller Stand
 
-## Firmware-Basis und Uhr-/Wetterdesign
-- Als Quellbasis dient [iodn/geekmagic-tv-esp8266](https://github.com/iodn/geekmagic-tv-esp8266), das SmallTV Ultra / ESP8266 ausdrücklich unterstützt.
-- `patches/0001-fallout-pipboy-renderers.patch` gestaltet Uhr und Wetter mit RobCo-/Vault-Tec-Panels neu. NTP- und Open-Meteo-Datenpfade bleiben erhalten.
-- Ausgangsblob des Upstream-`src/display.cpp`: `ef482ea3cc556eb414fff6178fcc7a4d136563a9`.
-- Terminal-Farbpalette (Theme-ID 2) ist als Ausgangsbasis dokumentiert.
-- Beide Renderer-/Integrationspatches wurden im GitHub-Actions-Lauf erfolgreich angewendet; der anschließende PlatformIO-Build war erfolgreich.
+**Status: Design-Neuaufbau erforderlich.** Die bisherigen Firmware-Layouts sind nicht freigegeben. Der Nutzer hat die Anzeige als unlesbar und funktional unzureichend bewertet. Ein erfolgreicher CI-Build ist kein Nachweis für ein brauchbares Display.
 
-## GIF-Player und Album
-- AnimatedGIF wurde mit Apache-2.0-Lizenz lokal unter `lib/AnimatedGIF/` vendort.
-- Konfiguration: `MAX_CODE_SIZE=11`, `MAX_WIDTH=240`. Der Compile-Probe erzwingt `sizeof(AnimatedGIF) <= 15360` Bytes.
-- `firmware/gif_player.cpp/.h` implementiert LittleFS-Datei-Callbacks, RAW-Scanline-Dekodierung und RGB565-Ausgabe direkt über TFT_eSPI. Es wird kein 240×240-RGB565-Vollbildpuffer angelegt.
-- Decoder-Instanz wird bei Bedarf im sekundären IRAM-Heap angelegt und vor Feed-/TLS-Arbeit, OTA und anstehenden Netzwerkaktionen wieder freigegeben.
-- Vor dem Start prüft der Player `free` und `largestBlock` des IRAM-Heaps gegen `sizeof(AnimatedGIF)+2048`. Bei zu wenig Speicher wird die GIF-Wiedergabe übersprungen, nicht auf DRAM ausgewichen.
-- `patches/0002-gif-player-integration.patch` verwendet den vorhandenen Status-Seitenslot für die GIF-Seite direkt nach Weather; die Gesamtzahl der Dashboard-Seiten wird nicht erhöht. Als Standard sind ausschließlich Clock, Weather und GIF aktiviert; das Terminal-Theme, 20 Sekunden Seitenwechsel, Europe/Berlin mit automatischer Sommerzeit und Open-Meteo-Wetter für PLZ 47239 Duisburg sind voreingestellt. Seitenkonfiguration und geschützter Upload unter `/gif` mit `POST /gif/upload` sind ergänzt.
-- Uploads prüfen GIF-Signatur und 240×240-Canvas, schreiben zunächst in eine temporäre Datei und ersetzen erst nach erfolgreichem Abschluss. Zusätzlich wird vor jedem Schreibblock der freie LittleFS-Speicher geprüft; mindestens 4 KiB Reserve bleiben für Dateisystem-Metadaten und den Abschluss des Uploads. Bis zu zwölf alphabetisch sortierte Dateien werden abgespielt; der Player wechselt nach 20 Sekunden zur nächsten.
-- GIF-Schleife: Der Player wertet das Ende eines Durchlaufs aus und setzt den Decoder direkt auf Dateianfang zurück, statt mögliche Trailer-Bytes als weiteres Frame zu interpretieren.
-- Einschränkungen: maximal 300 KiB pro Datei, maximal zwölf Dateien, LZW-Codegröße höchstens 11 Bit, nur Vollbild-Frames; transparente Pixel werden schwarz dargestellt, partielle Frames werden abgewiesen. Alle Farben werden in Pip-Boy-Grün umgerechnet.
-- Stock-GIFs werden beim Firmwarewechsel nicht automatisch migriert. Originale müssen außerhalb des Geräts gesichert und nach Installation über `/gif` erneut hochgeladen werden. Die vorhandenen Dateien wurden noch nicht auf LZW-/Frame-Kompatibilität geprüft. Auch die Übernahme der WLAN-Zugangsdaten ist nicht bestätigt; gegebenenfalls muss das Failsafe-AP der neuen Firmware zur WLAN-Einrichtung verwendet werden.
+Build 186 (Commit e9afbe545b4e6223daa51b560f19b6ac16957910) wurde von GitHub Actions erfolgreich kompiliert. Die tatsächliche Darstellung auf dem Gerät wurde nicht verifiziert. Build 186 ist deshalb kein empfohlener Design- oder Release-Stand.
 
-## Reproduzierbarer Build
-- GitHub-Actions-Workflow: [smalltv-firmware-build.yml](../.github/workflows/smalltv-firmware-build.yml).
-- Er checkt den auditierten Upstream-Commit `6113fb9c86e2e2024883253fd99a3d2550ffccb2` fest aus, prüft zusätzlich den erwarteten `display.cpp`-Blob, wendet beide Patches an, kopiert die lokale Decoderbibliothek und den Player hinein und baut mit `pio run -e nodemcuv2`.
-- Bei Erfolg wird `firmware.bin` als 14 Tage verfügbares Actions-Artefakt abgelegt.
-- Der erfolgreiche CI-Lauf bestätigt Patch-Anwendung und Kompilierung. Die Laufzeit-Allokation des Decoders im realen IRAM-Heap ist weiterhin nicht auf Hardware gemessen.
+## Recherche vorhandener SmallTV-Projekte
 
-## Zweistufiger OTA-Installationsweg
+Die folgenden Projekte wurden als Referenzen geprüft:
 
-- Ein eigener Minimal-Loader ist unter `firmware/loader.cpp` implementiert. Er startet das offene WLAN `SmallTV-Loader` und stellt den ESP8266-HTTP-Updater unter `/update` bereit.
-- Der Loader wird als separater PlatformIO-Target gebaut und nicht in die Hauptfirmware gelinkt.
-- Erfolgreicher Build mit beiden Images: [GitHub Actions Run 42805367195](https://github.com/Neferax/Ultra-TV-Fallout/actions/runs/42805367195).
-- Loader: 316.112 Bytes, SHA-256 `de86b968495f03ecb0e37edeef02247202a942d7fa96dda5534564a3eef0ab2f`.
-- Hauptfirmware: 701.600 Bytes, SHA-256 `9e530d102b92c251e9ed1ee36d7791077f43375d10693eff9b012619765d4df4`.
-- Installationsablauf: zuerst Loader über die Stock-Seite `http://192.168.178.70/update`; danach mit `SmallTV-Loader` verbinden und die Hauptfirmware über `http://192.168.4.1/update` hochladen. Vollständige Anleitung: [INSTALLATION.md](INSTALLATION.md).
-- Beide Dateien liegen gemeinsam im Actions-Artefakt `smalltv-ultra-fallout-install-package`. Der Build bestätigt die Kompilierung, nicht die Hardwarefunktion.
+- [iodn/geekmagic-tv-esp8266](https://github.com/iodn/geekmagic-tv-esp8266): explizite SmallTV-Ultra-Unterstützung, gerenderte Vorschauen mit den Firmware-Fonts und Displaytests.
+- [giovi321/smalltv-mod](https://github.com/giovi321/smalltv-mod): visueller Theme-Editor SmallTV Studio und fertige 240x240-Layouts. Das Theme-Format ist nicht unmittelbar mit unserem aktuellen Firmwarezweig kompatibel.
+- [u1pns/smalltv-ultra](https://github.com/u1pns/smalltv-ultra): verarbeitet Fotos und GIFs im Browser vor; reduziert damit die Last des ESP8266. Sicherheitsmodell und persönlicher Projektstatus erlauben keine ungeprüfte Übernahme.
+- [msdxlab/SmallTV-ultra-mod](https://github.com/msdxlab/SmallTV-ultra-mod): Referenz für gezielte Teilaktualisierung und Screen-Mirror.
 
-## Was noch offen ist
-1. Decoder-Instanzgröße und IRAM-Reserve auf dem realen Gerät messen.
-2. Geeignete GIFs testen: 11-Bit-LZW und vollständige Canvas-Frames; Transparenz wird schwarz dargestellt.
-3. Laufzeit prüfen: Framerate, Seitenwechsel, TLS-Feed, OTA, Watchdog und Speicherfragmentierung.
-4. Backup-/Restore- und Recovery-Weg für genau diese Hardware-/Partitionsvariante prüfen.
+Details und technische Bewertung: [DESIGN_REFERENCE_COMPARISON.md](DESIGN_REFERENCE_COMPARISON.md).
 
-## Sicherheit und Gerätestatus
-- Keine Firmware wurde geflasht.
-- Keine Stock-GIFs, Einstellungen oder Dateien wurden gelöscht oder überschrieben.
-- Ein erfolgreich kompiliertes Firmware-Binary liegt vor; die Hardware-Kompatibilität und der reale Laufzeitbetrieb sind noch nicht getestet.
+## Neuer Displayentwurf
 
-- Konfigurationsmigration: Alte Dashboard-Konfigurationen (Schema 3) übernehmen nicht mehr die früheren Seiten-IDs; die neuen Standardseiten Uhr, Wetter und GIF-Archiv bleiben aktiv. Alte Feed-Konfigurationen (Schema 2) behalten Markt-/Home-Assistant-Einstellungen, übernehmen aber die neue Open-Meteo-Wettervoreinstellung.
-- LittleFS-Uploadpfade: Temporäre Datei und Sicherung verwenden feste kurze Namen, damit gültige GIF-Dateinamen bis zur LittleFS-Komponentengrenze nicht durch angehängte Endungen unbrauchbar werden.
+Die drei vorhandenen Slots werden als STAT, DATA und RADIO neu gestaltet:
 
+- STAT: große Uhrzeit, deutscher Wochentag und Datum; keine überflüssigen Zusatzfelder.
+- DATA: große aktuelle Temperatur und Wetterzustand, darunter Luftfeuchtigkeit, Regen und Wind sowie kurze Vorhersage.
+- RADIO: eigenständiges Animationsfenster; keine GIF-Overlays auf Uhr oder Wetter.
 
-### Verifizierter CI-Build
-- GitHub Actions: [Build-Lauf 42804144232](https://github.com/Neferax/Ultra-TV-Fallout/actions/runs/42804144232) – erfolgreich.
-- PlatformIO: `pio run -e nodemcuv2` – erfolgreich.
-- RAM: 47.892 von 81.920 Bytes (58,5 %).
-- Flash: 697.451 von 1.044.464 Bytes (66,8 %).
-- Firmware-Binary: 701.600 Bytes; SHA-256 `9e530d102b92c251e9ed1ee36d7791077f43375d10693eff9b012619765d4df4`.
-- Artifact: `smalltv-ultra-fallout-esp8266`, GitHub-Aufbewahrung bis 24.11.2026.
-- Noch offen: Flashen, Boot-/Displaytest, GIF-Kompatibilität, WLAN/OTA/Feed-Stabilität und Langzeittest auf dem realen Gerät.
+Designreferenz ist Fallout 4 / Pip-Boy 3000 Mark IV: monochromes Grün auf Schwarz, klare Registerleiste, dünne Trenner, knappe Labels und wenige gezielte Grafiken. Keine Neon-Verläufe, pseudo-3D-Karten oder dekorativen Vollbild-Effekte.
+
+Verbindliche Spezifikation und Abnahmekriterien: [DISPLAY_CONCEPT.md](DISPLAY_CONCEPT.md).
+
+## GIF-Strategie
+
+Die bisherige Laufzeit-Decodierung beliebiger GIFs auf dem ESP8266 wird nicht länger als Grundlage für die neue Lösung vorausgesetzt. Bevorzugt wird eine Vorverarbeitung im Browser zu kleinen, begrenzten Einzelbildern/Sprites. Die tatsächlichen Limits müssen am LittleFS- und Heap-Budget gemessen werden.
+
+Die aktuelle Quellcodevariante enthält den 12-Bit-LZW-Decoder und eine Laufzeit-Heap-Prüfung; Build 186 kompiliert. Framerate, Speicherfragmentierung, Vollständigkeit verschiedener GIFs und Darstellung auf dem Gerät sind nicht verifiziert.
+
+## Nächste technische Schritte
+
+1. Eine native 240x240-Vorschau-/Teststrecke auf Basis des echten Firmware-Renderers und der echten Bitmap-Fonts aufsetzen. Die Screenshots müssen aus derselben Zeichenlogik wie das Gerät stammen.
+2. STAT, DATA und RADIO als getrennte, vollständige Ansichten umsetzen und in der Vorschau auf Lesbarkeit, Clipping und Überlappung prüfen.
+3. Deutsche Langtexte, fehlende Wetterdaten, NTP-Ausfall, leeres Animationsarchiv und Seitenwechsel testen.
+4. Animationsvorverarbeitung auf dem PC/Browser implementieren und Datei-/Speichergrenzen prüfen.
+5. Erst nach bestandener Vorschau einen neuen Firmware-Build erstellen; danach gesonderter Hardwaretest.
+
+## Gerätestatus und Flash-Hinweis
+
+Es liegt keine bestätigte Hardware-Abnahme für Build 186 vor. Der Nutzer hat das aktuelle Layout als unbrauchbar gemeldet. Deshalb wird Build 186 nicht als freigegebener Stand empfohlen und vorerst nicht weiter geflasht. Ob Build 186 bereits auf dem Gerät installiert wurde, ist nicht bestätigt.
