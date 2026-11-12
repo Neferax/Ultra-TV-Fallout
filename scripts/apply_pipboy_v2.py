@@ -123,6 +123,11 @@ weather = r'''void renderWeatherPage() {
                      TL_DATUM, 0xAFE5, FONT_BODY);
 
     String condition = weather->condition;
+    condition.replace("Partly cloudy", "WOLKIG");
+    condition.replace("Mostly cloudy", "STARK BEWOELKT");
+    condition.replace("Cloudy", "BEWOELKT");
+    condition.replace("Clear", "KLAR");
+    condition.replace("Rain", "REGEN");
     condition.toUpperCase();
     if (condition.length() > 15) while (condition.length() > 15) condition.remove(condition.length() - 1);
     drawDisplayLabel(condition, 12, 138, 216, TL_DATUM, 0x07E0, FONT_LABEL);
@@ -139,7 +144,7 @@ weather = r'''void renderWeatherPage() {
         const WeatherForecastDay &day = weather->forecast[1];
         String row = String(day.date) + "   " + String(day.low) + "/" +
                      String(day.high) + "C   " + String(day.rainChance) + "%";
-        drawDisplayLabel("VORHERSAGE " + String(day.date) + " " + String(day.low) + "/" + String(day.high) + "C " + String(day.rainChance) + "%", 12, 190, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel("MORGEN " + String(day.low) + "/" + String(day.high) + "C  REGEN " + String(day.rainChance) + "%", 12, 190, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
     } else {
         drawDisplayLabel("VORHERSAGE --.-- --/--C --%", 12, 190, 216,
                          TL_DATUM, 0x3DE7, FONT_LABEL);
