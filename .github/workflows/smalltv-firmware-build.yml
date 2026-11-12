@@ -269,6 +269,23 @@ jobs:
                       assert gif.convert("RGB").getpixel((0, 0)) == (0, 0, 0)
               print("GIF transparency test passed: moving partial source frames flattened to opaque full frames")
 
+              # Verify that brightness ordering survives conversion, not merely that
+              # the output palette contains green entries.
+              gradient_source = folder / "gradient.gif"
+              gradient_output = folder / "gradient-compatible.gif"
+              gradient = Image.new("L", (256, 64))
+              for x in range(256):
+                  for y in range(64):
+                      gradient.putpixel((x, y), x)
+              gradient.save(gradient_source, format="GIF")
+              subprocess.run(["python", str(converter), str(gradient_source), str(gradient_output)], check=True)
+              with Image.open(gradient_output) as gif:
+                  converted = gif.convert("RGB")
+                  samples = [converted.getpixel((x, 52))[1] for x in (0, 26, 52, 78, 104, 130, 156, 182, 208, 239, 255 if gif.width > 255 else 103)]
+                  assert samples == sorted(samples), samples
+                  assert samples[0] == 0 and samples[-1] > samples[0], samples
+              print("GIF gradient test passed: increasing source luminance remains increasing green luminance")
+
       - name: Create an honest RADIO preview from the decoder-compatible bundled GIF frame
         run: |
           python - <<'PY'
