@@ -1,66 +1,55 @@
 # Ultra-TV-Fallout
 
-Fallout-4-/RobCo-inspiriertes Firmware-Anpassungsprojekt für die GeekMagic
-SmallTV Ultra.
+Neugestaltung einer Fallout-4-/Pip-Boy-Oberfläche für die GeekMagic SmallTV Ultra (ESP8266, 240x240).
 
-**Gerät:** GeekMagic SmallTV Ultra  
-**Stock-Firmware:** Ultra-V9.0.50  
-**Letzte bekannte Geräte-IP:** `192.168.178.70`  
-**Design:** schwarzer Hintergrund, Phosphorgrün, Pip-Boy-/RobCo-Bedienelemente und gut lesbare Originaldaten.
+> **Status: Design-Neuaufbau.** Die bisherigen Builds 182–186 waren Kompilierungstests, keine visuell abgenommenen Releases. Das aktuelle UI wurde vom Nutzer als unlesbar und funktional unzureichend zurückgemeldet. Build 186 wird nicht als freigegebener Stand empfohlen. Vor weiteren Geräte-Updates muss erst eine echte 240x240-Vorschau mit der Firmware-Zeichenlogik bestanden werden.
 
-## Geplante Displaystruktur
+## Verbindliche Zielstruktur
 
-Die alternative Firmware erhält nur drei aktive Dashboard-Seiten:
-1. Clock
-2. Weather
-3. GIF-Archiv
+Drei vorhandene Seiten-Slots, keine zusätzlichen Dashboard-Seiten:
 
-Der bisherige Status-Seitenslot wird für die GIF-Anzeige wiederverwendet. Es wird keine zusätzliche Dashboard-Seite angelegt. Uhrzeit und Wetter bleiben live über NTP und Open-Meteo.
+1. **STAT** – Uhrzeit und Datum, klarer Hauptfokus.
+2. **DATA** – Wetter mit Temperatur, Zustand, Luftfeuchte, Regen, Wind und kurzer Vorhersage.
+3. **RADIO** – eigenständiges Animations-/Vault-Tec-Archivfenster.
 
-## Tatsächlich vorhandene Arbeit
+Designreferenz ist der Pip-Boy 3000 Mark IV aus Fallout 4: monochrom, text- und zahlenorientiert, klare Registerleiste, dünne Trennlinien, wenige gezielte Grafiken. Keine beliebigen Neon-/Cyberpunk-Effekte oder übereinanderliegenden Inhalte.
 
-- [x] Gerät, Stock-Firmware, Speicherstand und vorhandene GIF-Dateien read-only dokumentiert
-- [x] Open-Source-Firmwarebasis mit SmallTV-Ultra-Unterstützung geprüft
-- [x] C++-Renderer-Patch für RobCo-Uhr und Pip-Boy-Wetter erstellt
-- [x] AnimatedGIF als lokale Low-RAM-Abhängigkeit vendort
-- [x] LittleFS-/TFT-Scanline-Player als Quellcode-Prototyp erstellt
-- [x] GIF-Archivseite, geschützten Upload und Feed-/TLS-Speichersteuerung als Integrationspatch erstellt
-- [x] GitHub-Actions-Workflow für Patch-Anwendung und PlatformIO-Build eingerichtet
-- [x] GitHub-Actions-Build erfolgreich bestätigt (inklusive Loader und Hauptfirmware)
-- [ ] GIF-Decoder auf ESP8266-Speicherbedarf und Laufzeit geprüft
-- [ ] Wetter-/Uhr-/GIF-Anzeige auf echter Hardware geprüft
-- [x] Zweistufiger WLAN-Installationsweg mit eigenem OTA-Loader für Ultra V9.0.50 gebaut und dokumentiert
+## Recherche und Designunterlagen
 
-## Wichtige Einschränkungen
+- [Vergleich vorhandener SmallTV-Projekte](docs/DESIGN_REFERENCE_COMPARISON.md)
+- [Verbindlicher neuer Displayentwurf und Abnahmekriterien](docs/DISPLAY_CONCEPT.md)
+- [Implementierungsstatus](docs/IMPLEMENTATION_STATUS.md)
 
-Der GIF-Player ist auf 240×240 Pixel, maximal 300 KiB pro Datei, höchstens
-11-Bit-LZW und vollständige Vollbild-Frames begrenzt. Transparente Pixel
-werden schwarz dargestellt, partielle Frames abgewiesen. Alle Farben werden in
-Pip-Boy-Grün umgerechnet; ein Vollbild-Compositing-Puffer wird nicht verwendet. Die bestehenden Stock-GIFs wurden noch nicht auf diese
-Kompatibilität geprüft.
+Verglichene Projekte:
+- [iodn/geekmagic-tv-esp8266](https://github.com/iodn/geekmagic-tv-esp8266) – getestete SmallTV-Ultra-Basis mit nativen Display-Renderer-Vorschauen.
+- [giovi321/smalltv-mod](https://github.com/giovi321/smalltv-mod) / [SmallTV Studio](https://giovi321.github.io/smalltv-studio/) – visueller 240x240-Theme-Editor und fertige Layoutbeispiele.
+- [u1pns/smalltv-ultra](https://github.com/u1pns/smalltv-ultra) – Browser-seitige Bild-/GIF-Vorverarbeitung statt Laufzeit-Decodierung auf dem ESP8266.
+- [msdxlab/SmallTV-ultra-mod](https://github.com/msdxlab/SmallTV-ultra-mod) – Referenz für Teilaktualisierung und Screen-Mirror.
 
-Die Stock-GIFs werden nicht automatisch in das neue LittleFS übernommen. Sie
-müssen extern gesichert und nach der Installation über die neue geschützte
-Uploadseite `/gif` erneut hochgeladen werden.
+Diese Projekte liefern Layout-, Test- und Technikreferenzen. Ihre Firmware-Images und Theme-Pakete sind nicht ohne Prüfung austauschbar.
 
-## Aktueller Gerätestatus
+## Qualitätsregeln
 
-**Am Gerät wurde nichts verändert.** Es gab keine Schreibzugriffe, Löschungen,
-Theme-Wechsel oder Firmware-Updates. Es liegen zwei erfolgreich kompilierte Dateien vor: ein kleiner OTA-Loader und die Fallout-Hauptfirmware. Der reale Flash- und Displaytest steht noch aus.
+- Vorschauen müssen exakt 240x240 Pixel groß sein und dieselben Bitmap-Fonts wie die Firmware nutzen.
+- Lange deutsche Wochentage, fehlende Wetterdaten, lange Werte und Seitenwechsel werden geprüft.
+- Keine abgeschnittenen oder überlagerten Inhalte; Seitenwechsel dürfen keine alten Pixel hinterlassen.
+- Wetterwerte müssen aus echten Daten stammen; fehlende Werte werden als -- oder NO SIGNAL angezeigt.
+- GIFs werden bevorzugt vor dem Upload in kleine, begrenzte Sprites umgewandelt.
+- Ein erfolgreicher CI-Build allein ist keine Design- oder Hardwarefreigabe.
 
-Installationsanleitung: [docs/INSTALLATION.md](docs/INSTALLATION.md) ·
+## Technischer Stand
 
-Details: [Implementierungsstatus](docs/IMPLEMENTATION_STATUS.md) ·
-[GIF-Speicher- und Decoderanalyse](docs/GIF_DECODER_FEASIBILITY.md) ·
-[Offizielle Bethesda-GIF-Quellen](docs/FALLOUT_GIF_SOURCES.md) ·
-[Firmware-Integration](firmware/README.md)
+- Repository-Quellcode und GitHub-Actions-Build existieren.
+- Build 186 ließ sich kompilieren; die reale Anzeige wurde nicht am Gerät verifiziert.
+- Der aktuelle Nutzerbericht bewertet die Darstellung und Funktion als unzureichend.
+- Kein weiteres Flashen empfohlen, bevor die Vorschau- und Regressionstests die neuen Abnahmekriterien erfüllen.
 
-## Sicherheitsregeln
+## Gerätereferenz
 
-- Kein Flashen, bevor Build, Backup und Recovery nachgewiesen sind.
-- Original-GIFs extern sichern.
-- Keine unbestätigten Upload-Endpunkte automatisiert verwenden.
-- Gerät nicht aus dem Internet erreichbar machen.
+- Gerät: GeekMagic SmallTV Ultra
+- Stock-Firmware: Ultra-V9.0.50
+- zuletzt bekannte Geräte-IP: 192.168.178.70
+- Standortvorgabe für Wetter: PLZ 47239, Duisburg
+- Uhr-Zeitzone: Europe/Berlin
 
-Fallout, Pip-Boy, RobCo und Vault-Tec sind Marken bzw. geschützte Inhalte ihrer
-jeweiligen Rechteinhaber. Dieses Projekt ist ein unabhängiges Fanprojekt.
+Fallout, Pip-Boy, RobCo und Vault-Tec sind Marken bzw. geschützte Inhalte ihrer Rechteinhaber. Dieses Repository ist ein unabhängiges Fanprojekt.
