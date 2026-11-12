@@ -136,12 +136,12 @@ diff --git a/src/display.cpp b/src/display.cpp
 -            renderStatusPage();
 +        case DASHBOARD_PAGE_GIF: {
 +            const ThemePalette &theme = activeTheme();
-+            drawScreenChrome("RADIO // ARCHIVE");
-+            tft.drawRect(8, 68, 224, 132, theme.accent);
-+            tft.drawRect(11, 71, 218, 126, theme.accentSoft);
++            drawScreenChrome("RADIO // GIFS");
++            tft.drawRect(8, 68, 224, 132, 0x07E0);
++            tft.drawRect(11, 71, 218, 126, 0x03E0);
 +            drawDisplayLabel(gifPlayerHasFiles() ? "GIF ARCHIVE // READY"
 +                                                  : "NO GIF FILES FOUND",
-+                             120, 178, 220, TC_DATUM, theme.muted, FONT_LABEL);
++                             120, 178, 220, TC_DATUM, 0x3DE7, FONT_LABEL);
              break;
 +        }
          default:
