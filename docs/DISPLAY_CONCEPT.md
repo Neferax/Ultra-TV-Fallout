@@ -1,7 +1,7 @@
 # Verbindlicher Display-Neuentwurf – Fallout 4 / Pip-Boy / RobCo
 
 Stand: 12.11.2026  
-Status: **Build 308 – native Vorschau visuell geprüft; Hardwaretest offen**
+Status: **Firmware Build 313 / Dokumentationslauf Build 314 – native Vorschau visuell geprüft; Hardwaretest offen**
 
 ## Warum der bisherige Ansatz verworfen wird
 
@@ -72,7 +72,7 @@ DATA bleibt ein einziges Hauptregister, wechselt aber intern alle 12 Sekunden zw
 - morgen, übermorgen und der dritte Folgetag;
 - Datum, deutsche Wetterbeschreibung;
 - Tiefst-/Höchsttemperatur in °C;
-- Regenwahrscheinlichkeit pro Prognosetag wird aktuell nicht angezeigt; die Daten werden weiterhin abgerufen. Die verfügbare Fläche wird für größere, besser lesbare Wetterlage und Temperaturbereiche genutzt.
+- Regenwahrscheinlichkeit pro Prognosetag steht kompakt in der Datumszeile; Wetterlage und Temperaturbereich bleiben groß und gut lesbar.
 
 „Hoch“ und „Tief“ werden nicht als eigenständige Wetterkennzahlen verwendet. Die Vorhersage zeigt drei Folgetage zusätzlich zur separaten Heute-Ansicht. Fehlen echte Werte, werden sie als nicht verfügbar angezeigt; es gibt keine Beispieldaten im Live-Betrieb.
 
