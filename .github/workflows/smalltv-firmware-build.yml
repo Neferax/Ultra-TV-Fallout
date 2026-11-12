@@ -63,6 +63,9 @@ jobs:
       - name: Apply complete Pip-Boy V2 display redesign
         run: python fallout/scripts/apply_pipboy_v2.py firmware
 
+      - name: Apply Pip-Boy V3 German date and readable weather typography
+        run: python fallout/scripts/apply_pipboy_v3.py firmware
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
