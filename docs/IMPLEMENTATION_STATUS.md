@@ -2,7 +2,7 @@
 
 ## Aktueller Stand
 
-**Build 313 erfolgreich; native 240×240-Vorschauen visuell geprüft. Hardwaretest offen.**
+**Firmware Build 313 erfolgreich; Dokumentationslauf Build 314 erfolgreich. Native 240×240-Vorschauen visuell geprüft. Hardwaretest offen.**
 
 Aktueller Firmware-Quellstand: `23cfbae45fe21aa413917ff87724ee45432c676b`. GitHub Actions hat ESP8266-Anwendung und OTA-Loader erfolgreich kompiliert.
 
@@ -45,4 +45,4 @@ Die bisherige Laufzeit-Decodierung beliebiger GIFs auf dem ESP8266 wird nicht al
 
 ## Gerätestatus und Flash-Hinweis
 
-Es liegt keine bestätigte Hardware-Abnahme für Build 306 vor. Die native Vorschau ist kein Ersatz für einen Test am physischen Display. Build 306 ist kompiliert und visuell geprüft, aber nicht als hardwareseitig freigegeben zu betrachten.
+Es liegt keine bestätigte Hardware-Abnahme für Firmware Build 313 vor. Build 314 enthält nur Dokumentationsänderungen. Die native Vorschau ist kein Ersatz für einen Test am physischen Display. Firmware Build 313 ist kompiliert und visuell geprüft, aber nicht als hardwareseitig freigegeben zu betrachten.
