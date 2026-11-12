@@ -97,17 +97,17 @@ weather = r'''void renderWeatherPage() {
         String sun = "SONNE " + String(weather->sunrise) + "-" + String(weather->sunset);
         // Four compact two-column rows retain the full useful detail without shrinking the hero.
         drawDisplayLabel("GEF. " + String(weather->feelsLike) + weatherUnitSymbol(),
-                         12, 132, 104, TL_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel(humidity, 228, 132, 104, TR_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel(wind, 12, 150, 104, TL_DATUM, 0x3DE7, FONT_LABEL);
-        drawDisplayLabel(windValue, 116, 150, 104, TR_DATUM, 0x3DE7, FONT_LABEL);
-        drawDisplayLabel(gust, 12, 168, 104, TL_DATUM, 0x3DE7, FONT_LABEL);
-        drawDisplayLabel(gustValue, 116, 168, 104, TR_DATUM, 0x3DE7, FONT_LABEL);
-        drawDisplayLabel(precipitation, 12, 186, 104, TL_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel(String(weather->rainChance) + "% // " + uv, 228, 186, 104,
+                         12, 130, 104, TL_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel(humidity, 228, 130, 104, TR_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel(wind, 12, 146, 104, TL_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(windValue, 116, 146, 104, TR_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(gust, 12, 162, 104, TL_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(gustValue, 116, 162, 104, TR_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(precipitation, 12, 178, 104, TL_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel(String(weather->rainChance) + "% // " + uv, 228, 178, 104,
                          TR_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel("SONNE AUF " + String(weather->sunrise) + " / UNTER " +
-                         String(weather->sunset), 120, 202, 216,
+                         String(weather->sunset), 120, 194, 216,
                          TC_DATUM, 0x3DE7, FONT_LABEL);
         return;
     }
