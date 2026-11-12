@@ -66,9 +66,9 @@ chrome = r'''void drawScreenChrome(const String &title) {
     }
     tft.drawFastHLine(8, 49, 224, 0x03E0);
     drawDisplayLabel(title, 10, 56, 220, TL_DATUM, 0x07E0, FONT_LABEL);
-    tft.drawFastHLine(8, 224, 224, 0x03E0);
-    drawDisplayLabel("VAULT-TEC", 8, 226, 120, TL_DATUM, 0x3DE7, FONT_LABEL);
-    drawDisplayLabel("MK IV", 232, 226, 60, TR_DATUM, 0x3DE7, FONT_LABEL);
+    tft.drawFastHLine(8, 218, 224, 0x03E0);
+    drawDisplayLabel("VAULT-TEC", 8, 220, 120, TL_DATUM, 0x3DE7, FONT_LABEL);
+    drawDisplayLabel("MK IV", 232, 220, 60, TR_DATUM, 0x3DE7, FONT_LABEL);
     // No moving footer clock: reserve the bottom strip for stable device identity.
 }'''
 s = replace_function(s, "void drawScreenChrome(const String &title) {", "void drawPlaceholder(", chrome)
