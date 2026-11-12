@@ -69,7 +69,8 @@ s = s.replace(
 '''                 "&current=temperature_2m,weather_code" +
                  "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +''',
 '''                 "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,weather_code" +
-                 "&daily=sunrise,sunset,weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +'''
+                 "&daily=sunrise,sunset,weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
+                 "&wind_speed_unit=kmh&precipitation_unit=mm" +'''
 )
 needle = '''    runtime.data.rainChance = rain.isNull() || rain.size() == 0
                                   ? 0
