@@ -66,6 +66,9 @@ jobs:
       - name: Apply Pip-Boy V3 German date and readable weather typography
         run: python fallout/scripts/apply_pipboy_v3.py firmware
 
+      - name: Fix native preview extraction for the German date formatter
+        run: python fallout/scripts/fix_native_date_preview.py firmware
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
