@@ -111,7 +111,7 @@ weather = r'''void renderWeatherPage() {
         if (weather->forecastCount > slot + 1) {
             const WeatherForecastDay &day = weather->forecast[slot + 1];
             String heading = String(labels[slot]) + " " + String(day.date);
-            drawDisplayLabel(heading, 12, y, 216, TL_DATUM, 0x07E0, FONT_BODY);
+            drawDisplayLabel(heading, 12, y, 216, TL_DATUM, 0x07E0, FONT_LABEL);
             String condition = day.condition;
             if (condition == "Partly cloudy") condition = "WOLKIG";
             else if (condition == "Mostly cloudy") condition = "WOLKIG";
