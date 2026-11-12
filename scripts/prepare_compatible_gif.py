@@ -32,20 +32,13 @@ def main() -> None:
             background.alpha_composite(rgba)
             gray = background.convert("L").resize(SIZE, Image.Resampling.LANCZOS)
 
-            # Quantize against a deliberately ordered monochrome-green palette.
-            # Generic median-cut palette indices are not brightness ordered.
-            palette_image = Image.new("P", (64, 1))
+            # Convert luminance directly to palette indices. P-mode conversion
+            # preserves the 0..255 brightness index, so the green palette is ordered.
+            indexed = gray.convert("P")
             palette = []
             for value in range(256):
-                green = value * 255 // 63 if value < 64 else 0
-                palette.extend((0, green, 0))
-            palette_image.putpalette(palette)
-            for value in range(64):
-                palette_image.putpixel((value, 0), value)
-            indexed = gray.quantize(
-                palette=palette_image,
-                dither=Image.Dither.FLOYDSTEINBERG,
-            )
+                palette.extend((0, value, 0))
+            indexed.putpalette(palette)
             frames.append(indexed)
             durations.append(max(20, int(frame.info.get("duration", image.info.get("duration", 100)))))
 
