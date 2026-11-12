@@ -87,6 +87,10 @@ jobs:
           source = preview.read_text()
           source = source.replace('strcpy(w.location,"Tokyo");', 'strcpy(w.location,"Duisburg");')
           source = source.replace(
+              'auto &w=feedRuntime.weather.data;strcpy(w.location,"Tokyo");strcpy(w.condition,"Partly cloudy");w.temperature=22;w.high=26;w.low=18;w.rainChance=20;',
+              'auto &w=feedRuntime.weather.data;strcpy(w.location,"Duisburg");strcpy(w.condition,"Partly cloudy");w.temperature=22;w.high=26;w.low=18;w.rainChance=20;w.forecastCount=2;strcpy(w.forecast[1].date,"13.11");w.forecast[1].low=18;w.forecast[1].high=26;w.forecast[1].rainChance=20;'
+          )
+          source = source.replace(
               'assert(hasDraw("12:34"));',
               'if(page == DASHBOARD_PAGE_CLOCK) assert(hasDraw("12:34"));',
               1
@@ -180,6 +184,35 @@ jobs:
           mkdir -p fallout/package
           cp firmware/data/gif/bethesda-vaultboy.gif fallout/package/bethesda-vaultboy.gif
 
+      - name: Create an honest RADIO preview from the bundled GIF frame
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageOps, ImageEnhance
+          package = Path("fallout/package")
+          gif = Image.open(package / "bethesda-vaultboy.gif")
+          gif.seek(0)
+          frame = gif.convert("RGB")
+          frame = ImageOps.contain(frame, (104, 102), method=Image.Resampling.LANCZOS)
+          gray = ImageOps.grayscale(frame)
+          gray = ImageEnhance.Contrast(gray).enhance(1.35)
+          phosphor = Image.new("RGB", frame.size)
+          phosphor.putdata([(0, value, 0) for value in gray.getdata()])
+          viewport = Image.new("RGB", (104, 102), "#000000")
+          viewport.paste(phosphor, ((104-frame.width)//2, (102-frame.height)//2))
+          radio = Image.open(package / "PipBoy-RADIO-240x240.png").convert("RGB")
+          radio.paste(viewport, (68, 76))
+          radio.save(package / "PipBoy-RADIO-GIF-FRAME-01.png")
+          board = Image.open(package / "PipBoy-SmallTV-Redesign-Preview.png").convert("RGB")
+          board.paste(radio, (600, 36))
+          from PIL import ImageDraw
+          draw = ImageDraw.Draw(board)
+          draw.rectangle((600, 8, 840, 29), fill="#050805")
+          draw.text((600, 12), "RADIO // GIF FRAME 01", fill="#8cff79")
+          board.save(package / "PipBoy-SmallTV-Redesign-Preview.png")
+          print("RADIO preview uses frame 1 from the exact bundled GIF; native renderer capture remains separately available.")
+          PY
+
       - name: Add minimal OTA loader source and build target
         working-directory: firmware
         run: |
@@ -210,6 +243,7 @@ jobs:
             fallout/package/PipBoy-STAT-240x240.png
             fallout/package/PipBoy-DATA-240x240.png
             fallout/package/PipBoy-RADIO-240x240.png
+            fallout/package/PipBoy-RADIO-GIF-FRAME-01.png
             fallout/package/PipBoy-SmallTV-Redesign-Preview.png
           if-no-files-found: error
           retention-days: 14
