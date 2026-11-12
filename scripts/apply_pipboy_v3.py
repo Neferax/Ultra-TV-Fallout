@@ -114,8 +114,10 @@ weather = r'''void renderWeatherPage() {
             else if (condition == "Fog") condition = "NEBEL";
             condition.toUpperCase();
             String range = String(day.low) + "-" + String(day.high) + " C";
-            drawDisplayLabel(condition + "  " + range, 12, y + 25, 216,
+            drawDisplayLabel(condition, 12, y + 25, 132,
                              TL_DATUM, 0xAFE5, FONT_BODY);
+            drawDisplayLabel(range, 228, y + 25, 78,
+                             TR_DATUM, 0xAFE5, FONT_BODY);
         } else {
             drawDisplayLabel(String(labels[slot]) + " // KEINE DATEN",
                              12, y, 216, TL_DATUM, 0x3DE7, FONT_BODY);
