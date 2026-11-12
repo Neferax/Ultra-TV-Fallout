@@ -62,8 +62,9 @@ weather = r'''void renderWeatherPage() {
                          TL_DATUM, heroFonts, 2, 0xAFE5, TFT_BLACK);
         String unit;
         unit += weatherUnitSymbol();
-        drawDisplayLabel(unit, 12 + tft.textWidth(temperature, FONT_BODY) + 5,
-                         83, 36, TL_DATUM, 0xAFE5, FONT_BODY);
+        const int unitX = 12 + tft.textWidth(temperature, FONT_BODY) + 5;
+        tft.drawCircle(unitX + 2, 86, 2, 0xAFE5);
+        drawDisplayLabel(unit, unitX + 7, 83, 24, TL_DATUM, 0xAFE5, FONT_BODY);
 
         String condition = weather->condition;
         if (condition == "Partly cloudy" || condition == "Mostly cloudy" ||
@@ -96,8 +97,10 @@ weather = r'''void renderWeatherPage() {
         String uv = "UV " + String(weather->uvIndex);
         String sun = "SONNE " + String(weather->sunrise) + "-" + String(weather->sunset);
         // Four compact two-column rows retain the full useful detail without shrinking the hero.
-        drawDisplayLabel("GEF. " + String(weather->feelsLike) + weatherUnitSymbol(),
-                         12, 130, 104, TL_DATUM, 0xAFE5, FONT_LABEL);
+        String feelsText = "GEF. " + String(weather->feelsLike) + " C";
+        int feelsDegreeX = 12 + tft.textWidth("GEF. " + String(weather->feelsLike) + " ", FONT_LABEL);
+        tft.drawCircle(feelsDegreeX + 2, 134, 2, 0xAFE5);
+        drawDisplayLabel(feelsText, 12, 130, 104, TL_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel(humidity, 228, 130, 104, TR_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel(wind, 12, 146, 104, TL_DATUM, 0x3DE7, FONT_LABEL);
         drawDisplayLabel(windValue, 116, 146, 104, TR_DATUM, 0x3DE7, FONT_LABEL);
@@ -137,6 +140,9 @@ weather = r'''void renderWeatherPage() {
             else if (condition == "Weather") condition = "WETTER";
             condition.toUpperCase();
             String range = String(day.low) + "-" + String(day.high) + " C";
+            int rangeStart = 228 - tft.textWidth(range, FONT_BODY);
+            int rangeDegreeX = rangeStart + tft.textWidth(String(day.low) + "-" + String(day.high) + " ", FONT_BODY);
+            tft.drawCircle(rangeDegreeX + 2, y + 29, 2, 0xAFE5);
             drawDisplayLabel(condition, 12, y + 25, 132,
                              TL_DATUM, 0xAFE5, FONT_BODY);
             drawDisplayLabel(range, 228, y + 25, 78,
