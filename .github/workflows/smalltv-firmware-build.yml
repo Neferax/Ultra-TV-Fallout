@@ -52,6 +52,9 @@ jobs:
 
       - name: Add multi-day weather forecast and stable RADIO rendering
         run: python fallout/scripts/apply_forecast_and_stable_radio.py firmware
+      - name: Add detailed current weather data for DATA page 1/2
+        run: python fallout/scripts/apply_weather_detail_fields.py firmware
+
       - name: Improve weather readability and add built-in Pip-Boy animation
         run: python fallout/scripts/apply_readable_ui_and_builtin_animation.py firmware
       - name: Apply v7 readable weather and real GIF transitions
@@ -87,7 +90,7 @@ jobs:
           source = preview.read_text()
           source = source.replace(
               'auto &w=feedRuntime.weather.data;strcpy(w.location,"Tokyo");strcpy(w.condition,"Partly cloudy");w.temperature=22;w.high=26;w.low=18;w.rainChance=20;',
-              'auto &w=feedRuntime.weather.data;strcpy(w.location,"Duisburg");strcpy(w.condition,"Partly cloudy");w.temperature=22;w.high=26;w.low=18;w.rainChance=20;w.forecastCount=2;strcpy(w.forecast[1].date,"13.11");w.forecast[1].low=18;w.forecast[1].high=26;w.forecast[1].rainChance=20;'
+              'auto &w=feedRuntime.weather.data;strcpy(w.location,"DUISBURG // RUMELN");strcpy(w.condition,"Partly cloudy");w.temperature=22;w.high=26;w.low=18;w.rainChance=20;w.feelsLike=20;w.humidity=68;w.precipitation=4;w.windSpeed=12;w.windDirection=315;w.windGusts=22;w.uvIndex=2;strcpy(w.sunrise,"07:34");strcpy(w.sunset,"16:42");w.forecastCount=4;strcpy(w.forecast[1].date,"13.11");strcpy(w.forecast[1].condition,"Partly cloudy");w.forecast[1].low=8;w.forecast[1].high=11;w.forecast[1].rainChance=20;strcpy(w.forecast[2].date,"14.11");strcpy(w.forecast[2].condition,"Rain");w.forecast[2].low=7;w.forecast[2].high=10;w.forecast[2].rainChance=65;strcpy(w.forecast[3].date,"15.11");strcpy(w.forecast[3].condition,"Cloudy");w.forecast[3].low=5;w.forecast[3].high=9;w.forecast[3].rainChance=30;'
           )
           source = source.replace(
               'assert(hasDraw("12:34"));',
@@ -118,7 +121,20 @@ jobs:
               'void drawFastHLine(int x,int y,int w,uint16_t c){fillRect(x,y,w,1,c);}' + chr(10) +
               'void drawRect(int x,int y,int w,int h,uint16_t c){drawFastHLine(x,y,w,c);drawFastHLine(x,y+h-1,w,c);drawFastVLine(x,y,h,c);drawFastVLine(x+w-1,y,h,c);}'
           )
+          header = header.replace('uint32_t millis(){return 120000;}', 'uint32_t fixtureMillis=120000;uint32_t millis(){return fixtureMillis;}')
           fixture.write_text(header)
+          PY
+          python firmware/audit/device-ui-preview.py --output firmware/pipboy-preview
+          python - <<'PY'
+          from pathlib import Path
+          preview = Path("firmware/audit/device-ui-preview.py")
+          source = preview.read_text()
+          needle = 'tft.save(std::string(argv[1])+"/theme-"+std::to_string(theme)+"-page-"+std::to_string(page)+".ppm");'
+          addition = needle + '\\n   if(page==DASHBOARD_PAGE_WEATHER){fixtureMillis=132000;textDraws.clear();renderDashboardPage();checkBounds();tft.save(std::string(argv[1])+"/pipboy-weather-forecast.ppm");fixtureMillis=120000;}'
+          if needle not in source:
+              raise SystemExit("Could not add second DATA-page preview")
+          source = source.replace(needle, addition, 1)
+          preview.write_text(source)
           PY
           python firmware/audit/device-ui-preview.py --output firmware/pipboy-preview
           python - <<'PY'
@@ -139,8 +155,12 @@ jobs:
               x = 24 + i * 288
               board.paste(image, (x, 36))
               draw.text((x, 12), label, fill="#8cff79")
+          forecast = Image.open(src / "pipboy-weather-forecast.ppm").convert("RGB")
+          if forecast.size != (240, 240):
+              raise SystemExit(f"DATA forecast: unexpected render size {forecast.size}")
+          forecast.save(out / "PipBoy-DATA-3-Day-Forecast-240x240.png")
           board.save(out / "PipBoy-SmallTV-Redesign-Preview.png")
-          print("Native firmware preview saved: exact 240x240 renderer and TFT bitmap fonts")
+          print("Native firmware preview saved: STAT, DATA today, DATA 3-day forecast and RADIO")
           PY
 
 
@@ -166,8 +186,11 @@ jobs:
               raise SystemExit("Leaving the GIF archive does not force a clean page redraw")
           if "gifTransitionUntilMs" in main or "gifTransitionActive" in main:
               raise SystemExit("GIF page-transition overlay must remain disabled")
-          if "void renderWeatherPage()" not in display or "KEINE PROGNOSE" not in display:
-              raise SystemExit("Readable weather renderer missing")
+          if "void renderWeatherPage()" not in display or "DATA // HEUTE" not in display or "DATA // 3-TAGE-VORSCHAU" not in display:
+              raise SystemExit("Split German weather renderer missing")
+          for token in ["GEFUEHLT", "FEUCHTE", "WIND ", "BOEEN", "REGEN ", "CHANCE ", "SONNE "]:
+              if token not in display:
+                  raise SystemExit(f"Current weather detail missing: {token}")
           print("Verified: compact GIF viewport, archive-only playback, clean page redraw, weather renderer")
           PY
 
@@ -241,6 +264,7 @@ jobs:
             fallout/package/bethesda-vaultboy.gif
             fallout/package/PipBoy-STAT-240x240.png
             fallout/package/PipBoy-DATA-240x240.png
+            fallout/package/PipBoy-DATA-3-Day-Forecast-240x240.png
             fallout/package/PipBoy-RADIO-240x240.png
             fallout/package/PipBoy-RADIO-GIF-FRAME-01.png
             fallout/package/PipBoy-SmallTV-Redesign-Preview.png
