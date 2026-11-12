@@ -94,8 +94,8 @@ weather = r'''void renderWeatherPage() {
         drawDisplayLabel(wind, 12, 155, 104, TL_DATUM, 0x3DE7, FONT_LABEL);
         drawDisplayLabel(gust, 228, 155, 104, TR_DATUM, 0x3DE7, FONT_LABEL);
         drawDisplayLabel(precipitation, 12, 175, 104, TL_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel(chance, 228, 175, 104, TR_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel(uv, 12, 195, 104, TL_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(String(weather->rainChance) + "% // " + uv, 228, 175, 104,
+                         TR_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel("AUF " + String(weather->sunrise), 12, 195, 104,
                          TL_DATUM, 0x3DE7, FONT_LABEL);
         drawDisplayLabel("UNTER " + String(weather->sunset), 228, 195, 104,
