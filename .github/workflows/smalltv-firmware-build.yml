@@ -57,6 +57,55 @@ jobs:
       - name: Apply v7 readable weather and real GIF transitions
         run: python fallout/scripts/apply_readable_weather_and_real_gif_transitions.py firmware
 
+      - name: Apply complete Pip-Boy V2 display redesign
+        run: python fallout/scripts/apply_pipboy_v2.py firmware
+
+      - name: Render and test native 240x240 firmware pages
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          preview = Path("firmware/audit/device-ui-preview.py")
+          source = preview.read_text()
+          source = source.replace(
+              'assert(hasDraw("12:34"));',
+              'if(page != DASHBOARD_PAGE_GIF) assert(hasDraw("12:34"));'
+          )
+          source = source.replace(
+              'if(page!=DASHBOARD_PAGE_CLOCK){bool footer=false;',
+              'if(page!=DASHBOARD_PAGE_CLOCK && page!=DASHBOARD_PAGE_GIF){bool footer=false;'
+          )
+          preview.write_text(source)
+          fixture = Path("firmware/audit/device-ui-fixture.h")
+          header = fixture.read_text()
+          header = header.replace(
+              'bool hasStatusContent(){return !emptyData;}',
+              'bool hasStatusContent(){return !emptyData;}\\nbool gifPlayerHasFiles(){return true;}'
+          )
+          fixture.write_text(header)
+          PY
+          python firmware/audit/device-ui-preview.py --output firmware/pipboy-preview
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageDraw
+          src = Path("firmware/pipboy-preview")
+          out = Path("fallout/package")
+          out.mkdir(parents=True, exist_ok=True)
+          pages = [("STAT", 0), ("DATA", 1), ("RADIO", 2)]
+          board = Image.new("RGB", (3 * 240 + 4 * 24, 300), "#050805")
+          draw = ImageDraw.Draw(board)
+          for i, (label, page) in enumerate(pages):
+              ppm = src / f"theme-0-page-{page}.ppm"
+              image = Image.open(ppm).convert("RGB")
+              if image.size != (240, 240):
+                  raise SystemExit(f"{label}: unexpected render size {image.size}")
+              image.save(out / f"PipBoy-{label}-240x240.png")
+              x = 24 + i * 288
+              board.paste(image, (x, 36))
+              draw.text((x, 12), label, fill="#8cff79")
+          board.save(out / "PipBoy-SmallTV-Redesign-Preview.png")
+          print("Native firmware preview saved: exact 240x240 renderer and TFT bitmap fonts")
+          PY
+
 
       - name: Verify compact GIF viewport and page transitions
         working-directory: firmware
@@ -128,7 +177,7 @@ jobs:
         working-directory: firmware
         run: pio run -e nodemcuv2
 
-      - name: Upload loader and firmware build artifacts
+      - name: Upload loader, firmware and native display previews
         uses: actions/upload-artifact@v4
         with:
           name: smalltv-ultra-fallout-install-package
@@ -136,5 +185,9 @@ jobs:
             firmware/.pio/build/nodemcuv2_loader/firmware.bin
             firmware/.pio/build/nodemcuv2/firmware.bin
             fallout/package/bethesda-vaultboy.gif
+            fallout/package/PipBoy-STAT-240x240.png
+            fallout/package/PipBoy-DATA-240x240.png
+            fallout/package/PipBoy-RADIO-240x240.png
+            fallout/package/PipBoy-SmallTV-Redesign-Preview.png
           if-no-files-found: error
           retention-days: 14
