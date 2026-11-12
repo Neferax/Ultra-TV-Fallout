@@ -118,7 +118,9 @@ weather = r'''void renderWeatherPage() {
         const int heroFonts[] = {FONT_BODY, FONT_LABEL};
         drawAdaptiveText(temperature, 12, 92, 130,
                          TL_DATUM, heroFonts, 2, 0xAFE5, TFT_BLACK);
-        drawDisplayLabel(weatherUnitSymbol(), 12 + tft.textWidth(temperature, FONT_BODY) + 5,
+        String unit;
+        unit += weatherUnitSymbol();
+        drawDisplayLabel(unit, 12 + tft.textWidth(temperature, FONT_BODY) + 5,
                          98, 36, TL_DATUM, 0xAFE5, FONT_BODY);
 
         String condition = weather->condition;
