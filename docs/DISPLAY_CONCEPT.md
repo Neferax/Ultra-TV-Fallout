@@ -55,19 +55,28 @@ Layout:
 
 Keine zusätzliche Wettervorschau auf dieser Seite. Die Uhr bekommt Platz und wird nicht mit kleinen Statusfeldern überladen.
 
-## Seite 2 – DATA / Wetter
+## Seite 2 – DATA / Wetter mit zwei internen Ansichten
 
-Ziel: aktuelle Wetterlage und kurze Vorhersage auf einer einzigen, lesbaren Seite.
+DATA bleibt ein einziges Hauptregister, wechselt aber intern alle 12 Sekunden zwischen zwei vollständigen Ansichten. Die Hauptnavigation bleibt STAT / DATA / RADIO.
 
-Layout:
-- oben: Registerleiste;
-- darunter: Standort 47239 / Duisburg;
-- dominanter Wert: aktuelle Temperatur;
-- direkt darunter: Wetterzustand als deutsches Wort;
-- mittlerer Bereich: Luftfeuchte, Regenwahrscheinlichkeit und Wind in drei klar getrennten Feldern;
-- unterer Bereich: kompakte Drei-Tage-Vorhersage mit Tageskürzel und Höchst-/Tiefstwert.
+**Ansicht 1/2 – HEUTE**
+- Standort 47239 / Duisburg;
+- aktuelle Temperatur und Wetterlage;
+- gefühlte Temperatur und Luftfeuchtigkeit;
+- Windrichtung, Windgeschwindigkeit und Böen in km/h;
+- aktueller Niederschlag und heutige Niederschlagswahrscheinlichkeit;
+- UV-Index;
+- Sonnenaufgang und Sonnenuntergang.
 
-Die Temperatur und der Wetterzustand haben Vorrang. Die Vorhersage wird gekürzt, wenn echte Daten fehlen, statt mit leeren oder erfundenen Einträgen gefüllt zu werden.
+**Ansicht 2/2 – 3-TAGE-VORSCHAU**
+- morgen, übermorgen und der dritte Folgetag;
+- Datum, deutsche Wetterbeschreibung;
+- Tiefst-/Höchsttemperatur in °C;
+- Niederschlagswahrscheinlichkeit.
+
+„Hoch“ und „Tief“ werden nicht als eigenständige Wetterkennzahlen verwendet. Die Vorhersage zeigt drei Folgetage zusätzlich zur separaten Heute-Ansicht. Fehlen echte Werte, werden sie als nicht verfügbar angezeigt; es gibt keine Beispieldaten im Live-Betrieb.
+
+Die Ansichten wechseln intern alle 12 Sekunden; die drei Hauptregister bleiben unverändert.
 
 ## Seite 3 – RADIO / Animation
 
