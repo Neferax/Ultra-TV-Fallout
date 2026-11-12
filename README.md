@@ -2,7 +2,7 @@
 
 Fallout-4-/Pip-Boy-Oberfläche für die GeekMagic SmallTV Ultra (ESP8266, ST7789, 240x240).
 
-> **Status: Build 298 erfolgreich, native Vorschauen visuell geprüft.** Die aktuelle Wetteransicht zeigt Temperatur, Wetterlage sowie gefühlte Temperatur, Luftfeuchte, Wind, Böen, Niederschlag, Regenwahrscheinlichkeit, UV und Sonnenzeiten. Die separate Drei-Tage-Vorschau ist auf zwei große Zeilen pro Tag reduziert. STAT und RADIO bleiben eigenständige Seiten. Eine Prüfung auf dem echten Gerät steht noch aus; Build 298 ist daher noch keine Hardwarefreigabe.
+> **Status: Build 368 erfolgreich; native 240×240-Vorschauen und Paketprüfungen bestanden. Hardwaretest weiterhin offen.** Die aktuelle Wetteransicht zeigt Temperatur, Wetterlage sowie gefühlte Temperatur, Luftfeuchte, Wind, Böen, Niederschlag, Regenwahrscheinlichkeit, UV und Sonnenzeiten. Die separate Drei-Tage-Vorschau ist auf zwei große Zeilen pro Tag reduziert. STAT und RADIO bleiben eigenständige Seiten. Eine Prüfung auf dem echten Gerät steht noch aus; Build 298 ist daher noch keine Hardwarefreigabe.
 
 ## Verbindliche Zielstruktur
 
@@ -39,12 +39,12 @@ Diese Projekte liefern Layout-, Test- und Technikreferenzen. Ihre Firmware-Image
 
 ## Technischer Stand
 
-- Build 298: ESP8266-Firmware und OTA-Loader erfolgreich kompiliert.
+- Build 368: ESP8266-Firmware und OTA-Loader erfolgreich kompiliert; das Installationspaket wurde heruntergeladen und auf enthaltene Dateien geprüft.
 - Native Vorschauen für STAT, DATA heute, DATA 3-Tage und RADIO wurden in 240x240 Pixeln geprüft.
-- Die RADIO-Vorschau enthält Frame 1 des tatsächlich gebündelten Vault-Boy-GIFs; die native Seitenvorschau bleibt zusätzlich separat verfügbar.
+- Das Paket enthält ein separates Vault-Boy-GIF (104×104, sieben unterschiedliche Frames, Endlosschleife). Die RADIO-Seitenvorschau ist kein Nachweis der Animation auf dem Gerät.
 - Die heutige Wetterseite zeigt gefühlte Temperatur, Luftfeuchte, Wind, Böen, Niederschlag, Regenwahrscheinlichkeit, UV und Sonnenauf/-untergang.
-- Die Drei-Tage-Vorschau zeigt Datum, Wetterlage und Temperaturbereich. Regenwahrscheinlichkeit je Forecast-Tag ist derzeit noch nicht auf dem Display.
-- Die Firmware wurde nicht auf dem echten Gerät verifiziert. Keine Hardwarefreigabe behaupten.
+- Die Drei-Tage-Vorschau zeigt Datum, Wetterlage, Temperaturbereich und Regenwahrscheinlichkeit je Tag.
+- Die Firmware wurde nicht auf dem echten Gerät verifiziert. GIF-Laufzeit, WLAN-/Wetterabruf und Langzeitstabilität bleiben Hardwaretests; keine Hardwarefreigabe.
 
 ## Gerätereferenz
 
