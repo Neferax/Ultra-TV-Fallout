@@ -89,13 +89,7 @@ clock = r'''void renderClockPage() {
     tft.drawFastHLine(24, 166, 192, 0x03E0);
     drawDisplayLabel(formatLocalDate(), 120, 178, 216, TC_DATUM,
                      0xAFE5, FONT_LABEL);
-    if (!hasTimeSync()) {
-        drawDisplayLabel("TIME SYNCHRONIZATION PENDING", 120, 202, 216,
-                         TC_DATUM, 0x3DE7, FONT_LABEL);
-    } else {
-        drawDisplayLabel("LOCAL TIME // EUROPE-BERLIN", 120, 202, 216,
-                         TC_DATUM, 0x3DE7, FONT_LABEL);
-    }
+    // Keep the lower display area clear; date is the only secondary clock line.
 }'''
 s = replace_function(s, "void renderClockPage() {", "void renderWeatherPage() {", clock)
 
