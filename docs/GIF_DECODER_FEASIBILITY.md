@@ -1,46 +1,24 @@
 # GIF-Wiedergabe: Machbarkeit und aktueller Implementierungsstand
 
-## Ausgangslage
-
-Die aktuelle Quelle von `iodn/geekmagic-tv-esp8266` enthält keine GIF-Wiedergabe.
-Die Projekt-Historie dokumentiert die Entfernung der früheren JPEG-/Bildfunktion
-und ihrer Decoder-Abhängigkeit. Ein GIF-Player muss deshalb neu integriert werden.
-
 ## Decoder und Speicher
 
 Verwendete Bibliothek: `bitbank2/AnimatedGIF` (Apache-2.0), lokal vendort unter
 `lib/AnimatedGIF/`.
 
-Die Standardkonfiguration reserviert laut Bibliotheksbeispiel rund 22,5 KB RAM.
-Die historische Hardwaremessung des Upstream-Projekts meldet nach normalem Start
-rund 18,5 KB freien DRAM und 18,8 KB freien sekundären IRAM-Heap. Ein
-Standarddecoder passt daher nicht einfach in den freien DRAM.
+Die Firmware verwendet die vollständige 12-Bit-LZW-Konfiguration
+(`MAX_CODE_SIZE=12`) und begrenzt die Bildbreite auf 240 Pixel
+(`MAX_WIDTH=240`). Der Compile-Probe prüft
+`sizeof(AnimatedGIF) <= 24576` Bytes.
 
-Für den ESP8266 wurde die Bibliothek gezielt reduziert:
-- `MAX_CODE_SIZE=11`: LZW-Codes bis 11 Bit.
-- `MAX_WIDTH=240`: Bildbreite passend zum Display.
-- Die Instanz wird nur während der GIF-Anzeige im sekundären Heap angelegt.
-- Der Build-Probe erzwingt `sizeof(AnimatedGIF) <= 15360` Bytes.
-- Vor der Allokation prüft der Player den größten freien IRAM-Block und lässt
-  mindestens 2 KB Reserve. Bei zu wenig Speicher wird die GIF-Wiedergabe
-  übersprungen; es gibt keinen DRAM-Fallback.
+Der Decoder wird nur während der GIF-Anzeige dynamisch mit
+`new (std::nothrow)` aus dem normalen ESP8266-Heap angelegt. Vorher prüft
+der Player, ob mindestens `sizeof(AnimatedGIF) + 8192` Bytes freier Heap
+gemeldet werden. Bei zu wenig Speicher wird die GIF-Wiedergabe übersprungen.
+Das ist eine konservative Laufzeit-Schranke, aber kein Nachweis, dass WLAN,
+Webserver, TLS und Decoder unter allen Lastsituationen gleichzeitig stabil
+bleiben. Ein realer Heap-Verlauf wurde auf dem Gerät noch nicht gemessen.
 
-Die großen festen Arrays der 11-Bit-Konfiguration benötigen näherungsweise:
-
-| Puffer | Größe |
-|---|---:|
-| Datei-/LZW-Pixelstack | 2.048 B |
-| globale + lokale Palette | 1.536 B |
-| LZW-Chunkpuffer | 1.530 B |
-| Turbo-LZW-Tabelle | 4.096 B |
-| Turbo-Pixelpuffer | 4.096 B |
-| Zeilenpuffer (240 + 15) | 255 B |
-| **Summe der Arrays** | **13.561 B** |
-
-Das ist eine Berechnung aus den Array-Dimensionen des Headers, kein gemessener
-`sizeof(AnimatedGIF)`-Wert. Der Compile-Probe prüft die Obergrenze beim Build.
-
-## Implementierter Prototyp
+## Implementierter Player
 
 Quellcode:
 - `firmware/gif_player.h`
@@ -50,66 +28,67 @@ Quellcode:
 Der Player verwendet:
 1. LittleFS-Open-/Read-/Seek-/Close-Callbacks.
 2. RAW-Scanline-Ausgabe direkt über TFT_eSPI in RGB565.
-3. Einen einzelnen 240-Pixel-Zeilenpuffer statt eines Vollbild-Framebuffers.
-4. Dynamische Allokation des Decoderobjekts im IRAM-Heap.
-5. `yield()` nach jeder ausgegebenen Zeile.
+3. Einen einzelnen 104-Pixel-Zeilenpuffer statt eines Vollbild-Compositing-Framebuffers.
+4. Dynamische Allokation des Decoderobjekts im normalen Heap.
+5. `yield()` während der Ausgabe.
+6. Automatischen Wechsel zum nächsten Album-Eintrag nach 20 Sekunden.
 
-### Bewusste GIF-Einschränkungen
+## Bewusst unterstütztes GIF-Format
 
-Ohne Compositing-Framebuffer kann der Player keine beliebigen GIF-Frames korrekt
-zusammensetzen. Er akzeptiert daher nur:
-- Canvas maximal 240 × 240 Pixel.
-- Vollständige, deckende Frames, die jeweils das ganze GIF-Canvas abdecken.
-- Transparente Pixel werden beim Zeichnen zu Schwarz abgeflacht.
-- Alle Disposal-Methoden sind bei vollständigen Canvas-Frames zulässig, da jede Frame-Zeile komplett neu gezeichnet wird.
-- LZW-Codegröße maximal 11 Bit.
+Der Player hat keinen Compositing-Framebuffer. Deshalb akzeptiert er nur:
+- GIF-Canvas maximal 240 × 240 Pixel.
+- Vollständige Frames, deren Ursprung bei (0,0) liegt und deren Größe exakt dem Canvas entspricht.
+- Keine transparenten Frames.
+- LZW-Codegröße bis zur vollständigen 12-Bit-Konfiguration.
 - Dateigröße maximal 300 KiB.
 
-Partielle Frames werden abgewiesen. Transparenz wird
-auf schwarzem Hintergrund abgeflacht. Alle sichtbaren GIF-Farben werden in
-monochromes Pip-Boy-Phosphorgrün umgerechnet. Die Dateien müssen entsprechend vorbereitet
-sein. Die vorhandenen Stock-GIFs wurden noch nicht gegen diese Anforderungen
-geprüft.
+Frames mit Teilbild-Offsets, abweichender Framegröße oder Transparenz werden
+beim Decodieren erkannt und abgebrochen. Für diesen Eintrag wird die
+Fallback-Animation angezeigt. Damit werden Bildreste durch unvollständiges
+Compositing vermieden. Die GIF-Farben werden in monochromes Pip-Boy-
+Phosphorgrün umgerechnet.
 
-## Integration in die Firmware
+Die Upload-Prüfung kontrolliert Dateisignatur und Canvas-Abmessungen. Sie
+validiert nicht vorab sämtliche Frame- und Transparenzeigenschaften; diese
+Prüfung erfolgt während der Wiedergabe. Die vorhandenen Stock-GIFs wurden
+nicht gegen das unterstützte Format geprüft.
 
-`patches/0002-gif-player-integration.patch` ergänzt:
-- Eine GIF-Seite direkt nach Weather in der Seitenrotation.
-- Eine geschützte Upload-Seite unter `/gif`.
+## Upload und Dateiverwaltung
+
+Die Integration ergänzt:
+- Eine RADIO/GIF-Seite.
+- Upload über die geschützte Weboberfläche.
 - Speicherung unter LittleFS `/gif/`.
 - Bis zu zwölf alphabetisch sortierte GIF-Dateien.
-- Temporäre Upload-Datei und Austausch erst nach vollständigem Upload.
-- Automatischen Wechsel zum nächsten GIF nach 20 Sekunden.
-- Stoppen und Freigeben des Decoders vor Feed-/TLS-Jobs, OTA und anstehenden
-  Netzwerkaktionen.
+- Temporäre Upload-Datei und Austausch erst nach abgeschlossenem Upload.
+- Größenlimit 300 KiB pro Datei.
+- Stopp/Freigabe des Decoders vor Feed-/TLS-Jobs und Netzwerkaktionen.
 
-Die Originaldateien aus der Stock-Firmware werden nicht automatisch in das neue
-LittleFS übernommen. Sie müssen extern gesichert und nach Installation über
-`/gif` erneut hochgeladen werden.
+Ein Dateilimit von 300 KiB bedeutet nicht, dass jede Datei auf dem Gerät
+hochgeladen werden kann: verfügbarer LittleFS-Speicher und Reserve für
+Dateisystem-Metadaten begrenzen die tatsächlich mögliche Größe zusätzlich.
 
 ## Build- und Teststatus
 
-Ein GitHub-Actions-Workflow ist eingerichtet:
-`.github/workflows/smalltv-firmware-build.yml`. Er:
-- prüft den erwarteten Upstream-Quellstand,
-- wendet den Fallout-Uhr-/Wetter-Patch an,
-- kopiert die lokale Decoderbibliothek und den Player,
-- wendet die GIF-Integrationspatches an,
-- kompiliert mit PlatformIO für `nodemcuv2`,
-- legt bei Erfolg das Firmware-Binary als Artefakt ab.
+Der GitHub-Actions-Workflow
+`.github/workflows/smalltv-firmware-build.yml` kompiliert für PlatformIO
+`nodemcuv2`, prüft die Decoder-Instanzgröße und erzeugt native
+240×240-Renderer-Vorschauen.
 
-**Der Buildstatus konnte über die verfügbaren GitHub-Abfragen nicht bestätigt
-werden.** Daher sind Compile-Erfolg, tatsächliche Instanzgröße, IRAM-Allokation,
-GIF-Framerate, Watchdog-Stabilität und TLS-Wechsel weiterhin nicht verifiziert.
-Es wurde nichts auf das SmallTV-Gerät geflasht oder verändert.
+Ein erfolgreicher CI-Build bestätigt die Kompilierung und die statischen
+Build-Prüfungen. Er bestätigt nicht die tatsächliche GIF-Framerate,
+Laufzeit-Heap-Reserve, Watchdog-Stabilität, TLS-Wechsel oder die Wiedergabe
+auf dem realen SmallTV.
 
-## Abbruchkriterien
+**Hardwaretest weiterhin offen.** Es wurde nichts auf das Gerät geflasht
+oder verändert.
 
-Die GIF-Seite bleibt deaktiviert bzw. wird übersprungen, wenn:
-- der Compile-Probe die 15-KB-Instanzgrenze überschreitet,
-- der größte freie IRAM-Block nicht ausreicht,
-- die TLS-Reserve nach dem Freigeben nicht wiederhergestellt wird,
-- Laufzeitfehler oder Watchdog-Resets auftreten.
+## Voraussetzungen vor einem Flash
 
-Kein Flashen, bevor Build, Laufzeit, Backup/Restore und Recovery für die genaue
-Hardwarevariante nachgewiesen sind.
+Vor einem Flash müssen mindestens geprüft werden:
+- Build und Decoder-Compile-Probe erfolgreich.
+- Geeignete GIF-Dateien mit vollständigen, opaken Canvas-Frames.
+- Backup der vorhandenen LittleFS-Dateien.
+- Ausreichender Heap während GIF-Wiedergabe und nachfolgendem Feed-/TLS-Job.
+- Kein Watchdog-Reset und kein sichtbarer Bildfehler bei längerer Wiedergabe.
+- Wiederherstellung der normalen Anzeige nach Verlassen von RADIO.
