@@ -201,7 +201,9 @@ jobs:
               raise SystemExit("Opaque full-frame GIF renderer must not clear between frames")
           if "line->iWidth != canvasWidth" not in gif or "line->ucHasTransparency" not in gif:
               raise SystemExit("Strict opaque full-frame GIF validation missing")
-          print("Verified: flicker-free opaque GIF frame updates, compact archive viewport, clean page redraw and weather renderer")
+          if "rejectedGifPaths[currentGifIndex] = true" not in gif or "if (rejectedGifPaths[selected]) continue;" not in gif:
+              raise SystemExit("Unsupported GIF entries are not skipped safely")
+          print("Verified: flicker-free opaque GIF updates, automatic skip of incompatible entries, compact archive viewport and weather renderer")
           PY
 
       - name: Download and normalize a Vault Boy animation for the constrained GIF decoder
