@@ -133,9 +133,10 @@ weather = r'''void renderWeatherPage() {
             else if (condition == "Weather") condition = "WETTER";
             condition.toUpperCase();
             String range = String(day.low) + "-" + String(day.high) + " C";
-            drawDisplayLabel(condition, 12, y + 25, 132,
+            String outlook = range + " // " + String(day.rainChance) + "%";
+            drawDisplayLabel(condition, 12, y + 25, 124,
                              TL_DATUM, 0xAFE5, FONT_BODY);
-            drawDisplayLabel(range, 228, y + 25, 78,
+            drawDisplayLabel(outlook, 228, y + 25, 100,
                              TR_DATUM, 0xAFE5, FONT_BODY);
         } else {
             drawDisplayLabel(String(labels[slot]) + " // KEINE DATEN",
