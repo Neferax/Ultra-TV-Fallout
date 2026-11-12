@@ -87,6 +87,7 @@ jobs:
               'if(page!=DASHBOARD_PAGE_CLOCK){bool footer=false;',
               'if(page!=DASHBOARD_PAGE_CLOCK && page!=DASHBOARD_PAGE_GIF){bool footer=false;'
           )
+          source = source.replace('  assert(d.h>=16);', '  if(d.h<16){fprintf(stderr,"Too small: %s at %d,%d %dx%d\\n",d.text.c_str(),d.x,d.y,d.w,d.h);abort();}')
           preview.write_text(source)
           fixture = Path("firmware/audit/device-ui-fixture.h")
           header = fixture.read_text()
