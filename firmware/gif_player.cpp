@@ -110,6 +110,15 @@ void drawGifScanline(GIFDRAW *line) {
     // The library's no-framebuffer callback path does not restore disposal
     // method 2. Clear the previous frame's rectangle when the next frame starts.
     if (line->y == 0) {
+        // This low-RAM scanline renderer has no compositing framebuffer.
+        // Accept only full-canvas, opaque frames; partial or transparent frames
+        // would otherwise leave pixels from the previous frame visible.
+        if (line->iX != 0 || line->iY != 0 ||
+            line->iWidth != canvasWidth || line->iHeight != canvasHeight ||
+            line->ucHasTransparency) {
+            unsupportedFrame = true;
+            return;
+        }
         if (gifLoopClearPending) {
             targetDisplay->fillRect(canvasOriginX, canvasOriginY,
                 scaledCanvasWidth, scaledCanvasHeight, TFT_BLACK);
