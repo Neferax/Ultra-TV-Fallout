@@ -281,7 +281,7 @@ jobs:
               subprocess.run(["python", str(converter), str(gradient_source), str(gradient_output)], check=True)
               with Image.open(gradient_output) as gif:
                   converted = gif.convert("RGB")
-                  samples = [converted.getpixel((x, 52))[1] for x in (0, 26, 52, 78, 104, 130, 156, 182, 208, 239, 255 if gif.width > 255 else 103)]
+                  samples = [converted.getpixel((x, 52))[1] for x in (0, 10, 21, 31, 42, 52, 62, 73, 83, 94, 103)]
                   assert samples == sorted(samples), samples
                   assert samples[0] == 0 and samples[-1] > samples[0], samples
               print("GIF gradient test passed: increasing source luminance remains increasing green luminance")
