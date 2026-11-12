@@ -112,4 +112,48 @@ if needle not in s:
     raise SystemExit("Could not locate weather JSON insertion")
 s = s.replace(needle, replacement)
 feeds_cpp.write_text(s, encoding="utf-8")
-print("Open-Meteo current detail fields added: apparent temperature, humidity, precipitation, wind, gusts, UV and sunrise/sunset")
+
+# Keep the weather details and the 12-second internal DATA page phase in the
+# render-cache key so the two DATA views alternate without changing registers.
+display_cpp = root / "src/display.cpp"
+s = display_cpp.read_text(encoding="utf-8")
+start = s.find("void hashWeatherData(uint32_t &hash) {")
+end = s.find("\nvoid hashMarketData(", start)
+if start < 0 or end < 0:
+    raise SystemExit("Could not locate weather render-cache hash")
+hash_function = r'''void hashWeatherData(uint32_t &hash) {
+    hashValue(hash, feedsWeatherSource());
+    hashValue(hash, feedsWeatherUsesFahrenheit());
+    hashValue(hash, weatherWaitingForSync());
+    hashValue(hash, feedRuntime.weather.syncing);
+    hashCString(hash, feedRuntime.weather.lastError);
+    const WeatherData *weather = effectiveWeatherData();
+    bool hasData = weather != nullptr;
+    hashValue(hash, hasData);
+    hashValue(hash, (millis() / 12000UL) % 2UL);
+    if (!hasData) return;
+    hashCString(hash, weather->location);
+    hashCString(hash, weather->condition);
+    hashValue(hash, weather->temperature);
+    hashValue(hash, weather->feelsLike);
+    hashValue(hash, weather->humidity);
+    hashValue(hash, weather->precipitation);
+    hashValue(hash, weather->windSpeed);
+    hashValue(hash, weather->windDirection);
+    hashValue(hash, weather->windGusts);
+    hashValue(hash, weather->uvIndex);
+    hashCString(hash, weather->sunrise);
+    hashCString(hash, weather->sunset);
+    hashValue(hash, weather->rainChance);
+    hashValue(hash, weather->forecastCount);
+    for (uint8_t index = 0; index < weather->forecastCount && index < 4; ++index) {
+        hashCString(hash, weather->forecast[index].date);
+        hashCString(hash, weather->forecast[index].condition);
+        hashValue(hash, weather->forecast[index].high);
+        hashValue(hash, weather->forecast[index].low);
+        hashValue(hash, weather->forecast[index].rainChance);
+    }
+}'''
+s = s[:start] + hash_function + s[end:]
+display_cpp.write_text(s, encoding="utf-8")
+print("Open-Meteo weather detail fields and timed DATA view cache added")
