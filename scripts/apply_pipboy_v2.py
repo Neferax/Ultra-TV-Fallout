@@ -146,7 +146,7 @@ weather = r'''void renderWeatherPage() {
                      String(day.high) + "C   " + String(day.rainChance) + "%";
         drawDisplayLabel("MORGEN " + String(day.low) + "/" + String(day.high) + "C  REGEN " + String(day.rainChance) + "%", 12, 190, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
     } else {
-        drawDisplayLabel("VORHERSAGE --.-- --/--C --%", 12, 190, 216,
+        drawDisplayLabel("KEINE PROGNOSE", 12, 190, 216,
                          TL_DATUM, 0x3DE7, FONT_LABEL);
     }
 }'''
