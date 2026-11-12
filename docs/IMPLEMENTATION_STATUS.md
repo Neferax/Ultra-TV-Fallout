@@ -36,7 +36,7 @@ Verbindliche Spezifikation und Abnahmekriterien: [DISPLAY_CONCEPT.md](DISPLAY_CO
 
 Die bisherige Laufzeit-Decodierung beliebiger GIFs auf dem ESP8266 wird nicht als uneingeschränkt belastbar vorausgesetzt. Die tatsächlichen Limits müssen am LittleFS- und Heap-Budget gemessen werden. Die aktuelle Quellcodevariante enthält einen 12-Bit-LZW-Decoder und eine Laufzeit-Heap-Prüfung; Framerate, Speicherfragmentierung, Vollständigkeit verschiedener GIFs und Darstellung auf dem Gerät sind nicht verifiziert.
 
-## Offene Abnahme
+## Letzter CI-Stand\n\nBuild 376 kompiliert ESP8266-Firmware und OTA-Loader erfolgreich; die nativen 240×240-Renderer-Tests sind ebenfalls erfolgreich. Die Celsius-Einheit erhält ein grafisch gezeichnetes Gradzeichen. Das Installationspaket wurde heruntergeladen und geprüft. Das ersetzt keine Prüfung auf dem physischen Display.\n\n## Offene Abnahme
 
 1. Hardwaretest des aktuellen Builds auf dem SmallTV Ultra.
 2. Tatsächliche Wetterdaten, fehlende Daten und Wiederverbindung auf dem Gerät prüfen.
