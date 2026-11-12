@@ -1,7 +1,7 @@
 # Verbindlicher Display-Neuentwurf – Fallout 4 / Pip-Boy / RobCo
 
 Stand: 12.11.2026  
-Status: **Neugestaltung erforderlich – bisherige Darstellung nicht freigegeben**
+Status: **Build 298 – native Vorschau visuell geprüft; Hardwaretest offen**
 
 ## Warum der bisherige Ansatz verworfen wird
 
