@@ -45,14 +45,11 @@ Limits:
 - Canvas up to 240×240 pixels.
 - Up to twelve indexed GIF files.
 - 300 KiB maximum per file.
-- LZW code size up to 11 bits.
-- Every frame must cover the full canvas. Transparent pixels are flattened to black; all disposal methods are accepted for full-canvas frames.
-- Partial frames are rejected; transparent pixels become black. No full-canvas compositing buffer is allocated. All source colors are tinted to monochrome Pip-Boy green.
+- Full 12-bit LZW code size (`MAX_CODE_SIZE=12`).
+- Every frame must cover the full canvas and be opaque. Partial or transparent frames are rejected by the runtime player.
+- No full-canvas compositing buffer is allocated. All source colors are tinted to monochrome Pip-Boy green. The bundled Vault Boy GIF is pre-converted to opaque full-canvas frames.
 
-The decoder instance is allocated in the secondary IRAM heap only during GIF
-playback. It is released before feed/TLS work, OTA upload and pending network
-actions. If the IRAM block is too small, the GIF page is skipped rather than
-falling back to DRAM.
+The decoder instance is allocated with `new (std::nothrow)` from the normal ESP8266 heap only during GIF playback. Before allocation, the player checks for at least `sizeof(AnimatedGIF) + 8192` bytes of reported free heap. The decoder is released before feed/TLS work, OTA upload and pending network actions. This runtime guard is not proof of stability under every Wi-Fi, web-server and TLS load; actual heap behavior still requires testing on the device.
 
 ## Installation caveats
 
@@ -71,6 +68,4 @@ no device files have been changed.
 
 The GitHub Actions workflow checks the expected upstream renderer source,
 applies both patches, copies the decoder/player sources, and runs
-`pio run -e nodemcuv2`. A successful workflow result has not yet been confirmed.
-Until the build and hardware tests pass, this is a source prototype, not a
-flash-ready release.
+`pio run -e nodemcuv2`. Build 368 completed successfully and produced the firmware, OTA loader and installation package. Static/native checks do not establish real-device operation. The exact board revision, partition layout, first-flash method, recovery path, and hardware behavior still require verification; this is not yet hardware-approved.
