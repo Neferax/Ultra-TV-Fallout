@@ -141,7 +141,7 @@ diff --git a/src/display.cpp b/src/display.cpp
 +            tft.drawRect(11, 71, 218, 126, theme.accentSoft);
 +            drawDisplayLabel(gifPlayerHasFiles() ? "GIF ARCHIVE // READY"
 +                                                  : "NO GIF FILES FOUND",
-+                             120, 188, 220, TC_DATUM, theme.muted, FONT_INFO);
++                             120, 188, 220, TC_DATUM, theme.muted, FONT_LABEL);
              break;
 +        }
          default:
