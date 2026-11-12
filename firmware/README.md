@@ -68,4 +68,4 @@ no device files have been changed.
 
 The GitHub Actions workflow checks the expected upstream renderer source,
 applies both patches, copies the decoder/player sources, and runs
-`pio run -e nodemcuv2`. Build 368 completed successfully and produced the firmware, OTA loader and installation package. Static/native checks do not establish real-device operation. The exact board revision, partition layout, first-flash method, recovery path, and hardware behavior still require verification; this is not yet hardware-approved.
+`pio run -e nodemcuv2`. Build 376 completed successfully and produced the firmware, OTA loader and installation package. The native 240×240 renderer audit also passed, including the graphical Celsius degree marks. Static/native checks do not establish real-device operation. The exact board revision, partition layout, first-flash method, recovery path, and hardware behavior still require verification; this is not yet hardware-approved.
