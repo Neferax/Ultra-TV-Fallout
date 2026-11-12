@@ -194,7 +194,17 @@ display.write_text(s, encoding="utf-8")
 # Remove the cartoon fallback entirely. If a real GIF cannot be decoded, the
 # archive stays static rather than drawing a fake mascot/helmet.
 s = gif.read_text(encoding="utf-8")
-s = s.replace("bool fallbackAnimationActive = false;\nuint32_t fallbackFrameAtMs = 0;\n", "")
+for obsolete in [
+    "bool fallbackAnimationActive = false;\n",
+    "bool fallbackSceneDrawn = false;\n",
+    "uint32_t fallbackFrameAtMs = 0;\n",
+    "int16_t fallbackScanY = 0;\n",
+    "    fallbackAnimationActive = false;\n",
+    "    fallbackSceneDrawn = false;\n",
+    "    fallbackFrameAtMs = 0;\n",
+    "    fallbackScanY = 0;\n",
+]:
+    s = s.replace(obsolete, "")
 tick = r'''bool gifPlayerTick(uint32_t nowMs) {
     if (decoder == nullptr) return false;
     if (nowMs - gifStartedAtMs >= 20000UL) {
