@@ -13,6 +13,36 @@ def replace_function(source, signature, next_signature, replacement):
 
 s = display.read_text(encoding="utf-8")
 
+# Use explicit German weekday/month abbreviations; strftime locale is not
+# guaranteed to be German on the ESP8266.
+date_fn = r'''String formatLocalDate() {
+    if (!hasTimeSync()) return "WARTET AUF ZEIT";
+    static const char *weekdays[] = {"SO", "MO", "DI", "MI", "DO", "FR", "SA"};
+    static const char *months[] = {"JAN", "FEB", "MAE", "APR", "MAI", "JUN",
+                                   "JUL", "AUG", "SEP", "OKT", "NOV", "DEZ"};
+    time_t now = time(nullptr);
+    tm localInfo;
+    localtime_r(&now, &localInfo);
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "%s  %02d. %s %04d",
+             weekdays[localInfo.tm_wday], localInfo.tm_mday,
+             months[localInfo.tm_mon], localInfo.tm_year + 1900);
+    return String(buffer);
+}'''
+s = replace_function(s, "String formatLocalDate() {", "String formatWorldTime(", date_fn)
+
+clock_dynamic = r'''void updateClockDynamicArea() {
+    const ThemePalette &theme = activeTheme();
+    bool isPm = false;
+    const String timeText = formatLocalTime(dashboardConfig.showSeconds,
+                                            dashboardConfig.use24Hour, &isPm);
+    tft.fillRect(17, 85, 206, 62, TFT_BLACK);
+    drawClockTime(tft, timeText, dashboardConfig.showSeconds,
+                  0xAFE5, 0x3DE7, TFT_BLACK, 120, 91);
+    tft.drawFastHLine(24, 151, 192, 0x03E0);
+}'''
+s = replace_function(s, "void updateClockDynamicArea() {", "void drawDynamicText(", clock_dynamic)
+
 chrome = r'''void drawScreenChrome(const String &title) {
     const ThemePalette &theme = activeTheme();
     tft.setTextSize(1);
@@ -39,8 +69,7 @@ chrome = r'''void drawScreenChrome(const String &title) {
     tft.drawFastHLine(8, 224, 224, 0x03E0);
     drawDisplayLabel("ROBCO // VAULT-TEC", 8, 230, 150, TL_DATUM, 0x3DE7, FONT_INFO);
     drawDisplayLabel("MK IV", 232, 230, 60, TR_DATUM, 0x3DE7, FONT_INFO);
-    if (displayState.currentPage != DASHBOARD_PAGE_CLOCK &&
-        displayState.currentPage != DASHBOARD_PAGE_GIF) updateFooterClock();
+    // No moving footer clock: reserve the bottom strip for stable device identity.
 }'''
 s = replace_function(s, "void drawScreenChrome(const String &title) {", "void drawPlaceholder(", chrome)
 
