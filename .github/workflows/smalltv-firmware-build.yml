@@ -207,7 +207,13 @@ jobs:
               raise SystemExit("Strict opaque full-frame GIF validation missing")
           if "rejectedGifPaths[currentGifIndex] = true" not in gif or "if (rejectedGifPaths[selected]) continue;" not in gif:
               raise SystemExit("Unsupported GIF entries are not skipped safely")
-          print("Verified: flicker-free opaque GIF updates, automatic skip of incompatible entries, compact archive viewport and weather renderer")
+          if "fallbackAnimationActive" in gif or "fallbackFrameAtMs" in gif:
+              raise SystemExit("RADIO must not substitute a fake animation for real GIF content")
+          if "return decoder != nullptr;" not in gif:
+              raise SystemExit("GIF activity state must reflect a real decoder only")
+          if "gifPlayerStartNext(*display);" not in gif:
+              raise SystemExit("A failed GIF must advance to the next archive entry")
+          print("Verified: flicker-free opaque GIF updates, real-GIF-only playback, automatic skip of incompatible entries, compact archive viewport and weather renderer")
           PY
 
       - name: Download and normalize a Vault Boy animation for the constrained GIF decoder
