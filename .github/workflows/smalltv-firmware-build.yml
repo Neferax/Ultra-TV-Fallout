@@ -283,7 +283,7 @@ jobs:
                   converted = gif.convert("RGB")
                   samples = [converted.getpixel((x, 52))[1] for x in (0, 10, 21, 31, 42, 52, 62, 73, 83, 94, 103)]
                   assert samples == sorted(samples), samples
-                  assert samples[0] == 0 and samples[-1] > samples[0], samples
+                  assert samples[0] <= 2 and samples[-1] >= 253, samples
               print("GIF gradient test passed: increasing source luminance remains increasing green luminance")
 
       - name: Create an honest RADIO preview from the decoder-compatible bundled GIF frame
