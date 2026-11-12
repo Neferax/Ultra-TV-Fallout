@@ -35,7 +35,7 @@ s = s.replace("drawDisplayLabel(formatLocalDate(), 120, 178, 216, TC_DATUM,",
 weather = r'''void renderWeatherPage() {
     const ThemePalette &theme = activeTheme();
     const bool forecastPage = ((millis() / 12000UL) % 2UL) != 0;
-    drawScreenChrome(forecastPage ? "DATA // 3-TAGE-VORSCHAU" : "DATA // HEUTE");
+    drawScreenChrome(forecastPage ? "DATA // 3 TAGE" : "DATA // HEUTE");
     if (!hasWeatherContent()) {
         tft.drawRect(12, 78, 216, 110, 0x03E0);
         drawDisplayLabel("WETTER LINK", 120, 96, 200, TC_DATUM, 0xAFE5, FONT_LABEL);
@@ -100,7 +100,7 @@ weather = r'''void renderWeatherPage() {
     const char *labels[] = {"MORGEN", "UEBERMORGEN", "IN 3 TAGEN"};
     // Three distinct rows: date, readable condition/range, then precipitation probability.
     for (uint8_t slot = 0; slot < 3; ++slot) {
-        const int y = 62 + static_cast<int>(slot) * 49;
+        const int y = 72 + static_cast<int>(slot) * 47;
         if (slot > 0) tft.drawFastHLine(12, y - 4, 216, 0x03E0);
         if (weather->forecastCount > slot + 1) {
             const WeatherForecastDay &day = weather->forecast[slot + 1];
