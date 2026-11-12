@@ -197,7 +197,11 @@ jobs:
           for token in ["GEFUEHLT", "FEUCHTE", "WIND ", "BOEEN", "REGEN ", "CHANCE ", "SONNE "]:
               if token not in display:
                   raise SystemExit(f"Current weather detail missing: {token}")
-          print("Verified: compact GIF viewport, archive-only playback, clean page redraw, weather renderer")
+          if "clearPreviousGifFrame" in gif or "gifLoopClearPending" in gif or "previousFrameDisposal" in gif:
+              raise SystemExit("Opaque full-frame GIF renderer must not clear between frames")
+          if "line->iWidth != canvasWidth" not in gif or "line->ucHasTransparency" not in gif:
+              raise SystemExit("Strict opaque full-frame GIF validation missing")
+          print("Verified: flicker-free opaque GIF frame updates, compact archive viewport, clean page redraw and weather renderer")
           PY
 
       - name: Download and normalize a Vault Boy animation for the constrained GIF decoder
