@@ -2,18 +2,18 @@
 
 ## Aktueller Stand
 
-**Build 308 erfolgreich; native 240×240-Vorschauen visuell geprüft. Hardwaretest offen.**
+**Build 313 erfolgreich; native 240×240-Vorschauen visuell geprüft. Hardwaretest offen.**
 
-Aktueller Firmware-Quellstand: `46f1104fc982c3a0701bda256dccb15ee8f4980a`. GitHub Actions hat ESP8266-Anwendung und OTA-Loader erfolgreich kompiliert.
+Aktueller Firmware-Quellstand: `23cfbae45fe21aa413917ff87724ee45432c676b`. GitHub Actions hat ESP8266-Anwendung und OTA-Loader erfolgreich kompiliert.
 
 ### Display und Wetter
 
 - **STAT:** große Uhrzeit, deutscher Wochentag und Datum.
 - **DATA – HEUTE:** Temperatur, Wetterlage, gefühlte Temperatur, Luftfeuchte, Wind/Böen, Niederschlag, Regenwahrscheinlichkeit, UV sowie Sonnenauf- und -untergang.
-- **DATA – 3-TAGE-VORSCHAU:** getrennte Einträge für MORGEN, UEBERMORGEN und IN 3 TAGEN; jeweils Datum, deutsch übersetzte Wetterlage und Temperaturbereich in °C. Die zusätzliche Seitenüberschrift wurde entfernt, damit sie nicht mit dem ersten Prognoseeintrag kollidiert. Regenwahrscheinlichkeit pro Prognosetag wird zwar von der Wetterquelle geliefert, derzeit aber zugunsten der Lesbarkeit nicht angezeigt.
+- **DATA – 3-TAGE-VORSCHAU:** getrennte Einträge für MORGEN, UEBERMORGEN und IN 3 TAGEN; jeweils Datum, deutsch übersetzte Wetterlage und Temperaturbereich in °C. Die zusätzliche Seitenüberschrift wurde entfernt, damit sie nicht mit dem ersten Prognoseeintrag kollidiert. Regenwahrscheinlichkeit pro Prognosetag steht kompakt in der jeweiligen Datumszeile (z. B. `MORGEN 13.11 // 20%`); Wetterlage und Temperaturbereich bleiben in der großen zweiten Zeile.
 - **RADIO:** eigenes Animationsfenster. GIF-Inhalte bleiben auf RADIO und überlagern weder Uhr noch Wetter.
 
-Die native Forecast-Vorschau aus Build 306 wurde visuell geprüft; Build 308 enthält zusätzlich die erweiterten deutschen Wetterlagen: keine abgeschnittenen oder überlappenden Zeilen; die drei Einträge sind innerhalb der 240×240-Fläche lesbar. Die übrigen nativen Vorschauen wurden in Build 298 geprüft. Die reale Darstellung, WLAN-/Wetterdaten und GIF-Wiedergabe auf dem Gerät sind weiterhin nicht verifiziert.
+Die native Forecast-Vorschau aus Build 313 wurde visuell geprüft: Datumszeile inklusive Regenwahrscheinlichkeit, darunter Wetterlage und Temperaturbereich. Alle drei Einträge passen ohne Abschneiden oder Überlagerung. Build 308 enthält zusätzlich die erweiterten deutschen Wetterlagen: keine abgeschnittenen oder überlappenden Zeilen; die drei Einträge sind innerhalb der 240×240-Fläche lesbar. Die übrigen nativen Vorschauen wurden in Build 298 geprüft. Die reale Darstellung, WLAN-/Wetterdaten und GIF-Wiedergabe auf dem Gerät sind weiterhin nicht verifiziert.
 
 ## Recherche vorhandener SmallTV-Projekte
 
