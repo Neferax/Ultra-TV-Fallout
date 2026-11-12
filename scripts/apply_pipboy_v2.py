@@ -123,11 +123,11 @@ weather = r'''void renderWeatherPage() {
                      TL_DATUM, 0xAFE5, FONT_BODY);
 
     String condition = weather->condition;
-    condition.replace("Partly cloudy", "WOLKIG");
-    condition.replace("Mostly cloudy", "STARK BEWOELKT");
-    condition.replace("Cloudy", "BEWOELKT");
-    condition.replace("Clear", "KLAR");
-    condition.replace("Rain", "REGEN");
+    if (condition == "Partly cloudy") condition = "WOLKIG";
+    else if (condition == "Mostly cloudy") condition = "STARK BEWOELKT";
+    else if (condition == "Cloudy") condition = "BEWOELKT";
+    else if (condition == "Clear") condition = "KLAR";
+    else if (condition == "Rain") condition = "REGEN";
     condition.toUpperCase();
     if (condition.length() > 15) while (condition.length() > 15) condition.remove(condition.length() - 1);
     drawDisplayLabel(condition, 12, 138, 216, TL_DATUM, 0x07E0, FONT_LABEL);
