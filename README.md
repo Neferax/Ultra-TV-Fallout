@@ -39,10 +39,12 @@ Diese Projekte liefern Layout-, Test- und Technikreferenzen. Ihre Firmware-Image
 
 ## Technischer Stand
 
-- Repository-Quellcode und GitHub-Actions-Build existieren.
-- Build 186 ließ sich kompilieren; die reale Anzeige wurde nicht am Gerät verifiziert.
-- Der aktuelle Nutzerbericht bewertet die Darstellung und Funktion als unzureichend.
-- Kein weiteres Flashen empfohlen, bevor die Vorschau- und Regressionstests die neuen Abnahmekriterien erfüllen.
+- Build 298: ESP8266-Firmware und OTA-Loader erfolgreich kompiliert.
+- Native Vorschauen für STAT, DATA heute, DATA 3-Tage und RADIO wurden in 240x240 Pixeln geprüft.
+- Die RADIO-Vorschau enthält Frame 1 des tatsächlich gebündelten Vault-Boy-GIFs; die native Seitenvorschau bleibt zusätzlich separat verfügbar.
+- Die heutige Wetterseite zeigt gefühlte Temperatur, Luftfeuchte, Wind, Böen, Niederschlag, Regenwahrscheinlichkeit, UV und Sonnenauf/-untergang.
+- Die Drei-Tage-Vorschau zeigt Datum, Wetterlage und Temperaturbereich. Regenwahrscheinlichkeit je Forecast-Tag ist derzeit noch nicht auf dem Display.
+- Die Firmware wurde nicht auf dem echten Gerät verifiziert. Keine Hardwarefreigabe behaupten.
 
 ## Gerätereferenz
 
@@ -57,4 +59,4 @@ Fallout, Pip-Boy, RobCo und Vault-Tec sind Marken bzw. geschützte Inhalte ihrer
 
 ### Wetteranzeige
 
-Das Register DATA wechselt zwischen einer Detailansicht für heute und einer separaten Drei-Tage-Vorschau. Die Detailansicht zeigt gefühlte Temperatur, Luftfeuchte, Wind und Böen, Niederschlag, Regenwahrscheinlichkeit, UV-Index sowie Sonnenauf- und -untergang. Die Vorschau zeigt morgen und die zwei darauffolgenden Tage mit Datum, Wetterlage, Temperaturbereich und Regenwahrscheinlichkeit. Die Ansichten wechseln automatisch im 12-Sekunden-Takt.
+Das Register DATA wechselt alle 12 Sekunden zwischen der Detailansicht für heute und einer separaten Drei-Tage-Vorschau. Heute werden gefühlte Temperatur, Luftfeuchte, Wind und Böen, Niederschlag, Regenwahrscheinlichkeit, UV-Index sowie Sonnenauf- und -untergang angezeigt. Die Vorschau zeigt morgen und die zwei darauffolgenden Tage mit Datum, Wetterlage und Temperaturbereich.
