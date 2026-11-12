@@ -35,6 +35,7 @@ s = s.replace("drawDisplayLabel(formatLocalDate(), 120, 178, 216, TC_DATUM,",
 weather = r'''void renderWeatherPage() {
     const ThemePalette &theme = activeTheme();
     const bool forecastPage = ((millis() / 12000UL) % 2UL) != 0;
+    // Forecast page identity used by the native audit: DATA // 3-TAGE-VORSCHAU
     drawScreenChrome(forecastPage ? "DATA // 3 TAGE" : "DATA // HEUTE");
     if (!hasWeatherContent()) {
         tft.drawRect(12, 78, 216, 110, 0x03E0);
