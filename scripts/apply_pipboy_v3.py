@@ -99,8 +99,8 @@ weather = r'''void renderWeatherPage() {
         // Four compact two-column rows retain the full useful detail without shrinking the hero.
         String feelsText = "GEF. " + String(weather->feelsLike) + " C";
         int feelsDegreeX = 12 + tft.textWidth("GEF. " + String(weather->feelsLike) + " ", FONT_LABEL);
-        tft.drawCircle(feelsDegreeX + 2, 134, 2, 0xAFE5);
         drawDisplayLabel(feelsText, 12, 130, 104, TL_DATUM, 0xAFE5, FONT_LABEL);
+        tft.drawCircle(feelsDegreeX + 2, 134, 2, 0xAFE5);
         drawDisplayLabel(humidity, 228, 130, 104, TR_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel(wind, 12, 146, 104, TL_DATUM, 0x3DE7, FONT_LABEL);
         drawDisplayLabel(windValue, 116, 146, 104, TR_DATUM, 0x3DE7, FONT_LABEL);
@@ -142,11 +142,11 @@ weather = r'''void renderWeatherPage() {
             String range = String(day.low) + "-" + String(day.high) + " C";
             int rangeStart = 228 - tft.textWidth(range, FONT_BODY);
             int rangeDegreeX = rangeStart + tft.textWidth(String(day.low) + "-" + String(day.high) + " ", FONT_BODY);
-            tft.drawCircle(rangeDegreeX + 2, y + 29, 2, 0xAFE5);
             drawDisplayLabel(condition, 12, y + 25, 132,
                              TL_DATUM, 0xAFE5, FONT_BODY);
             drawDisplayLabel(range, 228, y + 25, 78,
                              TR_DATUM, 0xAFE5, FONT_BODY);
+            tft.drawCircle(rangeDegreeX + 2, y + 29, 2, 0xAFE5);
         } else {
             drawDisplayLabel(String(labels[slot]) + " // KEINE DATEN",
                              12, y, 216, TL_DATUM, 0x3DE7, FONT_BODY);
