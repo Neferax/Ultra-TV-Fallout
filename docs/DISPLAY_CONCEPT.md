@@ -1,7 +1,7 @@
 # Verbindlicher Display-Neuentwurf – Fallout 4 / Pip-Boy / RobCo
 
 Stand: 12.11.2026  
-Status: **Firmware Build 313 / Dokumentationslauf Build 314 – native Vorschau visuell geprüft; Hardwaretest offen**
+Status: **Build 368 – native Vorschau und Paketprüfungen bestanden; Hardwaretest offen**
 
 ## Warum der bisherige Ansatz verworfen wird
 
