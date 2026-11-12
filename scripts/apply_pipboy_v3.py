@@ -87,12 +87,12 @@ weather = r'''void renderWeatherPage() {
         String chance = "CHANCE " + String(weather->rainChance) + "%";
         String uv = "UV " + String(weather->uvIndex);
         String sun = "SONNE " + String(weather->sunrise) + "-" + String(weather->sunset);
-        drawDisplayLabel(feel, 12, 143, 108, TL_DATUM, 0xAFE5, FONT_BODY);
-        drawDisplayLabel(humidity, 228, 143, 108, TR_DATUM, 0xAFE5, FONT_BODY);
-        drawDisplayLabel(wind, 12, 160, 108, TL_DATUM, 0x3DE7, FONT_BODY);
-        drawDisplayLabel(gust, 228, 160, 108, TR_DATUM, 0x3DE7, FONT_BODY);
-        drawDisplayLabel(precipitation, 12, 177, 108, TL_DATUM, 0xAFE5, FONT_BODY);
-        drawDisplayLabel(chance, 228, 177, 108, TR_DATUM, 0xAFE5, FONT_BODY);
+        drawDisplayLabel(feel, 12, 143, 108, TL_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel(humidity, 228, 143, 108, TR_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel(wind, 12, 160, 108, TL_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(gust, 228, 160, 108, TR_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(precipitation, 12, 177, 108, TL_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel(chance, 228, 177, 108, TR_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel(uv, 12, 194, 108, TL_DATUM, 0x3DE7, FONT_LABEL);
         drawDisplayLabel(sun, 228, 194, 108, TR_DATUM, 0x3DE7, FONT_LABEL);
         return;
@@ -106,7 +106,7 @@ weather = r'''void renderWeatherPage() {
         if (weather->forecastCount > slot + 1) {
             const WeatherForecastDay &day = weather->forecast[slot + 1];
             String heading = String(labels[slot]) + " // " + String(day.date);
-            drawDisplayLabel(heading, 12, y, 216, TL_DATUM, 0x07E0, FONT_BODY);
+            drawDisplayLabel(heading, 12, y, 216, TL_DATUM, 0x07E0, FONT_LABEL);
             String condition = day.condition;
             if (condition == "Partly cloudy") condition = "TEILWOLKIG";
             else if (condition == "Mostly cloudy") condition = "STARK BEWOELKT";
@@ -117,9 +117,9 @@ weather = r'''void renderWeatherPage() {
             else if (condition == "Snow") condition = "SCHNEE";
             else if (condition == "Fog") condition = "NEBEL";
             condition.toUpperCase();
-            drawDisplayLabel(condition, 12, y + 13, 132, TL_DATUM, 0x3DE7, FONT_BODY);
-            String range = String(day.low) + "-" + String(day.high) + "C";
-            drawDisplayLabel(range, 228, y + 13, 78, TR_DATUM, 0xAFE5, FONT_BODY);
+            drawDisplayLabel(condition, 12, y + 13, 132, TL_DATUM, 0x3DE7, FONT_LABEL);
+            String range = String(day.low) + "/" + String(day.high) + "C";
+            drawDisplayLabel(range, 228, y + 13, 78, TR_DATUM, 0xAFE5, FONT_LABEL);
             drawDisplayLabel("REGEN " + String(day.rainChance) + "%",
                              12, y + 26, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
         } else {
