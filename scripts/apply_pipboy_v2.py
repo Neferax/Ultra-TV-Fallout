@@ -134,7 +134,7 @@ weather = r'''void renderWeatherPage() {
         else if (condition == "Fog") condition = "NEBEL";
         condition.toUpperCase();
         if (condition.length() > 19) condition = "WETTERLAGE";
-        drawDisplayLabel(condition, 12, 122, 216, TL_DATUM, 0x07E0, FONT_LABEL);
+        drawDisplayLabel(condition, 12, 126, 216, TL_DATUM, 0x07E0, FONT_LABEL);
 
         const int direction = ((weather->windDirection + 22) / 45) % 8;
         const char *directions[] = {"N", "NO", "O", "SO", "S", "SW", "W", "NW"};
@@ -177,7 +177,7 @@ weather = r'''void renderWeatherPage() {
             else if (condition == "Fog") condition = "NEBEL";
             condition.toUpperCase();
             drawDisplayLabel(condition, 12, y + 17, 130, TL_DATUM, 0x3DE7, FONT_LABEL);
-            String range = String(day.low) + "° / " + String(day.high) + "°C";
+            String range = String(day.low) + " / " + String(day.high) + "C";
             drawDisplayLabel(range, 228, y + 17, 100, TR_DATUM, 0xAFE5, FONT_LABEL);
             drawDisplayLabel("REGEN " + String(day.rainChance) + "%", 228, y + 30,
                              100, TR_DATUM, 0x3DE7, FONT_LABEL);
