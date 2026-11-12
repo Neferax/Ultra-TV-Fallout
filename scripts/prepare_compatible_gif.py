@@ -31,12 +31,21 @@ def main() -> None:
             background = Image.new("RGBA", image.size, (0, 0, 0, 255))
             background.alpha_composite(rgba)
             gray = background.convert("L").resize(SIZE, Image.Resampling.LANCZOS)
-            indexed = gray.quantize(colors=64, method=Image.Quantize.MEDIANCUT)
+
+            # Quantize against a deliberately ordered monochrome-green palette.
+            # Generic median-cut palette indices are not brightness ordered.
+            palette_image = Image.new("P", (64, 1))
             palette = []
             for value in range(256):
                 green = value * 255 // 63 if value < 64 else 0
                 palette.extend((0, green, 0))
-            indexed.putpalette(palette)
+            palette_image.putpalette(palette)
+            for value in range(64):
+                palette_image.putpixel((value, 0), value)
+            indexed = gray.quantize(
+                palette=palette_image,
+                dither=Image.Dither.FLOYDSTEINBERG,
+            )
             frames.append(indexed)
             durations.append(max(20, int(frame.info.get("duration", image.info.get("duration", 100)))))
 
