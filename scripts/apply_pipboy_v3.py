@@ -127,16 +127,16 @@ weather = r'''void renderWeatherPage() {
             else if (condition == "Drizzle") condition = "NIESEL";
             else if (condition == "Showers") condition = "SCHAUER";
             else if (condition == "Snow") condition = "SCHNEE";
-            else if (condition == "Snow showers") condition = "SCHNEESCHAUER";
+            else if (condition == "Snow showers") condition = "SCHNEE";
             else if (condition == "Thunderstorm" || condition == "Storm") condition = "GEWITTER";
             else if (condition == "Fog") condition = "NEBEL";
             else if (condition == "Weather") condition = "WETTER";
             condition.toUpperCase();
             String range = String(day.low) + "-" + String(day.high) + " C";
-            String outlook = range + " // " + String(day.rainChance) + "%";
-            drawDisplayLabel(condition, 12, y + 25, 124,
+            String outlook = condition + " " + String(day.rainChance) + "%";
+            drawDisplayLabel(outlook, 12, y + 25, 132,
                              TL_DATUM, 0xAFE5, FONT_BODY);
-            drawDisplayLabel(outlook, 228, y + 25, 100,
+            drawDisplayLabel(range, 228, y + 25, 78,
                              TR_DATUM, 0xAFE5, FONT_BODY);
         } else {
             drawDisplayLabel(String(labels[slot]) + " // KEINE DATEN",
