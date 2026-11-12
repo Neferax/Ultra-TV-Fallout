@@ -208,10 +208,13 @@ tick = r'''bool gifPlayerTick(uint32_t nowMs) {
     int delayMs = 100;
     const int result = decoder->playFrame(false, &delayMs, nullptr);
     if (result < 0 || unsupportedFrame) {
-        Serial.printf("GIF skipped: frame decode failed (%d), unsupported=%u\n",
+        Serial.printf("GIF skipped: frame decode failed (%d), unsupported=%u\\n",
                       result, unsupportedFrame ? 1U : 0U);
+        if (currentGifIndex < gifPathCount) rejectedGifPaths[currentGifIndex] = true;
+        TFT_eSPI *display = targetDisplay;
         gifPlayerStop();
-        return false;
+        if (display != nullptr) gifPlayerStartNext(*display);
+        return true;
     }
 
     if (result == 0) decoder->reset();
@@ -226,20 +229,21 @@ s = s.replace("    fallbackAnimationActive = false;\n    fallbackFrameAtMs = 0;\
 s = s.replace("    return decoder != nullptr || fallbackAnimationActive;", "    return decoder != nullptr;")
 start_next = r'''bool gifPlayerStartNext(TFT_eSPI &display) {
     if (gifFileListDirty) gifPlayerRefreshFiles();
-    if (gifPathCount == 0) {
-        Serial.println(F("GIF archive empty: no fallback animation"));
-        return false;
-    }
+    if (gifPathCount == 0) return false;
 
-    const uint8_t attempts = gifPathCount;
-    for (uint8_t attempt = 0; attempt < attempts; ++attempt) {
+    for (uint8_t attempt = 0; attempt < gifPathCount; ++attempt) {
         const uint8_t selected = nextGifIndex;
         nextGifIndex = static_cast<uint8_t>((nextGifIndex + 1) % gifPathCount);
+        if (rejectedGifPaths[selected]) continue;
         if (gifPlayerStart(gifPaths[selected], display)) {
-            Serial.printf("GIF started: %s\n", gifPaths[selected]);
+            currentGifIndex = selected;
+            Serial.printf("GIF started: %s\\n", gifPaths[selected]);
             return true;
         }
+        rejectedGifPaths[selected] = true;
     }
+
+    memset(rejectedGifPaths, 0, sizeof(rejectedGifPaths));
     Serial.println(F("GIF archive: no compatible GIF could be started"));
     return false;
 }'''
