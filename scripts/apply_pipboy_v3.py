@@ -103,7 +103,7 @@ weather = r'''void renderWeatherPage() {
         return;
     }
 
-    const char *labels[] = {"MORGEN", "IN 2 TAGEN", "IN 3 TAGEN"};
+    const char *labels[] = {"MORGEN", "UEBERMORGEN", "IN 3 TAGEN"};
     // Two large, uncluttered lines per day: date first, then condition and Celsius range.
     for (uint8_t slot = 0; slot < 3; ++slot) {
         const int y = 48 + static_cast<int>(slot) * 53;
