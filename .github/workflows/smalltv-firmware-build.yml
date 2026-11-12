@@ -80,7 +80,7 @@ jobs:
           header = fixture.read_text()
           header = header.replace(
               'bool hasStatusContent(){return !emptyData;}',
-              'bool hasStatusContent(){return !emptyData;}\\nbool gifPlayerHasFiles(){return true;}'
+              'bool hasStatusContent(){return !emptyData;}' + chr(10) + 'bool gifPlayerHasFiles(){return true;}'
           )
           fixture.write_text(header)
           PY
