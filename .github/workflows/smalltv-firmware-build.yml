@@ -197,9 +197,9 @@ jobs:
           for token in ["GEFUEHLT", "FEUCHTE", "WIND ", "BOEEN", "KM/H", "REGEN ", "CHANCE ", "SONNE "]:
               if token not in display:
                   raise SystemExit(f"Current weather detail missing: {token}")
-          if "drawDisplayLabel(windValue, 116, 150, 104" not in display or "drawDisplayLabel(gustValue, 116, 168, 104" not in display:
+          if "drawDisplayLabel(windValue, 116, 146, 104" not in display or "drawDisplayLabel(gustValue, 116, 162, 104" not in display:
               raise SystemExit("Wind/gust values are not laid out in separate readable cells")
-          if "SONNE AUF " not in display or "120, 202, 216" not in display:
+          if "SONNE AUF " not in display or "120, 194, 216" not in display:
               raise SystemExit("Sunrise/sunset row is missing or collides with the footer")
           if "clearPreviousGifFrame" in gif or "gifLoopClearPending" in gif or "previousFrameDisposal" in gif:
               raise SystemExit("Opaque full-frame GIF renderer must not clear between frames")
