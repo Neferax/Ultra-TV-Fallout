@@ -113,8 +113,14 @@ weather = r'''void renderWeatherPage() {
     drawDisplayLabel(weather->location[0] ? weather->location : "DUISBURG // 47239",
                      12, 78, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
     const int heroFonts[] = {FONT_HUGE, FONT_TITLE, FONT_BODY};
-    drawAdaptiveText(formatWeatherTemperature(weather->temperature), 12, 96, 216,
+    String temperature = formatWeatherTemperature(weather->temperature);
+    String unit = temperature.substring(temperature.length() - 1);
+    temperature.remove(temperature.length() - 1);
+    const int temperatureWidth = tft.textWidth(temperature, FONT_HUGE);
+    drawAdaptiveText(temperature, 12, 96, 216,
                      TL_DATUM, heroFonts, 3, 0xAFE5, TFT_BLACK);
+    drawDisplayLabel(unit, 12 + temperatureWidth + 4, 122, 28,
+                     TL_DATUM, 0xAFE5, FONT_BODY);
 
     String condition = weather->condition;
     condition.toUpperCase();
