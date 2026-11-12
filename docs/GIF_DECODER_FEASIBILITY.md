@@ -43,15 +43,19 @@ Der Player hat keinen Compositing-Framebuffer. Deshalb akzeptiert er nur:
 - Dateigröße maximal 300 KiB.
 
 Frames mit Teilbild-Offsets, abweichender Framegröße oder Transparenz werden
-beim Decodieren erkannt und abgebrochen. Der Player überspringt anschließend
-diesen Eintrag und versucht den nächsten Album-Eintrag. Wenn kein kompatibles
-GIF vorhanden ist, bleibt die RADIO-Seite ohne Animation. Damit werden
+beim Decodieren erkannt und abgebrochen. Für den inkompatiblen Eintrag zeigt
+der Player eine eigene RobCo/Pip-Boy-Fallback-Animation. Nach 20 Sekunden
+versucht er den nächsten Album-Eintrag. Sind keine kompatiblen GIFs vorhanden,
+bleibt die RADIO-Seite mit der Fallback-Animation nutzbar. Damit werden
 Bildreste durch unvollständiges Compositing vermieden. Die GIF-Farben werden
 in monochromes Pip-Boy-Phosphorgrün umgerechnet.
 
 Die Upload-Prüfung kontrolliert Dateisignatur und Canvas-Abmessungen. Sie
 validiert nicht vorab sämtliche Frame- und Transparenzeigenschaften; diese
-Prüfung erfolgt während der Wiedergabe. Die vorhandenen Stock-GIFs wurden
+Prüfung erfolgt während der Wiedergabe. Der Build-Workflow konvertiert das
+mitgelieferte Archiv-GIF vor dem Paketieren auf 104 × 104 Pixel, opake
+Vollbild-Frames und eine geordnete monochrome Grünpalette. Synthetische CI-Tests
+prüfen Mehrbild-Wiedergabe, Transparenz-Flattening und den Helligkeitsverlauf. Die vorhandenen Stock-GIFs wurden
 nicht gegen das unterstützte Format geprüft.
 
 ## Upload und Dateiverwaltung
