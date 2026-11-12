@@ -2,9 +2,9 @@
 
 ## Aktueller Stand
 
-**Firmware Build 319 erfolgreich. Native 240×240-Vorschauen visuell geprüft. Hardwaretest offen.**
+**GIF-Konverter und synthetische Tests erweitert. Build 334 erfolgreich; der Workflow-Fix aus Build 335 und die nachfolgenden Dokumentationsänderungen sind noch durch CI zu bestätigen. Hardwaretest offen.**
 
-Aktueller Branch-Stand: `a71a3501c34dad86e402e9625ba5883fd0ba9f83`. Build 319 kompiliert diesen Commit erfolgreich. Der Workflow überschreibt Teile des GIF-Players nach dem Einfügen durch `scripts/apply_readable_weather_and_real_gif_transitions.py`; Änderungen am kopierten Player müssen deshalb gegen das Ergebnis dieser Transformation geprüft werden. GitHub Actions hat ESP8266-Anwendung und OTA-Loader erfolgreich kompiliert.
+Aktueller Branch-Stand: `4044ee19b44d4cced8a351b992e31b13cb4bd8a3`. Build 334 hat den vorherigen Stand einschließlich Konvertertests erfolgreich kompiliert und paketiert. Build 335 enthält den korrigierten Test-Here-Doc; die aktuelle CI-Bestätigung steht noch aus. Der Workflow überschreibt Teile des GIF-Players nach dem Einfügen durch `scripts/apply_readable_weather_and_real_gif_transitions.py`; Änderungen am kopierten Player müssen deshalb gegen das Ergebnis dieser Transformation geprüft werden.
 
 ### Display und Wetter
 
@@ -45,4 +45,4 @@ Die bisherige Laufzeit-Decodierung beliebiger GIFs auf dem ESP8266 wird nicht al
 
 ## Gerätestatus und Flash-Hinweis
 
-Es liegt keine bestätigte Hardware-Abnahme für Firmware Build 313 vor. Build 314 enthält nur Dokumentationsänderungen. Die native Vorschau ist kein Ersatz für einen Test am physischen Display. Firmware Build 319 ist kompiliert, aber nicht als hardwareseitig freigegeben zu betrachten.
+Es liegt keine bestätigte Hardware-Abnahme für den aktuellen Branch-Stand vor. Die native Vorschau ist kein Ersatz für einen Test am physischen Display. Der aktuelle Stand ist nicht hardwareseitig freigegeben.
