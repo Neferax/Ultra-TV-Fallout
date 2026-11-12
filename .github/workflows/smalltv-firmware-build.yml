@@ -85,9 +85,8 @@ jobs:
           from pathlib import Path
           preview = Path("firmware/audit/device-ui-preview.py")
           source = preview.read_text()
-          source = source.replace('strcpy(w.location,"Tokyo");', 'strcpy(w.location,"Duisburg");')
           source = source.replace(
-              'auto &w=feedRuntime.weather.data;strcpy(w.location,"Duisburg");strcpy(w.condition,"Partly cloudy");w.temperature=22;w.high=26;w.low=18;w.rainChance=20;w.forecastCount=2;strcpy(w.forecast[1].date,"13.11");w.forecast[1].low=18;w.forecast[1].high=26;w.forecast[1].rainChance=20;',
+              'auto &w=feedRuntime.weather.data;strcpy(w.location,"Tokyo");strcpy(w.condition,"Partly cloudy");w.temperature=22;w.high=26;w.low=18;w.rainChance=20;',
               'auto &w=feedRuntime.weather.data;strcpy(w.location,"Duisburg");strcpy(w.condition,"Partly cloudy");w.temperature=22;w.high=26;w.low=18;w.rainChance=20;w.forecastCount=2;strcpy(w.forecast[1].date,"13.11");w.forecast[1].low=18;w.forecast[1].high=26;w.forecast[1].rainChance=20;'
           )
           source = source.replace(
