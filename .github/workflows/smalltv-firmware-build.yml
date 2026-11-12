@@ -85,6 +85,7 @@ jobs:
           from pathlib import Path
           preview = Path("firmware/audit/device-ui-preview.py")
           source = preview.read_text()
+          source = source.replace('strcpy(w.location,"Tokyo");', 'strcpy(w.location,"Duisburg");')
           source = source.replace(
               'assert(hasDraw("12:34"));',
               'if(page == DASHBOARD_PAGE_CLOCK) assert(hasDraw("12:34"));',
