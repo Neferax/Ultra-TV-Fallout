@@ -2,9 +2,9 @@
 
 ## Aktueller Stand
 
-**Build 338 erfolgreich. GIF-Konvertierung und drei synthetische Tests bestätigt. Build 339/340 prüfen die flackerfreie Ausgabe vollständiger, opaker Frames; Hardwaretest offen.**
+**Build 340 erfolgreich. GIF-Konvertierung, drei synthetische Tests und flackerfreie Ausgabe vollständiger, opaker Frames bestätigt. Build 343 erfolgreich; Builds 344–346 prüfen das automatische Überspringen inkompatibler GIFs. Hardwaretest offen.**
 
-Aktueller Branch-Stand: `cec81f3eb88de245d19454f7bce2f3af8ae32782`. Build 338 hat Firmware, OTA-Loader und GIF-Konvertertests erfolgreich gebaut und paketiert. Build 339/340 prüfen die neue Entfernung der unnötigen Schwarz-Löschvorgänge. Die finale Firmware entsteht durch mehrere Build-Transformationen; Änderungen am Player werden deshalb zusätzlich gegen den erzeugten Quellcode geprüft.
+Aktueller Branch-Stand: `b23b581e4eae4bf50102da3b83dda90862810f3f`. Build 340 hat Firmware und OTA-Loader erfolgreich gebaut; der CI-Schutztest bestätigt, dass vollständige opake GIF-Frames ohne vorheriges Schwarz-Löschen ausgegeben werden. Build 343 kompiliert den Quellcode mit dem neuen Ablehnungsstatus. Builds 344–346 prüfen die finale Transformation für automatisches Überspringen inkompatibler Dateien. Die finale Firmware entsteht durch mehrere Build-Transformationen; Änderungen am Player werden deshalb zusätzlich gegen den erzeugten Quellcode geprüft.
 
 ### Display und Wetter
 
