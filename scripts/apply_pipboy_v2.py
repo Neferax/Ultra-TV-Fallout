@@ -91,10 +91,10 @@ clock = r'''void renderClockPage() {
                      0xAFE5, FONT_LABEL);
     if (!hasTimeSync()) {
         drawDisplayLabel("TIME SYNCHRONIZATION PENDING", 120, 202, 216,
-                         TC_DATUM, 0x3DE7, FONT_INFO);
+                         TC_DATUM, 0x3DE7, FONT_LABEL);
     } else {
         drawDisplayLabel("LOCAL TIME // EUROPE-BERLIN", 120, 202, 216,
-                         TC_DATUM, 0x3DE7, FONT_INFO);
+                         TC_DATUM, 0x3DE7, FONT_LABEL);
     }
 }'''
 s = replace_function(s, "void renderClockPage() {", "void renderWeatherPage() {", clock)
