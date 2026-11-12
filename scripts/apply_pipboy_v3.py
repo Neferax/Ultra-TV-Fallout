@@ -88,38 +88,34 @@ weather = r'''void renderWeatherPage() {
         String chance = "CHANCE " + String(weather->rainChance) + "%";
         String uv = "UV " + String(weather->uvIndex);
         String sun = "SONNE " + String(weather->sunrise) + "-" + String(weather->sunset);
-        drawDisplayLabel(feel, 12, 143, 216, TL_DATUM, 0xAFE5, FONT_BODY);
-
-        drawDisplayLabel(wind + " // " + gust, 12, 160, 216, TL_DATUM, 0x3DE7, FONT_BODY);
-        drawDisplayLabel(precipitation + " // " + String(weather->rainChance) + "%",
-                         12, 177, 216, TL_DATUM, 0xAFE5, FONT_BODY);
+        // Three compact, separated detail rows; the large hero remains the focus.
+        drawDisplayLabel(feel, 12, 137, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel(wind, 12, 160, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(precipitation, 12, 183, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
         return;
     }
 
-    const char *labels[] = {"MORGEN", "UEBERMORGEN", "IN 3 TAGEN"};
-    // Three distinct rows: date, readable condition/range, then precipitation probability.
+    const char *labels[] = {"MORGEN", "IN 2 TAGEN", "IN 3 TAGEN"};
+    // Two large, uncluttered lines per day: date first, then condition and Celsius range.
     for (uint8_t slot = 0; slot < 3; ++slot) {
-        const int y = 55 + static_cast<int>(slot) * 44;
-        if (slot > 0) tft.drawFastHLine(12, y - 4, 216, 0x03E0);
+        const int y = 56 + static_cast<int>(slot) * 48;
+        if (slot > 0) tft.drawFastHLine(12, y - 5, 216, 0x03E0);
         if (weather->forecastCount > slot + 1) {
             const WeatherForecastDay &day = weather->forecast[slot + 1];
-            String heading = String(labels[slot]) + " // " + String(day.date);
+            String heading = String(labels[slot]) + " " + String(day.date);
             drawDisplayLabel(heading, 12, y, 216, TL_DATUM, 0x07E0, FONT_BODY);
             String condition = day.condition;
             if (condition == "Partly cloudy") condition = "TEILWOLKIG";
-            else if (condition == "Mostly cloudy") condition = "STARK BEWOELKT";
+            else if (condition == "Mostly cloudy") condition = "BEWOELKT";
             else if (condition == "Cloudy" || condition == "Overcast") condition = "BEWOELKT";
             else if (condition == "Clear" || condition == "Mainly clear") condition = "KLAR";
-            else if (condition == "Rain") condition = "REGEN";
-            else if (condition == "Drizzle") condition = "NIESELREGEN";
+            else if (condition == "Rain" || condition == "Drizzle") condition = "REGEN";
             else if (condition == "Snow") condition = "SCHNEE";
             else if (condition == "Fog") condition = "NEBEL";
             condition.toUpperCase();
-            drawDisplayLabel(condition, 12, y + 14, 132, TL_DATUM, 0x3DE7, FONT_BODY);
             String range = String(day.low) + "-" + String(day.high) + " C";
-            drawDisplayLabel(range, 228, y + 14, 78, TR_DATUM, 0xAFE5, FONT_BODY);
-            drawDisplayLabel("REGEN " + String(day.rainChance) + "%",
-                             12, y + 26, 216, TL_DATUM, 0x3DE7, FONT_BODY);
+            drawDisplayLabel(condition + "  " + range, 12, y + 24, 216,
+                             TL_DATUM, 0xAFE5, FONT_BODY);
         } else {
             drawDisplayLabel(String(labels[slot]) + " // KEINE DATEN",
                              12, y, 216, TL_DATUM, 0x3DE7, FONT_BODY);
