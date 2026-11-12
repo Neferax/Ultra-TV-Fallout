@@ -70,9 +70,13 @@ weather = r'''void renderWeatherPage() {
             condition == "Cloudy" || condition == "Overcast") condition = "WOLKIG";
         else if (condition == "Clear" || condition == "Mainly clear") condition = "KLAR";
         else if (condition == "Rain") condition = "REGEN";
-        else if (condition == "Drizzle") condition = "NIESELREGEN";
+        else if (condition == "Drizzle") condition = "NIESEL";
+        else if (condition == "Showers") condition = "SCHAUER";
         else if (condition == "Snow") condition = "SCHNEE";
+        else if (condition == "Snow showers") condition = "SCHNEESCHAUER";
+        else if (condition == "Thunderstorm" || condition == "Storm") condition = "GEWITTER";
         else if (condition == "Fog") condition = "NEBEL";
+        else if (condition == "Weather") condition = "WETTER";
         condition.toUpperCase();
         if (condition.length() > 19) condition = "WETTERLAGE";
         drawDisplayLabel(condition, 12, 110, 216, TL_DATUM, 0x07E0, FONT_BODY);
@@ -119,9 +123,14 @@ weather = r'''void renderWeatherPage() {
             else if (condition == "Mostly cloudy") condition = "WOLKIG";
             else if (condition == "Cloudy" || condition == "Overcast") condition = "WOLKIG";
             else if (condition == "Clear" || condition == "Mainly clear") condition = "KLAR";
-            else if (condition == "Rain" || condition == "Drizzle") condition = "REGEN";
+            else if (condition == "Rain") condition = "REGEN";
+            else if (condition == "Drizzle") condition = "NIESEL";
+            else if (condition == "Showers") condition = "SCHAUER";
             else if (condition == "Snow") condition = "SCHNEE";
+            else if (condition == "Snow showers") condition = "SCHNEESCHAUER";
+            else if (condition == "Thunderstorm" || condition == "Storm") condition = "GEWITTER";
             else if (condition == "Fog") condition = "NEBEL";
+            else if (condition == "Weather") condition = "WETTER";
             condition.toUpperCase();
             String range = String(day.low) + "-" + String(day.high) + " C";
             drawDisplayLabel(condition, 12, y + 25, 132,
