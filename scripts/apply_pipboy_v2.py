@@ -119,7 +119,7 @@ weather = r'''void renderWeatherPage() {
     String condition = weather->condition;
     condition.toUpperCase();
     if (condition.length() > 15) while (condition.length() > 15) condition.remove(condition.length() - 1);
-    drawDisplayLabel(condition, 232, 116, 92, TR_DATUM, 0x07E0, FONT_INFO);
+    drawDisplayLabel(condition, 232, 116, 92, TR_DATUM, 0x07E0, FONT_LABEL);
 
     tft.drawFastHLine(12, 151, 216, 0x03E0);
     drawDisplayLabel("HOCH", 48, 159, 64, TC_DATUM, 0x3DE7, FONT_INFO);
