@@ -86,8 +86,9 @@ weather = r'''void renderWeatherPage() {
         // Four aligned rows; the larger body font makes values readable at arm's length.
         String feel = "GEFUEHLT " + String(weather->feelsLike) + weatherUnitSymbol();
         String humidity = "FEUCHTE " + String(weather->humidity) + "%";
-        String wind = "WIND " + String(directions[direction]) + " " + String(weather->windSpeed);
-        String gust = "BOEEN " + String(weather->windGusts);
+        String wind = "WIND " + String(directions[direction]) + " " +
+                      String(weather->windSpeed) + " KM/H";
+        String gust = "BOEEN " + String(weather->windGusts) + " KM/H";
         String precipitation = "REGEN " + String(weather->precipitation / 10) + "." +
                                String(abs(weather->precipitation % 10)) + "MM";
         String chance = "CHANCE " + String(weather->rainChance) + "%";
