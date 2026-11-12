@@ -106,10 +106,9 @@ weather = r'''void renderWeatherPage() {
         drawDisplayLabel(precipitation, 12, 195, 104, TL_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel(String(weather->rainChance) + "% // " + uv, 228, 195, 104,
                          TR_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel("AUF " + String(weather->sunrise), 12, 215, 104,
-                         TL_DATUM, 0x3DE7, FONT_LABEL);
-        drawDisplayLabel("UNTER " + String(weather->sunset), 228, 215, 104,
-                         TR_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel("SONNE AUF " + String(weather->sunrise) + " / UNTER " +
+                         String(weather->sunset), 120, 207, 216,
+                         TC_DATUM, 0x3DE7, FONT_LABEL);
         return;
     }
 
