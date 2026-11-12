@@ -64,9 +64,8 @@ weather = r'''void renderWeatherPage() {
                          83, 36, TL_DATUM, 0xAFE5, FONT_BODY);
 
         String condition = weather->condition;
-        if (condition == "Partly cloudy") condition = "TEILWEISE BEWOELKT";
-        else if (condition == "Mostly cloudy") condition = "STARK BEWOELKT";
-        else if (condition == "Cloudy" || condition == "Overcast") condition = "BEWOELKT";
+        if (condition == "Partly cloudy" || condition == "Mostly cloudy" ||
+            condition == "Cloudy" || condition == "Overcast") condition = "WOLKIG";
         else if (condition == "Clear" || condition == "Mainly clear") condition = "KLAR";
         else if (condition == "Rain") condition = "REGEN";
         else if (condition == "Drizzle") condition = "NIESELREGEN";
@@ -74,7 +73,7 @@ weather = r'''void renderWeatherPage() {
         else if (condition == "Fog") condition = "NEBEL";
         condition.toUpperCase();
         if (condition.length() > 19) condition = "WETTERLAGE";
-        drawDisplayLabel(condition, 12, 110, 216, TL_DATUM, 0x07E0, FONT_LABEL);
+        drawDisplayLabel(condition, 12, 110, 216, TL_DATUM, 0x07E0, FONT_BODY);
 
         const int direction = ((weather->windDirection + 22) / 45) % 8;
         const char *directions[] = {"N", "NO", "O", "SO", "S", "SW", "W", "NW"};
@@ -105,7 +104,7 @@ weather = r'''void renderWeatherPage() {
             String heading = String(labels[slot]) + " " + String(day.date);
             drawDisplayLabel(heading, 12, y, 216, TL_DATUM, 0x07E0, FONT_BODY);
             String condition = day.condition;
-            if (condition == "Partly cloudy") condition = "TEILW.";
+            if (condition == "Partly cloudy") condition = "WOLKIG";
             else if (condition == "Mostly cloudy") condition = "WOLKIG";
             else if (condition == "Cloudy" || condition == "Overcast") condition = "WOLKIG";
             else if (condition == "Clear" || condition == "Mainly clear") condition = "KLAR";
