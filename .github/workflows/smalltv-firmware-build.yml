@@ -194,7 +194,7 @@ jobs:
               raise SystemExit("GIF page-transition overlay must remain disabled")
           if "void renderWeatherPage()" not in display or "DATA // HEUTE" not in display or "DATA // 3-TAGE-VORSCHAU" not in display:
               raise SystemExit("Split German weather renderer missing")
-          for token in ["GEFUEHLT", "FEUCHTE", "WIND ", "BOEEN", "REGEN ", "CHANCE ", "SONNE "]:
+          for token in ["GEFUEHLT", "FEUCHTE", "WIND ", "BOEEN", "KM/H", "REGEN ", "CHANCE ", "SONNE "]:
               if token not in display:
                   raise SystemExit(f"Current weather detail missing: {token}")
           if "clearPreviousGifFrame" in gif or "gifLoopClearPending" in gif or "previousFrameDisposal" in gif:
