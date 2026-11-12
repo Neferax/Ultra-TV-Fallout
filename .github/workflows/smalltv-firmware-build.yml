@@ -130,7 +130,7 @@ jobs:
           preview = Path("firmware/audit/device-ui-preview.py")
           source = preview.read_text()
           needle = 'tft.save(std::string(argv[1])+"/theme-"+std::to_string(theme)+"-page-"+std::to_string(page)+".ppm");'
-          addition = needle + '\\n   if(page==DASHBOARD_PAGE_WEATHER){fixtureMillis=132000;textDraws.clear();renderDashboardPage();checkBounds();tft.save(std::string(argv[1])+"/pipboy-weather-forecast.ppm");fixtureMillis=120000;}'
+          addition = needle + '\n   if(page==DASHBOARD_PAGE_WEATHER){fixtureMillis=132000;textDraws.clear();renderDashboardPage();checkBounds();tft.save(std::string(argv[1])+"/pipboy-weather-forecast.ppm");fixtureMillis=120000;}'
           if needle not in source:
               raise SystemExit("Could not add second DATA-page preview")
           source = source.replace(needle, addition, 1)
