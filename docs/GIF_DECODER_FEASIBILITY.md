@@ -58,7 +58,8 @@ validiert nicht vorab sämtliche Frame- und Transparenzeigenschaften; diese
 Prüfung erfolgt während der Wiedergabe. Der Build-Workflow konvertiert das
 mitgelieferte Archiv-GIF vor dem Paketieren auf 104 × 104 Pixel, opake
 Vollbild-Frames und eine geordnete monochrome Grünpalette. Synthetische CI-Tests
-prüfen Mehrbild-Wiedergabe, Transparenz-Flattening und den Helligkeitsverlauf. Die vorhandenen Stock-GIFs im Verzeichnis `/image` wurden
+prüfen Mehrbild-Wiedergabe, Transparenz-Flattening, den Helligkeitsverlauf sowie
+die Begrenzung auf 36 Frames bei erhaltener Gesamtdauer. Die vorhandenen Stock-GIFs im Verzeichnis `/image` wurden
 nicht gegen das unterstützte Format geprüft. Nur das mitgelieferte Vault-Boy-GIF
 wird im Build automatisch konvertiert; hochgeladene GIFs werden nicht
 automatisch vorverarbeitet.
