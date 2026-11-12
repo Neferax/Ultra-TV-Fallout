@@ -89,7 +89,7 @@ weather = r'''void renderWeatherPage() {
         String sun = "UV " + String(weather->uvIndex) + " // SONNE " + String(weather->sunrise) + "-" + String(weather->sunset);
         drawDisplayLabel(feel + " // " + humidity,
                          12, 143, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel(wind + " KM/H // " + gust + " KM/H",
+        drawDisplayLabel(wind + " / " + gust + " KM/H",
                          12, 160, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
         drawDisplayLabel(precipitation + " // CHANCE " + String(weather->rainChance) + "%",
                          12, 177, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
