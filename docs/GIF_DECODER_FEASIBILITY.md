@@ -61,7 +61,9 @@ Vollbild-Frames und eine geordnete monochrome Grünpalette. Synthetische CI-Test
 prüfen Mehrbild-Wiedergabe, Transparenz-Flattening, den Helligkeitsverlauf sowie
 die Begrenzung auf 36 Frames bei erhaltener Gesamtdauer. Build 360 hat alle vier
 synthetischen GIF-Konvertertests und die native Displayprüfung bestanden. Die vorhandenen Stock-GIFs im Verzeichnis `/image` wurden
-nicht gegen das unterstützte Format geprüft. Nur das mitgelieferte Vault-Boy-GIF
+nicht gegen das unterstützte Format geprüft. Das gebündelte Vault-Boy-GIF
+wurde im CI zusätzlich auf 104×104 Pixel, opake Vollbild-Frames, mindestens
+zwei unterschiedliche Frames und positive Gesamtdauer geprüft. Nur das mitgelieferte Vault-Boy-GIF
 wird im Build automatisch konvertiert; hochgeladene GIFs werden nicht
 automatisch vorverarbeitet.
 
@@ -92,7 +94,7 @@ Build-Prüfungen. Er bestätigt nicht die tatsächliche GIF-Framerate,
 Laufzeit-Heap-Reserve, Watchdog-Stabilität, TLS-Wechsel oder die Wiedergabe
 auf dem realen SmallTV.
 
-**Build 360 erfolgreich; Hardwaretest weiterhin offen.** Das Installationspaket
+**Build 368 erfolgreich; Hardwaretest weiterhin offen.** Das Installationspaket
 enthält die Firmware, den OTA-Loader und die nativen Vorschauen. Es wurde nichts
 auf das Gerät geflasht oder verändert.
 
