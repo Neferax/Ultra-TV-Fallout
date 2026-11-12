@@ -105,8 +105,8 @@ weather = r'''void renderWeatherPage() {
             String heading = String(labels[slot]) + " " + String(day.date);
             drawDisplayLabel(heading, 12, y, 216, TL_DATUM, 0x07E0, FONT_BODY);
             String condition = day.condition;
-            if (condition == "Partly cloudy") condition = "TEILWOLKIG";
-            else if (condition == "Mostly cloudy") condition = "BEWOELKT";
+            if (condition == "Partly cloudy") condition = "TEILW.";
+            else if (condition == "Mostly cloudy") condition = "WOLKIG";
             else if (condition == "Cloudy" || condition == "Overcast") condition = "BEWOELKT";
             else if (condition == "Clear" || condition == "Mainly clear") condition = "KLAR";
             else if (condition == "Rain" || condition == "Drizzle") condition = "REGEN";
