@@ -200,19 +200,18 @@ jobs:
           print("Verified: compact GIF viewport, archive-only playback, clean page redraw, weather renderer")
           PY
 
-      - name: Bundle official Bethesda Vault Boy animation
+      - name: Download and normalize a Vault Boy animation for the constrained GIF decoder
         run: |
           mkdir -p firmware/data/gif
           curl --fail --location --retry 3 \
             'https://media3.giphy.com/media/W4dICb7X8m8bpl3mIY/200.gif' \
             --output firmware/data/gif/bethesda-vaultboy.gif
           test -s firmware/data/gif/bethesda-vaultboy.gif
-          test "$(stat -c%s firmware/data/gif/bethesda-vaultboy.gif)" -le 307200
-          file firmware/data/gif/bethesda-vaultboy.gif
           mkdir -p fallout/package
-          cp firmware/data/gif/bethesda-vaultboy.gif fallout/package/bethesda-vaultboy.gif
+          python fallout/scripts/prepare_compatible_gif.py firmware/data/gif/bethesda-vaultboy.gif fallout/package/bethesda-vaultboy.gif
+          file fallout/package/bethesda-vaultboy.gif
 
-      - name: Create an honest RADIO preview from the bundled GIF frame
+      - name: Create an honest RADIO preview from the decoder-compatible bundled GIF frame
         run: |
           python - <<'PY'
           from pathlib import Path
