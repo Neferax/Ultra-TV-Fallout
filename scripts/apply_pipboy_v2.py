@@ -65,7 +65,7 @@ chrome = r'''void drawScreenChrome(const String &title) {
         if (i == active) tft.fillRect(centers[i] - 23, 44, 46, 3, 0x07E0);
     }
     tft.drawFastHLine(8, 49, 224, 0x03E0);
-    drawDisplayLabel(title, 10, 56, 220, TL_DATUM, 0x07E0, FONT_INFO);
+    drawDisplayLabel(title, 10, 56, 220, TL_DATUM, 0x07E0, FONT_LABEL);
     tft.drawFastHLine(8, 224, 224, 0x03E0);
     drawDisplayLabel("VAULT-TEC", 8, 226, 120, TL_DATUM, 0x3DE7, FONT_LABEL);
     drawDisplayLabel("MK IV", 232, 226, 60, TR_DATUM, 0x3DE7, FONT_LABEL);
@@ -75,7 +75,7 @@ s = replace_function(s, "void drawScreenChrome(const String &title) {", "void dr
 
 clock = r'''void renderClockPage() {
     const ThemePalette &theme = activeTheme();
-    drawScreenChrome("STAT // SYSTEM STATUS");
+    drawScreenChrome("STAT // STATUS");
     clockMetaCache.valid = false;
     bool isPm = false;
     const String timeText = formatLocalTime(dashboardConfig.showSeconds,
