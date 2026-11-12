@@ -2,18 +2,18 @@
 
 ## Aktueller Stand
 
-**Build 306 erfolgreich; native 240×240-Vorschauen visuell geprüft. Hardwaretest offen.**
+**Build 308 erfolgreich; native 240×240-Vorschauen visuell geprüft. Hardwaretest offen.**
 
-Aktueller Firmware-Quellstand: `8616f9527b1ce818d1e2971ad47575186c9777ef`. GitHub Actions hat ESP8266-Anwendung und OTA-Loader erfolgreich kompiliert.
+Aktueller Firmware-Quellstand: `46f1104fc982c3a0701bda256dccb15ee8f4980a`. GitHub Actions hat ESP8266-Anwendung und OTA-Loader erfolgreich kompiliert.
 
 ### Display und Wetter
 
 - **STAT:** große Uhrzeit, deutscher Wochentag und Datum.
 - **DATA – HEUTE:** Temperatur, Wetterlage, gefühlte Temperatur, Luftfeuchte, Wind/Böen, Niederschlag, Regenwahrscheinlichkeit, UV sowie Sonnenauf- und -untergang.
-- **DATA – 3-TAGE-VORSCHAU:** getrennte Einträge für MORGEN, UEBERMORGEN und IN 3 TAGEN; jeweils Datum, Wetterlage und Temperaturbereich in °C. Die zusätzliche Seitenüberschrift wurde entfernt, damit sie nicht mit dem ersten Prognoseeintrag kollidiert.
+- **DATA – 3-TAGE-VORSCHAU:** getrennte Einträge für MORGEN, UEBERMORGEN und IN 3 TAGEN; jeweils Datum, deutsch übersetzte Wetterlage und Temperaturbereich in °C. Die zusätzliche Seitenüberschrift wurde entfernt, damit sie nicht mit dem ersten Prognoseeintrag kollidiert. Regenwahrscheinlichkeit pro Prognosetag wird zwar von der Wetterquelle geliefert, derzeit aber zugunsten der Lesbarkeit nicht angezeigt.
 - **RADIO:** eigenes Animationsfenster. GIF-Inhalte bleiben auf RADIO und überlagern weder Uhr noch Wetter.
 
-Die native Forecast-Vorschau aus Build 306 wurde visuell geprüft: keine abgeschnittenen oder überlappenden Zeilen; die drei Einträge sind innerhalb der 240×240-Fläche lesbar. Die übrigen nativen Vorschauen wurden in Build 298 geprüft. Die reale Darstellung, WLAN-/Wetterdaten und GIF-Wiedergabe auf dem Gerät sind weiterhin nicht verifiziert.
+Die native Forecast-Vorschau aus Build 306 wurde visuell geprüft; Build 308 enthält zusätzlich die erweiterten deutschen Wetterlagen: keine abgeschnittenen oder überlappenden Zeilen; die drei Einträge sind innerhalb der 240×240-Fläche lesbar. Die übrigen nativen Vorschauen wurden in Build 298 geprüft. Die reale Darstellung, WLAN-/Wetterdaten und GIF-Wiedergabe auf dem Gerät sind weiterhin nicht verifiziert.
 
 ## Recherche vorhandener SmallTV-Projekte
 
