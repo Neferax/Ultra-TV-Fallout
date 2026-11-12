@@ -72,6 +72,13 @@ jobs:
         working-directory: firmware
         run: pio run -e nodemcuv2
 
+      - name: Stage compiled ESP8266 application firmware
+        run: |
+          mkdir -p fallout/package
+          test -s firmware/.pio/build/nodemcuv2/firmware.bin
+          cp firmware/.pio/build/nodemcuv2/firmware.bin fallout/package/smalltv-ultra-fallout.bin
+          ls -lh fallout/package/smalltv-ultra-fallout.bin
+
       - name: Render and test native 240x240 firmware pages
         run: |
           python - <<'PY'
@@ -116,7 +123,7 @@ jobs:
           out = Path("fallout/package")
           out.mkdir(parents=True, exist_ok=True)
           pages = [("STAT", 0), ("DATA", 1), ("RADIO", 2)]
-          board = Image.new("RGB", (3 * 240 + 4 * 24, 300), "#050805")
+          board = Image.new("RGB", (3 * 240 + 6 * 24, 300), "#050805")
           draw = ImageDraw.Draw(board)
           for i, (label, page) in enumerate(pages):
               ppm = src / f"theme-0-page-{page}.ppm"
@@ -196,7 +203,7 @@ jobs:
           name: smalltv-ultra-fallout-install-package
           path: |
             firmware/.pio/build/nodemcuv2_loader/firmware.bin
-            firmware/.pio/build/nodemcuv2/firmware.bin
+            fallout/package/smalltv-ultra-fallout.bin
             fallout/package/bethesda-vaultboy.gif
             fallout/package/PipBoy-STAT-240x240.png
             fallout/package/PipBoy-DATA-240x240.png
