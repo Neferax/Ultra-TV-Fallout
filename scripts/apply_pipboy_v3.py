@@ -80,7 +80,7 @@ weather = r'''void renderWeatherPage() {
         // Four aligned rows; the larger body font makes values readable at arm's length.
         String feel = "GEFUEHLT " + String(weather->feelsLike) + weatherUnitSymbol();
         String humidity = "FEUCHTE " + String(weather->humidity) + "%";
-        String wind = "WIND " + String(directions[direction]) + " " + String(weather->windSpeed) + " KM/H";
+        String wind = String(directions[direction]) + " " + String(weather->windSpeed) + " KM/H";
         String gust = "BOEEN " + String(weather->windGusts) + " KM/H";
         String precipitation = "REGEN " + String(weather->precipitation / 10) + "." +
                                String(abs(weather->precipitation % 10)) + " MM";
@@ -94,7 +94,7 @@ weather = r'''void renderWeatherPage() {
         drawDisplayLabel(precipitation, 12, 177, 108, TL_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel(chance, 228, 177, 108, TR_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel(uv, 12, 194, 108, TL_DATUM, 0x3DE7, FONT_LABEL);
-        drawDisplayLabel(sun, 228, 194, 108, TR_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(sun, 120, 205, 216, TC_DATUM, 0x3DE7, FONT_LABEL);
         return;
     }
 
