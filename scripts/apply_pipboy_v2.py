@@ -104,7 +104,7 @@ weather = r'''void renderWeatherPage() {
                          "WAITING FOR DATA",
                          120, 132, 200, TC_DATUM, 0x3DE7, FONT_LABEL);
         drawDisplayLabel("OPEN-METEO // 47239", 120, 164, 200,
-                         TC_DATUM, 0x3DE7, FONT_INFO);
+                         TC_DATUM, 0x3DE7, FONT_LABEL);
         return;
     }
 
@@ -122,22 +122,22 @@ weather = r'''void renderWeatherPage() {
     drawDisplayLabel(condition, 232, 116, 92, TR_DATUM, 0x07E0, FONT_LABEL);
 
     tft.drawFastHLine(12, 151, 216, 0x03E0);
-    drawDisplayLabel("HOCH", 48, 159, 64, TC_DATUM, 0x3DE7, FONT_INFO);
-    drawDisplayLabel("TIEF", 120, 159, 64, TC_DATUM, 0x3DE7, FONT_INFO);
-    drawDisplayLabel("REGEN", 192, 159, 64, TC_DATUM, 0x3DE7, FONT_INFO);
+    drawDisplayLabel("HOCH", 48, 159, 64, TC_DATUM, 0x3DE7, FONT_LABEL);
+    drawDisplayLabel("TIEF", 120, 159, 64, TC_DATUM, 0x3DE7, FONT_LABEL);
+    drawDisplayLabel("REGEN", 192, 159, 64, TC_DATUM, 0x3DE7, FONT_LABEL);
     drawDisplayLabel(String(weather->high) + "C", 48, 174, 64, TC_DATUM, 0xAFE5, FONT_LABEL);
     drawDisplayLabel(String(weather->low) + "C", 120, 174, 64, TC_DATUM, 0xAFE5, FONT_LABEL);
     drawDisplayLabel(String(weather->rainChance) + "%", 192, 174, 64, TC_DATUM, 0xAFE5, FONT_LABEL);
 
-    drawDisplayLabel("VORHERSAGE", 12, 193, 216, TL_DATUM, 0x07E0, FONT_INFO);
+    drawDisplayLabel("VORHERSAGE", 12, 193, 216, TL_DATUM, 0x07E0, FONT_LABEL);
     if (weather->forecastCount > 1) {
         const WeatherForecastDay &day = weather->forecast[1];
         String row = String(day.date) + "   " + String(day.low) + "/" +
                      String(day.high) + "C   " + String(day.rainChance) + "%";
-        drawDisplayLabel(row, 12, 207, 216, TL_DATUM, 0xAFE5, FONT_INFO);
+        drawDisplayLabel(row, 12, 207, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
     } else {
         drawDisplayLabel("--.--    --/--C    --%", 12, 207, 216,
-                         TL_DATUM, 0x3DE7, FONT_INFO);
+                         TL_DATUM, 0x3DE7, FONT_LABEL);
     }
 }'''
 s = replace_function(s, "void renderWeatherPage() {", "void renderMarketsPage() {", weather)
