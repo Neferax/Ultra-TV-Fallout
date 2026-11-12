@@ -2,9 +2,9 @@
 
 ## Aktueller Stand
 
-**GIF-Konverter und synthetische Tests erweitert. Build 334 erfolgreich; der Workflow-Fix aus Build 335 und die nachfolgenden Dokumentationsänderungen sind noch durch CI zu bestätigen. Hardwaretest offen.**
+**Build 338 erfolgreich. GIF-Konvertierung und drei synthetische Tests bestätigt. Build 339/340 prüfen die flackerfreie Ausgabe vollständiger, opaker Frames; Hardwaretest offen.**
 
-Aktueller Branch-Stand: `4044ee19b44d4cced8a351b992e31b13cb4bd8a3`. Build 334 hat den vorherigen Stand einschließlich Konvertertests erfolgreich kompiliert und paketiert. Build 335 enthält den korrigierten Test-Here-Doc; die aktuelle CI-Bestätigung steht noch aus. Der Workflow überschreibt Teile des GIF-Players nach dem Einfügen durch `scripts/apply_readable_weather_and_real_gif_transitions.py`; Änderungen am kopierten Player müssen deshalb gegen das Ergebnis dieser Transformation geprüft werden.
+Aktueller Branch-Stand: `cec81f3eb88de245d19454f7bce2f3af8ae32782`. Build 338 hat Firmware, OTA-Loader und GIF-Konvertertests erfolgreich gebaut und paketiert. Build 339/340 prüfen die neue Entfernung der unnötigen Schwarz-Löschvorgänge. Die finale Firmware entsteht durch mehrere Build-Transformationen; Änderungen am Player werden deshalb zusätzlich gegen den erzeugten Quellcode geprüft.
 
 ### Display und Wetter
 
