@@ -159,9 +159,9 @@ weather = r'''void renderWeatherPage() {
     }
 
     const char *labels[] = {"MORGEN", "UEBERMORGEN", "IN 3 TAGEN"};
-    // Three evenly spaced rows: keep the rain line away from the next heading.
+    // Compact rows keep all three rain lines above the fixed footer.
     for (uint8_t slot = 0; slot < 3; ++slot) {
-        const int y = 70 + static_cast<int>(slot) * 49;
+        const int y = 64 + static_cast<int>(slot) * 45;
         if (slot > 0) tft.drawFastHLine(12, y - 6, 216, 0x03E0);
         if (weather->forecastCount > slot + 1) {
             const WeatherForecastDay &day = weather->forecast[slot + 1];
