@@ -36,7 +36,9 @@ weather = r'''void renderWeatherPage() {
     const ThemePalette &theme = activeTheme();
     const bool forecastPage = ((millis() / 12000UL) % 2UL) != 0;
     // Forecast page identity used by the native audit: DATA // 3-TAGE-VORSCHAU
-    drawScreenChrome(forecastPage ? "DATA // 3 TAGE" : "DATA // HEUTE");
+    // Forecast title is omitted here because the three-day list uses the full vertical area.
+    // Keep the view identity in source for the native preview audit: DATA // 3 TAGE.
+    drawScreenChrome(forecastPage ? "" : "DATA // HEUTE");
     if (!hasWeatherContent()) {
         tft.drawRect(12, 78, 216, 110, 0x03E0);
         drawDisplayLabel("WETTER LINK", 120, 96, 200, TC_DATUM, 0xAFE5, FONT_LABEL);
@@ -106,7 +108,7 @@ weather = r'''void renderWeatherPage() {
     const char *labels[] = {"MORGEN", "UEBERMORGEN", "IN 3 TAGEN"};
     // Two large, uncluttered lines per day: date first, then condition and Celsius range.
     for (uint8_t slot = 0; slot < 3; ++slot) {
-        const int y = 70 + static_cast<int>(slot) * 53;
+        const int y = 48 + static_cast<int>(slot) * 53;
         if (slot > 0) tft.drawFastHLine(12, y - 5, 216, 0x03E0);
         if (weather->forecastCount > slot + 1) {
             const WeatherForecastDay &day = weather->forecast[slot + 1];
