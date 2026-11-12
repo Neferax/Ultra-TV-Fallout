@@ -1,8 +1,8 @@
 # Ultra-TV-Fallout
 
-Neugestaltung einer Fallout-4-/Pip-Boy-Oberfläche für die GeekMagic SmallTV Ultra (ESP8266, 240x240).
+Fallout-4-/Pip-Boy-Oberfläche für die GeekMagic SmallTV Ultra (ESP8266, ST7789, 240x240).
 
-> **Status: Design-Neuaufbau.** Die bisherigen Builds 182–186 waren Kompilierungstests, keine visuell abgenommenen Releases. Das aktuelle UI wurde vom Nutzer als unlesbar und funktional unzureichend zurückgemeldet. Build 186 wird nicht als freigegebener Stand empfohlen. Vor weiteren Geräte-Updates muss erst eine echte 240x240-Vorschau mit der Firmware-Zeichenlogik bestanden werden.
+> **Status: Build 298 erfolgreich, native Vorschauen visuell geprüft.** Die aktuelle Wetteransicht zeigt Temperatur, Wetterlage sowie gefühlte Temperatur, Luftfeuchte, Wind, Böen, Niederschlag, Regenwahrscheinlichkeit, UV und Sonnenzeiten. Die separate Drei-Tage-Vorschau ist auf zwei große Zeilen pro Tag reduziert. STAT und RADIO bleiben eigenständige Seiten. Eine Prüfung auf dem echten Gerät steht noch aus; Build 298 ist daher noch keine Hardwarefreigabe.
 
 ## Verbindliche Zielstruktur
 
