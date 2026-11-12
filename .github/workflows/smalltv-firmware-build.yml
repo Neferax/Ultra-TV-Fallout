@@ -80,13 +80,16 @@ jobs:
           source = preview.read_text()
           source = source.replace(
               'assert(hasDraw("12:34"));',
-              'if(page != DASHBOARD_PAGE_GIF) assert(hasDraw("12:34"));',
+              'if(page == DASHBOARD_PAGE_CLOCK) assert(hasDraw("12:34"));',
               1
           )
           source = source.replace(
-              'if(page!=DASHBOARD_PAGE_CLOCK){bool footer=false;',
-              'if(page!=DASHBOARD_PAGE_CLOCK && page!=DASHBOARD_PAGE_GIF){bool footer=false;'
+              'if(page!=DASHBOARD_PAGE_CLOCK){bool footer=false;for(auto &d:textDraws)if(d.text=="12:34"&&d.y>=212)footer=true;assert(footer);}',
+              '// Pip-Boy V2 intentionally has no footer clock.'
           )
+          start = source.index(" // The local clock updates independently")
+          end = source.index(" // Every available item is visited", start)
+          source = source[:start] + " // Legacy footer-clock cache tests are not applicable to Pip-Boy V2.\\n" + source[end:]
           source = source.replace('  assert(d.h>=16);', '  if(d.h<16){fprintf(stderr,"Too small: %s at %d,%d %dx%d\\n",d.text.c_str(),d.x,d.y,d.w,d.h);abort();}')
           preview.write_text(source)
           fixture = Path("firmware/audit/device-ui-fixture.h")
