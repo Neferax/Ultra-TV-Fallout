@@ -101,7 +101,7 @@ weather = r'''void renderWeatherPage() {
     const char *labels[] = {"MORGEN", "UEBERMORGEN", "IN 3 TAGEN"};
     // Three distinct rows: date, readable condition/range, then precipitation probability.
     for (uint8_t slot = 0; slot < 3; ++slot) {
-        const int y = 65 + static_cast<int>(slot) * 42;
+        const int y = 61 + static_cast<int>(slot) * 49;
         if (slot > 0) tft.drawFastHLine(12, y - 4, 216, 0x03E0);
         if (weather->forecastCount > slot + 1) {
             const WeatherForecastDay &day = weather->forecast[slot + 1];
@@ -117,11 +117,11 @@ weather = r'''void renderWeatherPage() {
             else if (condition == "Snow") condition = "SCHNEE";
             else if (condition == "Fog") condition = "NEBEL";
             condition.toUpperCase();
-            drawDisplayLabel(condition, 12, y + 13, 132, TL_DATUM, 0x3DE7, FONT_LABEL);
+            drawDisplayLabel(condition, 12, y + 15, 132, TL_DATUM, 0x3DE7, FONT_LABEL);
             String range = String(day.low) + "/" + String(day.high) + "C";
-            drawDisplayLabel(range, 228, y + 13, 78, TR_DATUM, 0xAFE5, FONT_LABEL);
+            drawDisplayLabel(range, 228, y + 15, 78, TR_DATUM, 0xAFE5, FONT_LABEL);
             drawDisplayLabel("REGEN " + String(day.rainChance) + "%",
-                             12, y + 26, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
+                             12, y + 30, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
         } else {
             drawDisplayLabel(String(labels[slot]) + " // KEINE DATEN",
                              12, y, 216, TL_DATUM, 0x3DE7, FONT_BODY);
