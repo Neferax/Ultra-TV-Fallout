@@ -133,9 +133,9 @@ weather = r'''void renderWeatherPage() {
         const WeatherForecastDay &day = weather->forecast[1];
         String row = String(day.date) + "   " + String(day.low) + "/" +
                      String(day.high) + "C   " + String(day.rainChance) + "%";
-        drawDisplayLabel("NEXT  " + row, 12, 198, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel("NEXT  " + row, 12, 195, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
     } else {
-        drawDisplayLabel("NEXT  --.--    --/--C    --%", 12, 198, 216,
+        drawDisplayLabel("NEXT  --.--    --/--C    --%", 12, 195, 216,
                          TL_DATUM, 0x3DE7, FONT_LABEL);
     }
 }'''
