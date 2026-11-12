@@ -112,36 +112,36 @@ weather = r'''void renderWeatherPage() {
     // Current temperature and condition use the largest free area.
     drawDisplayLabel(weather->location[0] ? weather->location : "DUISBURG // 47239",
                      12, 78, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
-    const int heroFonts[] = {FONT_HUGE, FONT_TITLE, FONT_BODY};
+    const int heroFonts[] = {FONT_TITLE, FONT_BODY, FONT_LABEL};
     String temperature = String(weather->temperature);
     String unit;
     unit += weatherUnitSymbol();
-    const int temperatureWidth = tft.textWidth(temperature, FONT_HUGE);
+    const int temperatureWidth = tft.textWidth(temperature, FONT_TITLE);
     drawAdaptiveText(temperature, 12, 96, 216,
                      TL_DATUM, heroFonts, 3, 0xAFE5, TFT_BLACK);
-    drawDisplayLabel(unit, 12 + temperatureWidth + 4, 122, 28,
+    drawDisplayLabel(unit, 12 + temperatureWidth + 4, 112, 28,
                      TL_DATUM, 0xAFE5, FONT_BODY);
 
     String condition = weather->condition;
     condition.toUpperCase();
     if (condition.length() > 15) while (condition.length() > 15) condition.remove(condition.length() - 1);
-    drawDisplayLabel(condition, 12, 145, 216, TL_DATUM, 0x07E0, FONT_LABEL);
+    drawDisplayLabel(condition, 12, 138, 216, TL_DATUM, 0x07E0, FONT_LABEL);
 
-    tft.drawFastHLine(12, 163, 216, 0x03E0);
-    drawDisplayLabel("HOCH", 48, 165, 64, TC_DATUM, 0x3DE7, FONT_LABEL);
-    drawDisplayLabel("TIEF", 120, 165, 64, TC_DATUM, 0x3DE7, FONT_LABEL);
-    drawDisplayLabel("REGEN", 192, 165, 64, TC_DATUM, 0x3DE7, FONT_LABEL);
-    drawDisplayLabel(String(weather->high) + "C", 48, 180, 64, TC_DATUM, 0xAFE5, FONT_LABEL);
-    drawDisplayLabel(String(weather->low) + "C", 120, 180, 64, TC_DATUM, 0xAFE5, FONT_LABEL);
-    drawDisplayLabel(String(weather->rainChance) + "%", 192, 180, 64, TC_DATUM, 0xAFE5, FONT_LABEL);
+    tft.drawFastHLine(12, 155, 216, 0x03E0);
+    drawDisplayLabel("HOCH", 48, 157, 64, TC_DATUM, 0x3DE7, FONT_LABEL);
+    drawDisplayLabel("TIEF", 120, 157, 64, TC_DATUM, 0x3DE7, FONT_LABEL);
+    drawDisplayLabel("REGEN", 192, 157, 64, TC_DATUM, 0x3DE7, FONT_LABEL);
+    drawDisplayLabel(String(weather->high) + "C", 48, 172, 64, TC_DATUM, 0xAFE5, FONT_LABEL);
+    drawDisplayLabel(String(weather->low) + "C", 120, 172, 64, TC_DATUM, 0xAFE5, FONT_LABEL);
+    drawDisplayLabel(String(weather->rainChance) + "%", 192, 172, 64, TC_DATUM, 0xAFE5, FONT_LABEL);
 
     if (weather->forecastCount > 1) {
         const WeatherForecastDay &day = weather->forecast[1];
         String row = String(day.date) + "   " + String(day.low) + "/" +
                      String(day.high) + "C   " + String(day.rainChance) + "%";
-        drawDisplayLabel("VORHERSAGE " + String(day.date) + " " + String(day.low) + "/" + String(day.high) + "C " + String(day.rainChance) + "%", 12, 196, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel("VORHERSAGE " + String(day.date) + " " + String(day.low) + "/" + String(day.high) + "C " + String(day.rainChance) + "%", 12, 190, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
     } else {
-        drawDisplayLabel("VORHERSAGE --.-- --/--C --%", 12, 196, 216,
+        drawDisplayLabel("VORHERSAGE --.-- --/--C --%", 12, 190, 216,
                          TL_DATUM, 0x3DE7, FONT_LABEL);
     }
 }'''
