@@ -90,6 +90,8 @@ jobs:
           preview.write_text(source)
           fixture = Path("firmware/audit/device-ui-fixture.h")
           header = fixture.read_text()
+          if "#define TFT_BLACK" not in header:
+              header = "#define TFT_BLACK 0x0000" + chr(10) + header
           header = header.replace(
               'bool hasStatusContent(){return !emptyData;}',
               'bool hasStatusContent(){return !emptyData;}' + chr(10) + 'bool gifPlayerHasFiles(){return true;}'
