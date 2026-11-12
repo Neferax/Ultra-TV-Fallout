@@ -43,10 +43,11 @@ Der Player hat keinen Compositing-Framebuffer. Deshalb akzeptiert er nur:
 - Dateigröße maximal 300 KiB.
 
 Frames mit Teilbild-Offsets, abweichender Framegröße oder Transparenz werden
-beim Decodieren erkannt und abgebrochen. Für diesen Eintrag wird die
-Fallback-Animation angezeigt. Damit werden Bildreste durch unvollständiges
-Compositing vermieden. Die GIF-Farben werden in monochromes Pip-Boy-
-Phosphorgrün umgerechnet.
+beim Decodieren erkannt und abgebrochen. Der Player überspringt anschließend
+diesen Eintrag und versucht den nächsten Album-Eintrag. Wenn kein kompatibles
+GIF vorhanden ist, bleibt die RADIO-Seite ohne Animation. Damit werden
+Bildreste durch unvollständiges Compositing vermieden. Die GIF-Farben werden
+in monochromes Pip-Boy-Phosphorgrün umgerechnet.
 
 Die Upload-Prüfung kontrolliert Dateisignatur und Canvas-Abmessungen. Sie
 validiert nicht vorab sämtliche Frame- und Transparenzeigenschaften; diese
