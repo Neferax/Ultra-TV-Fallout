@@ -1,68 +1,117 @@
-# Display-Konzept – Fallout 4 / Pip-Boy / RobCo
+# Verbindlicher Display-Neuentwurf – Fallout 4 / Pip-Boy / RobCo
 
-## Verbindliche Seitenstruktur
+Stand: 12.11.2026  
+Status: **Neugestaltung erforderlich – bisherige Darstellung nicht freigegeben**
 
-Die Anzeige soll genau drei Seitentypen verwenden:
-1. Clock
-2. Weather
-3. GIF-Archiv
+## Warum der bisherige Ansatz verworfen wird
 
-Die GIF-Anzeige verwendet den vorhandenen Status-Seitenslot der alternativen
-Firmware. Die Gesamtzahl der Dashboard-Seiten wird nicht erhöht. Clock, Weather
-und GIF sind die einzigen standardmäßig aktivierten Seiten. Die Rotation steht
-standardmäßig auf 20 Sekunden.
+Die bisherigen Builds wurden zwar kompiliert, aber nicht mit einem echten 240×240-Rendernachweis und nicht auf dem Gerät visuell abgenommen. Ein erfolgreicher Build ist kein Beleg für Lesbarkeit oder ein funktionierendes Layout. Build 186 ist deshalb kein freigegebener Designstand.
 
-## Gemeinsame Bildsprache
+Die Oberfläche wird nicht weiter mit zusätzlichen grünen Effekten, GIF-Overlays oder isolierten Korrekturen repariert. Der Aufbau wird neu geordnet.
 
-- Referenz: Fallout 4 / Pip-Boy 3000 Mark IV / RobCo
-- tiefschwarzer Hintergrund
-- monochromes Phosphorgrün
-- kompakte technische Schrift und hohe Lesbarkeit
-- RobCo-Rahmen, Statusleisten und kleine technische Kennungen
-- dezente CRT-Anmutung, aber keine hektischen Vollbildblitze
-- Animationen dürfen Uhr- und Wetterdaten nicht verdecken
+## Visuelle Referenz
 
-Das Terminal-Theme ist voreingestellt. GIF-Farben werden beim Zeichnen in
-monochromes Grün umgerechnet; transparente Pixel erscheinen schwarz.
+Die Referenz ist der Pip-Boy 3000 Mark IV aus Fallout 4 – nicht ein beliebiges Cyberpunk-Terminal.
 
-## Weather
+Wesentliche Merkmale:
+- monochromes Grün auf Schwarz;
+- text- und zahlenorientierte Informationsdarstellung;
+- klare Registerleiste und dünne Trennlinien;
+- sparsame Symbole und gezielt verwendete Vault-Boy-Grafiken;
+- keine dekorativen 3D-Karten, Verläufe oder übereinanderliegenden Fenster.
 
-- Live-Wetter über Open-Meteo
-- Standardstandort: PLZ 47239 Duisburg / Rumeln-Kaldenhausen
-- aktuelle Temperatur als primärer Wert
-- Wetterzustand, Höchst-/Tiefstwert und Regenwahrscheinlichkeit in kompakten
-  Statusfeldern
-- keine fest eingebrannten oder erfundenen Live-Werte
-- Aktualisierung standardmäßig alle 30 Minuten
+Die Originalentwicklung des Pip-Boy beschreibt genau diese Einschränkungen: einfache textbasierte Oberfläche, wenige Symbole und klare Segmentierung statt Ornamentik. Siehe [Design and Development of the Pip-Boy Model 3000](https://fallout-archive.fandom.com/wiki/Design_and_Development_of_the_Pip-Boy_Model_3000).
 
-## Clock
+## Gemeinsame Regeln für alle Seiten
 
-- Live-NTP-Zeit und Datum
-- Standardzeitzone Europe/Berlin mit automatischer CET/CEST-Umstellung
-- Uhrzeit als größtes Element
-- RobCo-/Vault-Tec-Kopfzeile und dezente Statusbeschriftung
+- Canvas: exakt 240×240 Pixel.
+- Hintergrund: reines Schwarz.
+- Palette: höchstens drei Phosphorgrün-Stufen plus Schwarz.
+- Schrift: Monospace-/Bitmap-Anmutung; die Vorschau muss die tatsächlich in der Firmware verwendeten Fonts nutzen.
+- Sekundärtexte mindestens 12 px; Hauptwerte 24–48 px. Kleinere Schrift ist nur für unvermeidbare Metadaten zulässig.
+- Keine Textfelder über Grafiken oder Animationen.
+- Keine dauerhaften Scanline-Animationen, Bildblitze oder kompletten Bildschirm-Neuzeichnungen bei jeder Datenaktualisierung.
+- Bei unverfügbaren Daten: klarer Platzhalter, z. B. „--“ oder „DATEN NICHT VERFÜGBAR“; niemals Demo- oder Beispielwerte als Live-Daten ausgeben.
 
-## GIF-Archiv
+## Navigation
 
-- LittleFS-Verzeichnis `/gif/`
-- geschützte Uploadseite `/gif`
-- bis zu zwölf alphabetisch sortierte GIFs
-- automatischer Wechsel nach 20 Sekunden
-- maximal 240×240 Pixel und 300 KiB je Datei
-- LZW-Codegröße höchstens 11 Bit
-- Frames müssen das vollständige Canvas abdecken
-- transparente Pixel werden schwarz dargestellt
-- alle Bildfarben werden in Pip-Boy-Grün umgerechnet
-- kein Vollbild-RGB565-Compositing-Puffer; Decoder nur während der GIF-Seite im
-  sekundären IRAM-Heap
+Die drei vorhandenen Seitenslots bleiben erhalten:
+- STAT
+- DATA
+- RADIO
 
-Stock-GIFs werden nicht automatisch migriert. Vor einem Firmwarewechsel müssen
-Originaldateien extern gesichert und nach der Installation über `/gif`
-hochgeladen werden.
+Die aktive Registerkarte ist klar markiert. Die Kopfzeile bleibt bei Seitenwechseln an derselben Position, damit die Oberfläche wie ein zusammenhängendes Gerät wirkt.
 
-## Implementierungsstatus
+## Seite 1 – STAT / Uhr
 
-Die Uhr-/Wetterrenderer und die GIF-Player-/Upload-Integration liegen als
-C++-Patches bzw. Quellcode-Prototyp vor. Der GitHub-Actions-Build ist eingerichtet,
-aber ein erfolgreicher Build und Hardwaretest sind noch nicht bestätigt. Es gibt
-noch kein nachweislich flashfertiges Image; das Gerät wurde nicht verändert.
+Ziel: Uhrzeit auf den ersten Blick erkennbar, Datum auf einen Blick lesbar.
+
+Layout:
+- oben: Registerleiste STAT / DATA / RADIO;
+- darunter: kurze Systemkennung;
+- Mitte: Uhrzeit als dominierender Wert, 24-Stunden-Format;
+- darunter: deutscher Wochentag und Datum;
+- unten: NTP-/Zeitzonenstatus, nur wenn sinnvoll.
+
+Keine zusätzliche Wettervorschau auf dieser Seite. Die Uhr bekommt Platz und wird nicht mit kleinen Statusfeldern überladen.
+
+## Seite 2 – DATA / Wetter
+
+Ziel: aktuelle Wetterlage und kurze Vorhersage auf einer einzigen, lesbaren Seite.
+
+Layout:
+- oben: Registerleiste;
+- darunter: Standort 47239 / Duisburg;
+- dominanter Wert: aktuelle Temperatur;
+- direkt darunter: Wetterzustand als deutsches Wort;
+- mittlerer Bereich: Luftfeuchte, Regenwahrscheinlichkeit und Wind in drei klar getrennten Feldern;
+- unterer Bereich: kompakte Drei-Tage-Vorhersage mit Tageskürzel und Höchst-/Tiefstwert.
+
+Die Temperatur und der Wetterzustand haben Vorrang. Die Vorhersage wird gekürzt, wenn echte Daten fehlen, statt mit leeren oder erfundenen Einträgen gefüllt zu werden.
+
+## Seite 3 – RADIO / Animation
+
+Ziel: eine Animation als eigenständiger Inhalt zeigen.
+
+Layout:
+- oben: Registerleiste;
+- Mitte: zentrierte Animation in einem festen Sichtfenster;
+- unten: kurzer Dateiname oder Archivstatus.
+
+Die Animation darf keine Uhr- oder Wetterdaten verdecken. Keine halbtransparenten grünen Flächen oder alten GIF-Reste außerhalb des Sichtfensters. Gibt es keine gültige Animation, erscheint ein sauberer statischer RADIO-Platzhalter.
+
+## GIF- und Animationsstrategie
+
+Die bisherige Laufzeit-Decodierung beliebiger GIF-Dateien wird nicht weiter als Voraussetzung behandelt.
+
+Referenz ist das u1pns-Projekt: Dort werden Bilder und GIFs im Browser konvertiert; das Gerät selbst decodiert keine JPG-/GIF-Dateien. Für unseren ESP8266 ist die Vorverarbeitung in begrenzte Einzelbilder/Sprites deshalb der bevorzugte Weg.
+
+Vorgesehene Grenzen für den ersten Prototyp:
+- fester Sichtbereich, höchstens 120×120 Pixel;
+- begrenzte Bildanzahl pro Animation;
+- reduzierte Farbpalette;
+- definierte Bildrate und Frame-Dauer;
+- Größenprüfung vor Speicherung;
+- keine automatische Wiedergabe auf STAT oder DATA.
+
+Die Grenzen werden anhand des tatsächlichen LittleFS- und Heap-Budgets festgelegt, nicht geschätzt.
+
+## Technischer Qualitätsnachweis vor jedem neuen Firmware-Build
+
+1. Für STAT, DATA und RADIO existiert jeweils eine vollständige Vorschau in 240×240 Pixeln.
+2. Die Vorschau verwendet dieselbe Zeichenlogik und dieselben Bitmap-Fonts wie die Firmware.
+3. Es werden lange deutsche Wochentage, volle Datumsangaben, fehlende Wetterdaten und leere Animation-Slots geprüft.
+4. Text wird auf Abschneiden, Überlappung und Kontrast nach RGB565-Konvertierung geprüft.
+5. Jede Seite wird mindestens einmal im Wechsel mit der vorherigen und folgenden Seite gerendert; es dürfen keine Bildreste stehen bleiben.
+6. Unveränderte Daten führen nicht zu unnötigen Vollbild-Redraws.
+7. Erst nach bestandener Vorschau folgen Build und separater Test am echten Gerät.
+
+## Arbeitsgrundlage
+
+Die Recherche und Bewertung vorhandener Projekte steht in [DESIGN_REFERENCE_COMPARISON.md](DESIGN_REFERENCE_COMPARISON.md).
+
+Wichtige Referenzen:
+- [iodn/geekmagic-tv-esp8266](https://github.com/iodn/geekmagic-tv-esp8266): SmallTV Ultra, echte Renderer-Vorschauen und Displaytests.
+- [giovi321/smalltv-mod](https://github.com/giovi321/smalltv-mod): SmallTV Studio und fertige Theme-Beispiele.
+- [u1pns/smalltv-ultra](https://github.com/u1pns/smalltv-ultra): Browser-Konvertierung von GIFs vor der Anzeige.
+- [msdxlab/SmallTV-ultra-mod](https://github.com/msdxlab/SmallTV-ultra-mod): Clock-/Weather-Face, Screen-Mirror und gezielte Teilaktualisierung.
