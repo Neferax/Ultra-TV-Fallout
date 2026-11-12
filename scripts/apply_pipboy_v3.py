@@ -106,7 +106,7 @@ weather = r'''void renderWeatherPage() {
     const char *labels[] = {"MORGEN", "UEBERMORGEN", "IN 3 TAGEN"};
     // Two large, uncluttered lines per day: date first, then condition and Celsius range.
     for (uint8_t slot = 0; slot < 3; ++slot) {
-        const int y = 48 + static_cast<int>(slot) * 53;
+        const int y = 70 + static_cast<int>(slot) * 53;
         if (slot > 0) tft.drawFastHLine(12, y - 5, 216, 0x03E0);
         if (weather->forecastCount > slot + 1) {
             const WeatherForecastDay &day = weather->forecast[slot + 1];
