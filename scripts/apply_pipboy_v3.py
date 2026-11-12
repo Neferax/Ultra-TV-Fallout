@@ -92,7 +92,7 @@ weather = r'''void renderWeatherPage() {
         drawDisplayLabel(humidity, 12, 160, 216, TL_DATUM, 0xAFE5, FONT_BODY);
         drawDisplayLabel(wind + " // " + gust, 12, 177, 216, TL_DATUM, 0x3DE7, FONT_BODY);
         drawDisplayLabel(precipitation + " // " + String(weather->rainChance) + "%",
-                         12, 194, 216, TL_DATUM, 0xAFE5, FONT_BODY);
+                         12, 187, 216, TL_DATUM, 0xAFE5, FONT_BODY);
         return;
     }
 
