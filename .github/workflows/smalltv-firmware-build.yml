@@ -80,7 +80,8 @@ jobs:
           source = preview.read_text()
           source = source.replace(
               'assert(hasDraw("12:34"));',
-              'if(page != DASHBOARD_PAGE_GIF) assert(hasDraw("12:34"));'
+              'if(page != DASHBOARD_PAGE_GIF) assert(hasDraw("12:34"));',
+              1
           )
           source = source.replace(
               'if(page!=DASHBOARD_PAGE_CLOCK){bool footer=false;',
@@ -92,6 +93,11 @@ jobs:
           header = header.replace(
               'bool hasStatusContent(){return !emptyData;}',
               'bool hasStatusContent(){return !emptyData;}' + chr(10) + 'bool gifPlayerHasFiles(){return true;}'
+          )
+          header = header.replace(
+              'void drawFastHLine(int x,int y,int w,uint16_t c){fillRect(x,y,w,1,c);}',
+              'void drawFastHLine(int x,int y,int w,uint16_t c){fillRect(x,y,w,1,c);}' + chr(10) +
+              'void drawRect(int x,int y,int w,int h,uint16_t c){drawFastHLine(x,y,w,c);drawFastHLine(x,y+h-1,w,c);drawFastVLine(x,y,h,c);drawFastVLine(x+w-1,y,h,c);}'
           )
           fixture.write_text(header)
           PY
