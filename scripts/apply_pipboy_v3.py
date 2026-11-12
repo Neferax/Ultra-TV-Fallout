@@ -86,9 +86,10 @@ weather = r'''void renderWeatherPage() {
         // Four aligned rows; the larger body font makes values readable at arm's length.
         String feel = "GEFUEHLT " + String(weather->feelsLike) + weatherUnitSymbol();
         String humidity = "FEUCHTE " + String(weather->humidity) + "%";
-        String wind = "WIND " + String(directions[direction]) + " " +
-                      String(weather->windSpeed) + " KM/H";
-        String gust = "BOEEN " + String(weather->windGusts) + " KM/H";
+        String wind = "WIND " + String(directions[direction]);
+        String windValue = String(weather->windSpeed) + " KM/H";
+        String gust = "BOEEN";
+        String gustValue = String(weather->windGusts) + " KM/H";
         String precipitation = "REGEN " + String(weather->precipitation / 10) + "." +
                                String(abs(weather->precipitation % 10)) + "MM";
         String chance = "CHANCE " + String(weather->rainChance) + "%";
@@ -99,13 +100,15 @@ weather = r'''void renderWeatherPage() {
                          12, 135, 104, TL_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel(humidity, 228, 135, 104, TR_DATUM, 0xAFE5, FONT_LABEL);
         drawDisplayLabel(wind, 12, 155, 104, TL_DATUM, 0x3DE7, FONT_LABEL);
-        drawDisplayLabel(gust, 228, 155, 104, TR_DATUM, 0x3DE7, FONT_LABEL);
-        drawDisplayLabel(precipitation, 12, 175, 104, TL_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel(String(weather->rainChance) + "% // " + uv, 228, 175, 104,
+        drawDisplayLabel(windValue, 116, 155, 104, TR_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(gust, 12, 175, 104, TL_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(gustValue, 116, 175, 104, TR_DATUM, 0x3DE7, FONT_LABEL);
+        drawDisplayLabel(precipitation, 12, 195, 104, TL_DATUM, 0xAFE5, FONT_LABEL);
+        drawDisplayLabel(String(weather->rainChance) + "% // " + uv, 228, 195, 104,
                          TR_DATUM, 0xAFE5, FONT_LABEL);
-        drawDisplayLabel("AUF " + String(weather->sunrise), 12, 195, 104,
+        drawDisplayLabel("AUF " + String(weather->sunrise), 12, 215, 104,
                          TL_DATUM, 0x3DE7, FONT_LABEL);
-        drawDisplayLabel("UNTER " + String(weather->sunset), 228, 195, 104,
+        drawDisplayLabel("UNTER " + String(weather->sunset), 228, 215, 104,
                          TR_DATUM, 0x3DE7, FONT_LABEL);
         return;
     }
