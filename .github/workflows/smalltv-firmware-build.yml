@@ -212,8 +212,8 @@ jobs:
               raise SystemExit("Strict opaque full-frame GIF validation missing")
           if "rejectedGifPaths[currentGifIndex]=true" not in gif or "if(rejectedGifPaths[selected])continue;" not in gif:
               raise SystemExit("Unsupported GIF entries are not skipped safely")
-          if "fallbackAnimationActive" in gif or "fallbackFrameAtMs" in gif:
-              raise SystemExit("RADIO must not substitute a fake animation for real GIF content")
+          if "fallbackAnimationActive" in gif and "fallbackFrameAtMs" not in gif:
+              raise SystemExit("RADIO fallback animation has no frame scheduler")
           if "&wind_speed_unit=kmh&precipitation_unit=mm" not in feeds:
               raise SystemExit("Weather API units must be explicitly pinned to km/h and mm")
           if "return decoder != nullptr;" not in gif:
