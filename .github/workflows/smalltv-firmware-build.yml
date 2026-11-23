@@ -124,6 +124,14 @@ jobs:
           test -s firmware/.pio/build/nodemcuv2/firmware.bin
           cp firmware/.pio/build/nodemcuv2/firmware.bin fallout/package/smalltv-ultra-fallout.bin
           ls -lh fallout/package/smalltv-ultra-fallout.bin
+          python - <<'PY'
+          from pathlib import Path
+          gif = Path("fallout/package/bethesda-vaultboy.gif").read_bytes()
+          firmware = Path("fallout/package/smalltv-ultra-fallout.bin").read_bytes()
+          if gif not in firmware:
+              raise SystemExit("Firmware image does not contain the exact bundled GIF payload")
+          print(f"Firmware payload verified: embedded {len(gif)} GIF bytes in {len(firmware)}-byte application image")
+          PY
 
       - name: Verify bundled GIF is embedded and installed at boot
         working-directory: firmware
