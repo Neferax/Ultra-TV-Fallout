@@ -117,6 +117,8 @@ jobs:
           preview.write_text(source)
           fixture = Path("firmware/audit/device-ui-fixture.h")
           header = fixture.read_text()
+          # Extend the host String shim with Arduino String::indexOf(const char*) used by firmware weather labels.
+          header = header.replace('    int indexOf(char c) const { auto n=find(c); return n==npos ? -1 : int(n); }', '    int indexOf(char c) const { auto n=find(c); return n==npos ? -1 : int(n); }' + chr(10) + '    int indexOf(const char *s) const { auto n=find(s); return n==npos ? -1 : int(n); }')
           header = header.replace('strcpy(w.location,"Tokyo");', 'strcpy(w.location,"Duisburg");')
           if "#define TFT_BLACK" not in header:
               header = "#define TFT_BLACK 0x0000" + chr(10) + header
