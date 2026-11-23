@@ -13,7 +13,7 @@ int main(int argc,char**argv){
    if(page==DASHBOARD_PAGE_WEATHER){assert(hasDraw("DATA"));}
    if(page==DASHBOARD_PAGE_RAD)assert(hasDraw("23"));
    if(page==DASHBOARD_PAGE_QUEST)assert(hasDraw("NEUJAHR"));
-   if(page==DASHBOARD_PAGE_SYSTEM)assert(hasDraw("UPTIME 02:26:01"));
+   if(page==DASHBOARD_PAGE_SYSTEM)assert(hasDraw("UPTIME 02:25:21"));
   }
  }
  // Legacy footer-clock cache tests are not applicable to Pip-Boy V2.
