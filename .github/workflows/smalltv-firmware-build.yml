@@ -165,7 +165,15 @@ jobs:
         run: |
           cat fallout/audit-v4/device-ui-preview.part* > firmware/audit/device-ui-preview.py
           cat fallout/audit-v4/device-ui-fixture.part* > firmware/audit/device-ui-fixture.h
-          python firmware/audit/device-ui-preview.py --output firmware/pipboy-preview
+          set +e
+          python firmware/audit/device-ui-preview.py --output firmware/pipboy-preview 2>&1 | tee /tmp/preview.log
+          preview_status=${PIPESTATUS[0]}
+          set -e
+          if [ "$preview_status" -ne 0 ]; then
+            echo "::error::Pip-Boy V4 preview failed with exit code $preview_status"
+            tail -n 40 /tmp/preview.log | while IFS= read -r line; do echo "::error::PREVIEW: $line"; done
+            exit 1
+          fi
           python - <<'PY'
           from pathlib import Path
           from PIL import Image, ImageDraw
