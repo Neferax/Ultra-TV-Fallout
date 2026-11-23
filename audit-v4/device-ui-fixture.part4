@@ -1,0 +1,24 @@
+String formatLocalTime(bool seconds,bool,bool *pm){*pm=localClockPm;return timeSynced ? localClockText+(seconds?":56":"") : "--:--";}
+String formatLocalDate(){return "Wed 14 Oct 2026";}
+String formatWorldTime(long offset){return offset==32400?"12:34":"08:34";}
+bool hasTimeSync(){return timeSynced;}
+int32_t dashboardFocusRemainingSeconds(){return 24*60+38;}
+int32_t dashboardEventRemainingSeconds(){return 2*3600+3*60;}
+bool ensureClockDynamicSprite(){return spriteAvailable;}
+struct {bool valid=false;char metaLine[40]={};} clockMetaCache;
+bool temporaryMessageVisible(){return false;}
+constexpr int DISPLAY_MODE_DASHBOARD=0;
+struct {bool valid=false;uint8_t mode=0,page=0,theme=0;uint32_t staticHash=0,dynamicHash=0;} renderCache;
+uint8_t activeThemeIdValue(){return dashboardConfig.theme;}
+uint32_t dashboardStaticHash(uint8_t){return 1;}
+int appliedBrightness=70;
+int beginPageTransition(int n){return n;}
+void endPageTransition(int,int){}
+void logPrint(const char*){}
+int renders=0;
+void invalidateRenderCache(){}
+void displayUpdate();
+uint8_t dashboardItemCount(uint8_t);
+uint8_t dashboardItemSlot(uint8_t);
+bool dashboardPageEnabled(uint8_t p){return dashboardConfig.enabledPages[p];}
+uint8_t dashboardFirstEnabledPage(){return 0;}
