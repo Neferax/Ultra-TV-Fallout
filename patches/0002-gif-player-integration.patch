@@ -128,14 +128,13 @@ diff --git a/src/display.cpp b/src/display.cpp
              break;
          default:
              break;
-@@ -1732,9 +1731,16 @@
+@@ -1732,9 +1731,15 @@
          case DASHBOARD_PAGE_QUOTE:
              renderQuotePage();
              break;
 -        case DASHBOARD_PAGE_STATUS:
 -            renderStatusPage();
 +        case DASHBOARD_PAGE_GIF: {
-+            const ThemePalette &theme = activeTheme();
 +            drawScreenChrome("RADIO // GIFS");
 +            tft.drawRect(8, 68, 224, 132, 0x07E0);
 +            tft.drawRect(11, 71, 218, 126, 0x03E0);

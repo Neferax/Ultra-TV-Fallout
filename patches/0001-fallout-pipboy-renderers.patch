@@ -69,7 +69,7 @@ diff --git a/src/display.cpp b/src/display.cpp
 +                         TL_DATUM, theme.text, FONT_BODY);
 +        drawDisplayLabel(weather->condition[0] != '\0' ? weather->condition : "WEATHER",
 +                         222, 169, 104, TR_DATUM, theme.accent, FONT_INFO);
-+        drawDisplayLabel("DUISBURG // RUMLN", 120, 185, 204, TC_DATUM, theme.muted, FONT_INFO);
++        drawDisplayLabel("DUISBURG // RUMELN", 120, 185, 204, TC_DATUM, theme.muted, FONT_INFO);
 +    } else if (weatherWaitingForSync()) {
 +        tft.drawRect(12, 160, 216, 38, theme.accent);
 +        drawDisplayLabel("ACQUIRING DATA...", 120, 174, 204, TC_DATUM, theme.muted, FONT_INFO);
