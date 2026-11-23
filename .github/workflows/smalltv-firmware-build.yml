@@ -79,6 +79,41 @@ jobs:
       - name: Install PlatformIO and preview dependencies
         run: python -m pip install --upgrade platformio Pillow
 
+      - name: Download and normalize a Vault Boy animation for the constrained GIF decoder
+        run: |
+          mkdir -p firmware/data/gif
+          curl --fail --location --retry 3 \
+            'https://media3.giphy.com/media/W4dICb7X8m8bpl3mIY/200.gif' \
+            --output firmware/data/gif/bethesda-vaultboy.gif
+          test -s firmware/data/gif/bethesda-vaultboy.gif
+          mkdir -p fallout/package
+          python fallout/scripts/prepare_compatible_gif.py firmware/data/gif/bethesda-vaultboy.gif fallout/package/bethesda-vaultboy.gif
+          file fallout/package/bethesda-vaultboy.gif
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          path = Path("fallout/package/bethesda-vaultboy.gif")
+          with Image.open(path) as gif:
+              if gif.size != (104, 104) or gif.n_frames < 2:
+                  raise SystemExit("Bundled Vault Boy must be a multi-frame 104x104 GIF")
+              if gif.info.get("transparency") is not None:
+                  raise SystemExit("Bundled Vault Boy GIF must be opaque")
+              frames = set()
+              duration = 0
+              for index in range(gif.n_frames):
+                  gif.seek(index)
+                  if gif.info.get("transparency") is not None:
+                      raise SystemExit(f"Bundled GIF frame {index} is transparent")
+                  if not gif.tile or gif.tile[0][1] != (0, 0, 104, 104):
+                      raise SystemExit(f"Bundled GIF frame {index} is not full-canvas")
+                  frames.add(gif.convert("RGB").tobytes())
+                  duration += gif.info.get("duration", 0)
+              if len(frames) < 2 or duration <= 0:
+                  raise SystemExit("Bundled Vault Boy animation has no visible frame changes")
+              print(f"Bundled GIF verified: {gif.n_frames} full-canvas frames, {len(frames)} unique, {duration} ms")
+          PY
+          python fallout/scripts/embed_bundled_gif.py firmware fallout/package/bethesda-vaultboy.gif
+
       - name: Compile ESP8266 firmware before native renderer audit
         working-directory: firmware
         run: pio run -e nodemcuv2
@@ -89,6 +124,15 @@ jobs:
           test -s firmware/.pio/build/nodemcuv2/firmware.bin
           cp firmware/.pio/build/nodemcuv2/firmware.bin fallout/package/smalltv-ultra-fallout.bin
           ls -lh fallout/package/smalltv-ultra-fallout.bin
+
+      - name: Verify bundled GIF is embedded and installed at boot
+        working-directory: firmware
+        run: |
+          test -s src/bundled_gif.h
+          grep -q 'gifPlayerInstallBundledAsset' src/gif_player.cpp
+          grep -q 'gifPlayerInstallBundledAsset()' src/main.cpp
+          grep -q 'kBundledVaultBoyGifCrc32' src/gif_player.cpp
+          echo "Verified: GIF payload is compiled into the application and copied into LittleFS at boot."
 
       - name: Render and test native 240x240 firmware pages
         run: |
@@ -221,40 +265,6 @@ jobs:
           if "gifPlayerStartNext(*d)" not in gif:
               raise SystemExit("RADIO fallback must advance to the next archive entry")
           print("Verified: flicker-free opaque GIF updates, real-GIF-only playback, automatic skip of incompatible entries, compact archive viewport and weather renderer")
-          PY
-
-      - name: Download and normalize a Vault Boy animation for the constrained GIF decoder
-        run: |
-          mkdir -p firmware/data/gif
-          curl --fail --location --retry 3 \
-            'https://media3.giphy.com/media/W4dICb7X8m8bpl3mIY/200.gif' \
-            --output firmware/data/gif/bethesda-vaultboy.gif
-          test -s firmware/data/gif/bethesda-vaultboy.gif
-          mkdir -p fallout/package
-          python fallout/scripts/prepare_compatible_gif.py firmware/data/gif/bethesda-vaultboy.gif fallout/package/bethesda-vaultboy.gif
-          file fallout/package/bethesda-vaultboy.gif
-          python - <<'PY'
-          from PIL import Image
-          from pathlib import Path
-          path = Path("fallout/package/bethesda-vaultboy.gif")
-          with Image.open(path) as gif:
-              if gif.size != (104, 104) or gif.n_frames < 2:
-                  raise SystemExit("Bundled Vault Boy must be a multi-frame 104x104 GIF")
-              if gif.info.get("transparency") is not None:
-                  raise SystemExit("Bundled Vault Boy GIF must be opaque")
-              frames = set()
-              duration = 0
-              for index in range(gif.n_frames):
-                  gif.seek(index)
-                  if gif.info.get("transparency") is not None:
-                      raise SystemExit(f"Bundled GIF frame {index} is transparent")
-                  if not gif.tile or gif.tile[0][1] != (0, 0, 104, 104):
-                      raise SystemExit(f"Bundled GIF frame {index} is not full-canvas")
-                  frames.add(gif.convert("RGB").tobytes())
-                  duration += gif.info.get("duration", 0)
-              if len(frames) < 2 or duration <= 0:
-                  raise SystemExit("Bundled Vault Boy animation has no visible frame changes")
-              print(f"Bundled GIF verified: {gif.n_frames} full-canvas frames, {len(frames)} unique, {duration} ms")
           PY
 
       - name: Test GIF conversion with synthetic multi-frame animation
