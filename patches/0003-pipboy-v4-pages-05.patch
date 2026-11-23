@@ -1,0 +1,78 @@
+diff --git a/src/dashboard.cpp b/src/dashboard.cpp
+index ba88aae..68be09c 100644
+--- a/src/dashboard.cpp
++++ b/src/dashboard.cpp
+@@ -157,6 +157,10 @@ void setConfigDefaults() {
+     dashboardConfig.use24Hour = true;
+     dashboardConfig.showSeconds = false;
+     dashboardConfig.showIp = false;
++    copyString(dashboardConfig.questTitles[0], sizeof(dashboardConfig.questTitles[0]), "NEUJAHR");
++    copyString(dashboardConfig.questDates[0], sizeof(dashboardConfig.questDates[0]), "2027-01-01");
++    copyString(dashboardConfig.questTitles[1], sizeof(dashboardConfig.questTitles[1]), "LIAN BDAY");
++    copyString(dashboardConfig.questDates[1], sizeof(dashboardConfig.questDates[1]), "2026-12-09");
+     enableCorePages();
+ }
+ 
+diff --git a/src/display.cpp b/src/display.cpp
+index abfbf23..1596b3f 100644
+--- a/src/display.cpp
++++ b/src/display.cpp
+@@ -1277,7 +1277,14 @@ void renderRadPage() {
+ 
+ void renderQuestPage() {
+     drawScreenChrome("QUESTS");
+-    if (!hasQuestContent()) {
++    bool questRowVisible = false;
++    for (uint8_t questScan = 0; questScan < DASHBOARD_QUEST_COUNT; ++questScan) {
++        if (dashboardConfig.questTitles[questScan][0] != '\0' && dashboardConfig.questDates[questScan][0] != '\0') {
++            questRowVisible = true;
++            break;
++        }
++    }
++    if (!questRowVisible) {
+         drawDisplayLabel("KEINE QUESTS AKTIV", 120, 96, 216, TC_DATUM, 0x3DE7, FONT_LABEL);
+         drawDisplayLabel("SETZEN VIA /API/QUESTS", 120, 132, 216, TC_DATUM, 0x3DE7, FONT_LABEL);
+         return;
+@@ -1340,7 +1347,7 @@ void renderSystemPage() {
+     drawDisplayLabel(line, 12, 118, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+     snprintf(line, sizeof(line), "IP %s", status.ip[0] ? status.ip : "...");
+     drawDisplayLabel(line, 12, 144, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+-    snprintf(line, sizeof(line), "OS %s", status.version[0] ? status.version : "2.4.0");
++    snprintf(line, sizeof(line), "OS %s", status.version[0] ? status.version : "2.4.1");
+     drawDisplayLabel(line, 12, 170, 216, 0x3DE7, FONT_LABEL);
+ }
+ 
+@@ -2023,7 +2030,6 @@ void renderDashboardPage() {
+             break;
+     }
+ 
+-    drawScanlines();
+ }
+ 
+ void updateDashboardDynamicArea(uint8_t pageId) {
+diff --git a/src/feeds.cpp b/src/feeds.cpp
+index e81599e..fc92209 100644
+--- a/src/feeds.cpp
++++ b/src/feeds.cpp
+@@ -421,6 +421,8 @@ void buildWeatherForecastFilter(JsonDocument &filter) {
+     daily["temperature_2m_max"] = true;
+     daily["temperature_2m_min"] = true;
+     daily["precipitation_probability_max"] = true;
++    daily["sunrise"] = true;
++    daily["sunset"] = true;
+ }
+ 
+ void buildCoinGeckoSearchFilter(JsonDocument &filter) {
+diff --git a/src/settings.h b/src/settings.h
+index 452bfb1..5199474 100644
+--- a/src/settings.h
++++ b/src/settings.h
+@@ -11,7 +11,7 @@
+ 
+ // Semantic firmware release version
+ #ifndef FIRMWARE_VERSION_STRING
+-#define FIRMWARE_VERSION_STRING "2.4.0"
++#define FIRMWARE_VERSION_STRING "2.4.1"
+ #endif
+ 
+ struct Settings {
