@@ -54,7 +54,7 @@ weather = r'''void renderWeatherPage() {
     const WeatherData *weather = effectiveWeatherData();
     if (!forecastPage) {
         drawDisplayLabel(weather->location[0] ? weather->location : "DUISBURG // 47239",
-                         12, 62, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
+                         12, 62, 216, TL_DATUM, 0x3DE7, FONT_BODY);
 
         String temperature = String(weather->temperature);
         const int heroFonts[] = {FONT_BODY, FONT_LABEL};
