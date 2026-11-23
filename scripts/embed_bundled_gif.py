@@ -28,7 +28,7 @@ with Image.open(gif_path) as animation:
         for red, green, blue in rgb.getdata():
             value = ((red >> 3) << 11) | ((green >> 2) << 5) | (blue >> 3)
             pixels.append(value)
-        frames.append(pixels)
+        frames.append(tuple(pixels))
         durations.append(max(40, min(1000, int(animation.info.get("duration", 100)))))
 if len(set(frames)) < 2:
     raise SystemExit("Bundled animation contains fewer than two unique frames")
