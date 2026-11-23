@@ -30,25 +30,11 @@ def main() -> None:
             rgba = frame.convert("RGBA")
             background = Image.new("RGBA", image.size, (0, 0, 0, 255))
             background.alpha_composite(rgba)
-            gray = background.convert("L").resize(SIZE, Image.Resampling.LANCZOS)
-
-            # Map each luminance value to the nearest entry in an ordered
-            # grayscale palette first. Only then recolor that same index to green.
-            gray_palette_image = Image.new("P", (256, 1))
-            gray_palette = []
-            for value in range(256):
-                gray_palette.extend((value, value, value))
-            gray_palette_image.putpalette(gray_palette)
-            for value in range(256):
-                gray_palette_image.putpixel((value, 0), value)
-            indexed = gray.quantize(
-                palette=gray_palette_image,
-                dither=Image.Dither.NONE,
-            )
-            green_palette = []
-            for value in range(256):
-                green_palette.extend((0, value, 0))
-            indexed.putpalette(green_palette)
+            # Keep the source artwork's actual colors. RADIO is a color
+            # animation, not a monochrome Pip-Boy phosphor conversion.
+            rgb = background.convert("RGB").resize(SIZE, Image.Resampling.LANCZOS)
+            indexed = rgb.quantize(colors=256, method=Image.Quantize.MEDIANCUT,
+                                   dither=Image.Dither.NONE)
             frames.append(indexed)
             durations.append(max(20, int(frame.info.get("duration", image.info.get("duration", 100)))))
 
