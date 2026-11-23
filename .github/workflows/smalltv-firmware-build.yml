@@ -135,9 +135,13 @@ jobs:
           with Image.open(gif_path) as animation:
               for index in range(animation.n_frames):
                   animation.seek(index)
-                  frame = bytes(pixel[1] for pixel in animation.convert("RGB").getdata())
-                  if frame not in firmware:
-                      raise SystemExit(f"Firmware image is missing predecoded RADIO frame {index}")
+                  rgb = animation.convert("RGB")
+                  frame = bytearray()
+                  for red, green, blue in rgb.getdata():
+                      value = ((red >> 3) << 11) | ((green >> 2) << 5) | (blue >> 3)
+                      frame.extend((value & 0xFF, value >> 8))
+                  if bytes(frame) not in firmware:
+                      raise SystemExit(f"Firmware image is missing predecoded RGB565 RADIO frame {index}")
           print(f"Firmware verified: {len(gif)} GIF bytes and all predecoded frames embedded in {len(firmware)} bytes")
           PY
 
