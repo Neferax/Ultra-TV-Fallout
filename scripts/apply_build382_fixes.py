@@ -144,4 +144,4 @@ s=replace_function(s,"bool gifPlayerStartNext(TFT_eSPI &display) {","bool gifPla
 s=s.replace("    targetDisplay = nullptr;\n","    targetDisplay = nullptr;\n    fallbackAnimationActive = false;\n    fallbackSceneDrawn = false;\n    fallbackFrameAtMs = 0;\n",1)
 s=s.replace("    return decoder != nullptr;","    return decoder != nullptr || fallbackAnimationActive;",1)
 gif.write_text(s,encoding="utf-8")
-print("Build382 correction script applied")
+assert "DATA // 3 TAGE" in s\nprint("Build382 correction script applied: weather collision cleanup + RADIO fallback")
