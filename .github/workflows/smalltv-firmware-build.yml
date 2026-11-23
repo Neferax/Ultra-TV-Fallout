@@ -197,15 +197,15 @@ jobs:
               raise SystemExit("Leaving the GIF archive does not force a clean page redraw")
           if "gifTransitionUntilMs" in main or "gifTransitionActive" in main:
               raise SystemExit("GIF page-transition overlay must remain disabled")
-          if "void renderWeatherPage()" not in display or "DATA // HEUTE" not in display or "DATA // 3-TAGE-VORSCHAU" not in display:
+          if "void renderWeatherPage()" not in display or "DATA // HEUTE" not in display or "DATA // 3 TAGE" not in display:
               raise SystemExit("Split German weather renderer missing")
-          for token in ["GEFUEHLT", "FEUCHTE", "WIND ", "BOEEN", "KM/H", "REGEN ", "CHANCE ", "SONNE "]:
+          for token in ["GEF.", "FEUCHTE", "WIND ", "BOEEN", "KM/H", "REGEN ", "CHANCE ", "SONNE "]:
               if token not in display:
                   raise SystemExit(f"Current weather detail missing: {token}")
-          if "drawDisplayLabel(windValue, 116, 146, 104" not in display or "drawDisplayLabel(gustValue, 116, 162, 104" not in display:
-              raise SystemExit("Wind/gust values are not laid out in separate readable cells")
-          if "SONNE AUF " not in display or "120, 194, 216" not in display:
-              raise SystemExit("Sunrise/sunset row is missing or collides with the footer")
+          if "drawDisplayLabel(windValue" in display or "drawDisplayLabel(gustValue" in display:
+              raise SystemExit("Legacy weather cell layout unexpectedly returned")
+          if "SONNE " not in display or "228, 187, 140" not in display:
+              raise SystemExit("Sunrise/sunset row is missing from the current weather layout")
           if "clearPreviousGifFrame" in gif or "gifLoopClearPending" in gif or "previousFrameDisposal" in gif:
               raise SystemExit("Opaque full-frame GIF renderer must not clear between frames")
           if "line->iWidth != canvasWidth" not in gif or "line->ucHasTransparency" not in gif:
