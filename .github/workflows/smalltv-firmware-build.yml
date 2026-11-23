@@ -294,6 +294,8 @@ jobs:
               raise SystemExit("Bundled RADIO GIF is not selected for predecoded playback")
           if "gifPlayerStartNext(*d)" not in gif:
               raise SystemExit("RADIO fallback must advance to the next archive entry")
+          if '120, 184, 220, TC_DATUM' not in display:
+              raise SystemExit("RADIO archive label must remain below the 104px GIF viewport")
           print("Verified: embedded GIF asset, heap-free bundled sprite playback, uploaded-GIF decoder, compact viewport and weather renderer")
           PY
 
