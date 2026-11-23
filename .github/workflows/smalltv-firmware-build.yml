@@ -165,6 +165,16 @@ jobs:
           end = source.index(" // Every available item is visited", start)
           source = source[:start] + " // Legacy footer-clock cache tests are not applicable to Pip-Boy V2.\\n" + source[end:]
           source = source.replace('  assert(d.h>=16);', '  if(d.h<16){fprintf(stderr,"Too small: %s at %d,%d %dx%d\\n",d.text.c_str(),d.x,d.y,d.w,d.h);abort();}')
+          collision = r'''void checkTextCollisions(){
+           if(displayState.currentPage!=DASHBOARD_PAGE_CLOCK && displayState.currentPage!=DASHBOARD_PAGE_WEATHER && displayState.currentPage!=DASHBOARD_PAGE_GIF)return;
+           for(size_t i=0;i<textDraws.size();++i)for(size_t j=i+1;j<textDraws.size();++j){
+            const auto&a=textDraws[i];const auto&b=textDraws[j];
+            const bool overlap=a.x<b.x+b.w && b.x<a.x+a.w && a.y<b.y+b.h && b.y<a.y+a.h;
+            if(overlap){fprintf(stderr,"TEXT COLLISION page=%u: [%s] %d,%d %dx%d with [%s] %d,%d %dx%d\\n",displayState.currentPage,a.text.c_str(),a.x,a.y,a.w,a.h,b.text.c_str(),b.x,b.y,b.w,b.h);abort();}
+           }
+          }'''
+          source = source.replace('void checkBounds(){', collision + '\\nvoid checkBounds(){', 1)
+          source = source.replace('renderDashboardPage();checkBounds();', 'renderDashboardPage();checkBounds();checkTextCollisions();', 1)
           source = source.replace('if(page==DASHBOARD_PAGE_WEATHER)for(auto&d:textDraws)if(d.text=="22C")assert(d.h>=78);', 'if(page==DASHBOARD_PAGE_WEATHER){assert(hasDraw("DATA"));}')
           preview.write_text(source)
           fixture = Path("firmware/audit/device-ui-fixture.h")
