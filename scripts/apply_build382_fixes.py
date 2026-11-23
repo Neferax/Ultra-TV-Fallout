@@ -44,7 +44,7 @@ weather=r'''void renderWeatherPage() {
         const char *dirs[]={"N","NO","O","SO","S","SW","W","NW"};
         drawDisplayLabel("GEF. "+String(weather->feelsLike)+" C",12,133,108,TL_DATUM,theme.text,FONT_LABEL);
         drawDisplayLabel("FEUCHTE "+String(weather->humidity)+"%",228,133,108,TR_DATUM,theme.text,FONT_LABEL);
-        drawDisplayLabel("WIND "+String(dirs[d])+" "+String(weather->windSpeed)+" KM/H",12,151,108,TL_DATUM,theme.muted,FONT_LABEL);
+        drawDisplayLabel(String(dirs[d])+" "+String(weather->windSpeed)+" KM/H",12,151,108,TL_DATUM,theme.muted,FONT_LABEL);
         drawDisplayLabel("BOEEN "+String(weather->windGusts)+" KM/H",228,151,108,TR_DATUM,theme.muted,FONT_LABEL);
         drawDisplayLabel("REGEN "+String(weather->precipitation/10)+"."+String(abs(weather->precipitation%10))+" MM",12,169,108,TL_DATUM,theme.text,FONT_LABEL);
         drawDisplayLabel("CHANCE "+String(weather->rainChance)+"%",228,169,108,TR_DATUM,theme.text,FONT_LABEL);
@@ -54,15 +54,15 @@ weather=r'''void renderWeatherPage() {
     }
     const char *labels[]={"MORGEN","UEBERMORGEN","IN 3 TAGEN"};
     for(uint8_t slot=0;slot<3;slot++) {
-        const int y=68+static_cast<int>(slot)*48;
+        const int y=68+static_cast<int>(slot)*44;
         if(slot>0) tft.drawFastHLine(12,y-4,216,theme.accentSoft);
         if(weather->forecastCount>slot+1) {
             const WeatherForecastDay &day=weather->forecast[slot+1];
             drawDisplayLabel(String(labels[slot])+" // "+String(day.date)+" // "+String(day.rainChance)+"%",
                 12,y,216,TL_DATUM,theme.accent,FONT_LABEL);
             String c=day.condition; c.toLowerCase();
-            if(c.indexOf("partly")>=0)c="TEILWOLKIG";
-            else if(c.indexOf("cloud")>=0||c.indexOf("overcast")>=0)c="BEWOELKT";
+            if(c.indexOf("partly")>=0)c="WOLKIG";
+            else if(c.indexOf("cloud")>=0||c.indexOf("overcast")>=0)c="WOLKIG";
             else if(c.indexOf("clear")>=0)c="KLAR";
             else if(c.indexOf("rain")>=0||c.indexOf("shower")>=0)c="REGEN";
             else if(c.indexOf("drizzle")>=0)c="NIESEL";
@@ -72,7 +72,6 @@ weather=r'''void renderWeatherPage() {
             c.toUpperCase();
             drawDisplayLabel(c,12,y+16,138,TL_DATUM,theme.text,FONT_BODY);
             drawDisplayLabel(String(day.low)+"-"+String(day.high)+" C",228,y+16,82,TR_DATUM,theme.text,FONT_BODY);
-            drawDisplayLabel("REGEN "+String(day.rainChance)+"%",12,y+32,216,TL_DATUM,theme.muted,FONT_LABEL);
         } else drawDisplayLabel(String(labels[slot])+" // KEINE DATEN",12,y+8,216,TL_DATUM,theme.muted,FONT_LABEL);
     }
 }'''
