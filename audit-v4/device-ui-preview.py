@@ -72,7 +72,7 @@ void fixture(){
  feedConfig.weather.source=WEATHER_FEED_OPEN_METEO;
  feedRuntime.weather.hasData=true;
  auto &w=feedRuntime.weather.data;strcpy(w.location,"DUISBURG // RUMELN");strcpy(w.condition,"Partly cloudy");w.temperature=22;w.high=26;w.low=18;w.rainChance=20;w.feelsLike=20;w.humidity=68;w.precipitation=4;w.windSpeed=12;w.windDirection=315;w.windGusts=22;w.uvIndex=2;strcpy(w.sunrise,"07:34");strcpy(w.sunset,"16:42");w.forecastCount=4;strcpy(w.forecast[1].date,"13.11");strcpy(w.forecast[1].condition,"Partly cloudy");w.forecast[1].low=8;w.forecast[1].high=11;w.forecast[1].rainChance=20;strcpy(w.forecast[2].date,"14.11");strcpy(w.forecast[2].condition,"Rain");w.forecast[2].low=7;w.forecast[2].high=10;w.forecast[2].rainChance=65;strcpy(w.forecast[3].date,"15.11");strcpy(w.forecast[3].condition,"Cloudy");w.forecast[3].low=5;w.forecast[3].high=9;w.forecast[3].rainChance=30;
- const char *symbols[]="BTC","MSFT","NVDA"},*labels[]={"Bitcoin","Microsoft","Nvidia"};
+ const char *symbols[]={"BTC","MSFT","NVDA"},*labels[]={"Bitcoin","Microsoft","Nvidia"};
  const float prices[]={83827,543.45f,228.52f},changes[]={2.54f,-1.2f,0};
  for(int i=0;i<3;++i){feedConfig.markets[i].source=i==0?MARKET_FEED_COINGECKO:MARKET_FEED_FINNHUB;strcpy(feedConfig.markets[i].currency,"usd");auto&m=feedRuntime.markets[i];m.hasData=true;m.data.enabled=true;strcpy(m.data.symbol,symbols[i]);strcpy(m.data.label,labels[i]);m.data.price=prices[i];m.data.changePercent=changes[i];}
  feedConfig.homeAssistant.enabled=true;feedRuntime.homeAssistant.hasData=true;
