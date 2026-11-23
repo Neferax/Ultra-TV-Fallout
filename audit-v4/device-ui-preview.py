@@ -49,7 +49,7 @@ code += '\nconst ThemePalette &activeTheme(){return kThemes[dashboardConfig.them
 code += '\n'.join(body for _, body in functions)
 code += r'''
 void displayUpdate(){++renders;normalizeDashboardItem();renderDashboardPage();}
-bool hasDraw(const std::string&s){for(auto &d:textDraws)if(d.text==s)return true;return false;}
+bool hasDraw(const std::string&s){for(auto&d:textDraws)if(d.text==s)return true;return false;}
 void checkTextCollisions(){
  if(displayState.currentPage!=DASHBOARD_PAGE_CLOCK && displayState.currentPage!=DASHBOARD_PAGE_WEATHER && displayState.currentPage!=DASHBOARD_PAGE_GIF)return;
  for(size_t i=0;i<textDraws.size();++i)for(size_t j=i+1;j<textDraws.size();++j){
