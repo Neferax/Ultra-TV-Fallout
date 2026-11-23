@@ -12,7 +12,7 @@ s=display.read_text(encoding="utf-8")
 weather=r'''void renderWeatherPage() {
     const ThemePalette &theme = activeTheme();
     const bool forecastPage = ((millis() / 12000UL) % 2UL) != 0;
-    drawScreenChrome(forecastPage ? "DATA // 3 TAGE" : "DATA // HEUTE");
+    drawScreenChrome(forecastPage ? "DATA // 3 TAGE" : "DATA // HEUTE // 47239");
     if (!hasWeatherContent()) {
         tft.drawRect(12, 72, 216, 118, theme.accent);
         drawDisplayLabel("WETTERDATEN", 120, 90, 200, TC_DATUM, theme.text, FONT_LABEL);
@@ -24,8 +24,6 @@ weather=r'''void renderWeatherPage() {
     }
     const WeatherData *weather = effectiveWeatherData();
     if (!forecastPage) {
-        drawDisplayLabel(weather->location[0] ? weather->location : "DUISBURG // 47239",
-                        12, 63, 216, TL_DATUM, theme.muted, FONT_LABEL);
         const int tempFonts[] = {FONT_HUGE, FONT_TITLE, FONT_BODY, FONT_LABEL};
         drawAdaptiveText(formatWeatherTemperature(weather->temperature), 12, 78, 130,
                         TL_DATUM, tempFonts, 4, theme.text, TFT_BLACK);
@@ -54,7 +52,7 @@ weather=r'''void renderWeatherPage() {
     }
     const char *labels[]={"MORGEN","UEBERMORGEN","IN 3 TAGEN"};
     for(uint8_t slot=0;slot<3;slot++) {
-        const int y=68+static_cast<int>(slot)*44;
+        const int y=74+static_cast<int>(slot)*44;
         if(slot>0) tft.drawFastHLine(12,y-4,216,theme.accentSoft);
         if(weather->forecastCount>slot+1) {
             const WeatherForecastDay &day=weather->forecast[slot+1];
