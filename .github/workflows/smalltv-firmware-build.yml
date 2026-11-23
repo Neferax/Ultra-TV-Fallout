@@ -171,7 +171,7 @@ jobs:
           set -e
           if [ "$preview_status" -ne 0 ]; then
             echo "::error::Pip-Boy V4 preview failed with exit code $preview_status"
-            tail -n 40 /tmp/preview.log | while IFS= read -r line; do echo "::error::PREVIEW: $line"; done
+            python3 -c "import pathlib,urllib.parse;log=pathlib.Path('/tmp/preview.log').read_text(errors='replace');print('::error::'+urllib.parse.quote(log[-3400:],safe=' '))"
             exit 1
           fi
           python - <<'PY'
