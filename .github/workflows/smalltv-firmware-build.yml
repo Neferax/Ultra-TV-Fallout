@@ -204,7 +204,7 @@ jobs:
                   raise SystemExit(f"Current weather detail missing: {token}")
           if "drawDisplayLabel(windValue" in display or "drawDisplayLabel(gustValue" in display:
               raise SystemExit("Legacy weather cell layout unexpectedly returned")
-          if "SONNE " not in display or "228, 187, 140" not in display:
+          if "SONNE " not in display or "weather->sunrise" not in display or "weather->sunset" not in display:
               raise SystemExit("Sunrise/sunset row is missing from the current weather layout")
           if "clearPreviousGifFrame" in gif or "gifLoopClearPending" in gif or "previousFrameDisposal" in gif:
               raise SystemExit("Opaque full-frame GIF renderer must not clear between frames")
