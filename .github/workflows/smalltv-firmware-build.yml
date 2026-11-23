@@ -218,8 +218,8 @@ jobs:
               raise SystemExit("Weather API units must be explicitly pinned to km/h and mm")
           if "return decoder != nullptr || fallbackAnimationActive;" not in gif:
               raise SystemExit("GIF activity state must include the active RADIO fallback")
-          if "gifPlayerStartNext(*display);" not in gif:
-              raise SystemExit("A failed GIF must advance to the next archive entry")
+          if "gifPlayerStartNext(*d)" not in gif:
+              raise SystemExit("RADIO fallback must advance to the next archive entry")
           print("Verified: flicker-free opaque GIF updates, real-GIF-only playback, automatic skip of incompatible entries, compact archive viewport and weather renderer")
           PY
 
