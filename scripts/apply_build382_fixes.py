@@ -37,7 +37,7 @@ weather=r'''void renderWeatherPage() {
         else if(condition.indexOf("thunder")>=0||condition.indexOf("storm")>=0) condition="GEWITTER";
         else if(condition.indexOf("fog")>=0) condition="NEBEL";
         condition.toUpperCase(); if(condition.length()>15) condition="WETTERLAGE";
-        drawDisplayLabel(condition, 12, 112, 216, TL_DATUM, theme.accent, FONT_BODY);
+        drawDisplayLabel(condition, 12, 112, 216, TL_DATUM, theme.accent, FONT_LABEL);
         const int d=((weather->windDirection+22)/45)%8;
         const char *dirs[]={"N","NO","O","SO","S","SW","W","NW"};
         drawDisplayLabel("GEF. "+String(weather->feelsLike)+" C",12,133,108,TL_DATUM,theme.text,FONT_LABEL);
