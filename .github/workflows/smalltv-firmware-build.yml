@@ -210,7 +210,7 @@ jobs:
               raise SystemExit("Opaque full-frame GIF renderer must not clear between frames")
           if "line->iWidth != canvasWidth" not in gif or "line->ucHasTransparency" not in gif:
               raise SystemExit("Strict opaque full-frame GIF validation missing")
-          if "rejectedGifPaths[currentGifIndex] = true" not in gif or "if (rejectedGifPaths[selected]) continue;" not in gif:
+          if "rejectedGifPaths[currentGifIndex]=true" not in gif or "if(rejectedGifPaths[selected])continue;" not in gif:
               raise SystemExit("Unsupported GIF entries are not skipped safely")
           if "fallbackAnimationActive" in gif or "fallbackFrameAtMs" in gif:
               raise SystemExit("RADIO must not substitute a fake animation for real GIF content")
