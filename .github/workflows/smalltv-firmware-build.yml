@@ -173,7 +173,7 @@ jobs:
             if(overlap){fprintf(stderr,"TEXT COLLISION page=%u: [%s] %d,%d %dx%d with [%s] %d,%d %dx%d\\n",displayState.currentPage,a.text.c_str(),a.x,a.y,a.w,a.h,b.text.c_str(),b.x,b.y,b.w,b.h);abort();}
            }
           }'''
-          source = source.replace('void checkBounds(){', collision + '\\nvoid checkBounds(){', 1)
+          source = source.replace('void checkBounds(){', collision + '\nvoid checkBounds(){', 1)
           source = source.replace('renderDashboardPage();checkBounds();', 'renderDashboardPage();checkBounds();checkTextCollisions();', 1)
           source = source.replace('if(page==DASHBOARD_PAGE_WEATHER)for(auto&d:textDraws)if(d.text=="22C")assert(d.h>=78);', 'if(page==DASHBOARD_PAGE_WEATHER){assert(hasDraw("DATA"));}')
           preview.write_text(source)
