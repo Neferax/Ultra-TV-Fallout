@@ -33,6 +33,10 @@ index ca128a9..d37c780 100644
 +        dashboardConfig.enabledPages[DASHBOARD_PAGE_SYSTEM] = pages["system"].as<bool>();
 +    }
  }
+@@ -569,2 +569,3 @@ bool loadJsonFile(const char *path, TObject object) {
+ 
++void applyQuestsConfig(JsonArrayConst quests);
+ void applyConfigObject(JsonObjectConst root) {
 @@ -640,2 +662,3 @@ void applyConfigObject(JsonObjectConst root) {
      }
 +    applyQuestsConfig(root["quests"].as<JsonArrayConst>());
