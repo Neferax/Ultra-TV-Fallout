@@ -25,7 +25,7 @@ weather=r'''void renderWeatherPage() {
     const WeatherData *weather = effectiveWeatherData();
     if (!forecastPage) {
         drawDisplayLabel(weather->location[0] ? weather->location : "DUISBURG // 47239",
-                        12, 63, 216, TL_DATUM, theme.muted, FONT_INFO);
+                        12, 63, 216, TL_DATUM, theme.muted, FONT_LABEL);
         const int tempFonts[] = {FONT_HUGE, FONT_TITLE, FONT_BODY, FONT_LABEL};
         drawAdaptiveText(formatWeatherTemperature(weather->temperature), 12, 78, 130,
                         TL_DATUM, tempFonts, 4, theme.text, TFT_BLACK);
