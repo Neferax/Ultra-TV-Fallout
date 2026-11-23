@@ -23,9 +23,11 @@ with Image.open(gif_path) as animation:
     for index in range(animation.n_frames):
         animation.seek(index)
         rgb = animation.convert("RGB")
-        # The compatible GIF is monochrome green phosphor. Store only luminance
-        # so RADIO can play the bundled animation without a heap-allocated decoder.
-        pixels = bytes(pixel[1] for pixel in rgb.getdata())
+        # Store original artwork colors as RGB565 for heap-free playback.
+        pixels = []
+        for red, green, blue in rgb.getdata():
+            value = ((red >> 3) << 11) | ((green >> 2) << 5) | (blue >> 3)
+            pixels.append(value)
         frames.append(pixels)
         durations.append(max(40, min(1000, int(animation.info.get("duration", 100)))))
 if len(set(frames)) < 2:
@@ -38,8 +40,8 @@ for offset in range(0, len(data), 16):
 frame_rows = []
 for frame in frames:
     frame_rows.append("    {\n" + "\n".join(
-        "        " + ", ".join(f"0x{value:02X}" for value in frame[offset:offset + 16]) + ","
-        for offset in range(0, len(frame), 16)
+        "        " + ", ".join(f"0x{value:04X}" for value in frame[offset:offset + 8]) + ","
+        for offset in range(0, len(frame), 8)
     ) + "\n    },")
 header.write_text(
     "#pragma once\n"
@@ -52,7 +54,7 @@ header.write_text(
     + f"static const uint8_t kBundledVaultBoyFrameCount = {len(frames)};\n"
     + "static const uint16_t kBundledVaultBoyFrameDurationMs[] PROGMEM = {"
     + ", ".join(str(value) for value in durations) + "};\n"
-    + "static const uint8_t kBundledVaultBoyFrames[][104 * 104] PROGMEM = {\n"
+    + "static const uint16_t kBundledVaultBoyFrames[][104 * 104] PROGMEM = {\n"
     + "\n".join(frame_rows)
     + "\n};\n",
     encoding="utf-8",
@@ -187,8 +189,7 @@ if "if(bundledAnimationActive && decoder==nullptr && targetDisplay!=nullptr)" no
         uint16_t row[104];
         for(int16_t y=0;y<104;++y) {
             for(int16_t x=0;x<104;++x) {
-                const uint8_t luminance = pgm_read_byte(frame + y*104 + x);
-                row[x] = static_cast<uint16_t>(((static_cast<uint16_t>(luminance)*63U+127U)/255U)<<5);
+                row[x] = pgm_read_word(frame + y*104 + x);
             }
             targetDisplay->pushImage(68,76+y,104,1,row);
         }
