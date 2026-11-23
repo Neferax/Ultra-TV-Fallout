@@ -39,7 +39,7 @@ index abfbf23..1596b3f 100644
      drawDisplayLabel(line, 12, 144, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
 -    snprintf(line, sizeof(line), "OS %s", status.version[0] ? status.version : "2.4.0");
 +    snprintf(line, sizeof(line), "OS %s", status.version[0] ? status.version : "2.4.1");
-     drawDisplayLabel(line, 12, 170, 216, 0x3DE7, FONT_LABEL);
+     drawDisplayLabel(line, 12, 170, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
  }
  
 @@ -2023,7 +2030,6 @@ void renderDashboardPage() {
