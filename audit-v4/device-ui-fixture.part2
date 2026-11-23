@@ -1,0 +1,58 @@
+    void fillRoundRect(int x,int y,int w,int h,int r,uint16_t c) {
+        for(int yy=0;yy<h;++yy)for(int xx=0;xx<w;++xx){
+            int dx=xx<r?r-xx-1:xx>=w-r?xx-(w-r):0;
+            int dy=yy<r?r-yy-1:yy>=h-r?yy-(h-r):0;
+            if(dx*dx+dy*dy<r*r)pixel(x+xx,y+yy,c);
+        }
+    }
+    void drawRoundRect(int,int,int,int,int,uint16_t) {}
+    void drawFastHLine(int x,int y,int w,uint16_t c){fillRect(x,y,w,1,c);}
+void drawRect(int x,int y,int w,int h,uint16_t c){drawFastHLine(x,y,w,c);drawFastHLine(x,y+h-1,w,c);drawFastVLine(x,y,h,c);drawFastVLine(x+w-1,y,h,c);}
+void drawCircle(int x,int y,int r,uint16_t c){drawFastHLine(x-r+1,y-r,2*r-1,c);drawFastHLine(x-r+1,y+r,2*r-1,c);drawFastVLine(x-r,y-r+1,2*r-1,c);drawFastVLine(x+r,y-r+1,2*r-1,c);}
+    void drawFastVLine(int x,int y,int h,uint16_t c){fillRect(x,y,1,h,c);}
+    void fillCircle(int x,int y,int r,uint16_t c){for(int yy=-r;yy<=r;++yy)for(int xx=-r;xx<=r;++xx)if(xx*xx+yy*yy<=r*r)pixel(x+xx,y+yy,c);}
+    void glyph(unsigned char c,int x,int y,int f) {
+        int w=charWidth(c,f),h=fontHeight(f)/textSize;
+        if(c<32 || c>127)c=32;
+        if(f==1) {
+            for(int yy=0;yy<8;++yy)for(int xx=0;xx<6;++xx)
+                fillRect(x+xx*textSize,y+yy*textSize,textSize,textSize,xx<5 && (::font[c*5+xx]&(1<<yy))?foreground:background);
+            return;
+        }
+        const unsigned char *bits=(f==2?chrtbl_f16:f==4?chrtbl_f32:f==6?chrtbl_f64:chrtbl_f7s)[c-32];
+        if(f==2) {
+            int stride=(w+6)/8;
+            for(int yy=0;yy<h;++yy)for(int xx=0;xx<w;++xx)
+                fillRect(x+xx*textSize,y+yy*textSize,textSize,textSize,xx<stride*8 && (bits[yy*stride+xx/8]&(0x80>>(xx%8)))?foreground:background);
+        } else {
+            int position=0;
+            while(position<w*h) {
+                unsigned char run=*bits++;int n=(run&127)+1;
+                for(int j=0;j<n && position<w*h;++j,++position)
+                    fillRect(x+(position%w)*textSize,y+(position/w)*textSize,textSize,textSize,(run&128)?foreground:background);
+            }
+        }
+    }
+    void drawString(const String&s,int x,int y,int f) {
+        int w=textWidth(s,f),h=fontHeight(f);
+        if(datum==TC_DATUM||datum==MC_DATUM)x-=w/2;
+        else if(datum==TR_DATUM)x-=w;
+        if(datum==MC_DATUM)y-=h/2;
+        if(collectDraws)textDraws.push_back({s,x,y,w,h,f,textSize,foreground});
+        for(unsigned char c:s){glyph(c,x,y,f);x+=charWidth(c,f)*textSize;}
+    }
+    void save(const std::string&path) {
+        std::ofstream out(path,std::ios::binary);out<<"P6\n"<<width<<" "<<height<<"\n255\n";
+        for(uint16_t c:pixels){char rgb[]={char(((c>>11)&31)*255/31),char(((c>>5)&63)*255/63),char((c&31)*255/31)};out.write(rgb,3);}
+    }
+} tft;
+struct Sprite : Canvas {
+    uint16_t mappedForeground=0xffff,mappedBackground=0;
+    std::vector<TextDraw> spriteDraws;
+    Sprite(){width=216;height=64;pixels.resize(width*height);}
+    void setBitmapColor(uint16_t f,uint16_t b){mappedForeground=f;mappedBackground=b;}
+    void fillSprite(int c){fillScreen(c);spriteDraws.clear();}
+    void drawString(const String&s,int x,int y,int f) {
+        size_t before=textDraws.size();Canvas::drawString(s,x,y,f);
+        if(collectDraws){spriteDraws.push_back(textDraws.back());textDraws.resize(before);}
+    }
