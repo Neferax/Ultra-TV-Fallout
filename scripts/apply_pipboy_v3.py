@@ -21,7 +21,7 @@ german_date = r'''String formatPipboyGermanDate() {
     tm localInfo;
     localtime_r(&now, &localInfo);
     char buffer[32];
-    snprintf(buffer, sizeof(buffer), "%s  %02d. %s %04d",
+    snprintf(buffer, sizeof(buffer), "%s %02d. %s %04d",
              weekdays[localInfo.tm_wday], localInfo.tm_mday,
              months[localInfo.tm_mon], localInfo.tm_year + 1900);
     return String(buffer);
@@ -29,8 +29,14 @@ german_date = r'''String formatPipboyGermanDate() {
 if "String formatPipboyGermanDate()" not in s:
     anchor = "void renderClockPage() {"
     s = s.replace(anchor, german_date + "\n\n" + anchor, 1)
-s = s.replace("drawDisplayLabel(formatLocalDate(), 120, 178, 216, TC_DATUM,",
-              "drawDisplayLabel(formatPipboyGermanDate(), 120, 178, 216, TC_DATUM,")
+old_date_call = ("drawDisplayLabel(formatLocalDate(), 120, 178, 216, TC_DATUM,\n"
+                 "                     0xAFE5, FONT_LABEL);")
+new_date_call = ("static const int dateFonts[] = {FONT_BODY, FONT_LABEL};\n"
+                 "    drawAdaptiveText(formatPipboyGermanDate(), 120, 176, 216, TC_DATUM,\n"
+                 "                     dateFonts, sizeof(dateFonts) / sizeof(dateFonts[0]),\n"
+                 "                     0xAFE5, activeTheme().background);")
+assert old_date_call in s, "date call anchor not found"
+s = s.replace(old_date_call, new_date_call, 1)
 
 weather = r'''void renderWeatherPage() {
     const ThemePalette &theme = activeTheme();
