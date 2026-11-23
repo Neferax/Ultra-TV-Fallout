@@ -73,7 +73,7 @@ jobs:
 
       - name: Apply Pip-Boy V4 pages, boot splash and system telemetry
         run: |
-          for part in 0003-pipboy-v4-pages-01 0003-pipboy-v4-pages-02 0003-pipboy-v4-pages-03 0003-pipboy-v4-pages-04; do
+          for part in 0003-pipboy-v4-pages-01 0003-pipboy-v4-pages-02 0003-pipboy-v4-pages-03 0003-pipboy-v4-pages-04 0003-pipboy-v4-pages-05; do
             git -C firmware apply --check "../fallout/patches/$part.patch"
             git -C firmware apply "../fallout/patches/$part.patch"
           done
