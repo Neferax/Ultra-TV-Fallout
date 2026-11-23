@@ -1,0 +1,196 @@
+diff --git a/src/display.cpp b/src/display.cpp
+index 469f605..abfbf23 100644
+--- a/src/display.cpp
++++ b/src/display.cpp
+@@ -1588,2 +1823,3 @@ void renderWeatherPage() {
+         drawDisplayLabel(condition, 12, 112, 216, TL_DATUM, theme.accent, FONT_LABEL);
++        drawWeatherIcon(weather->condition, 168, 58, 2);
+         const int d=((weather->windDirection+22)/45)%8;
+@@ -1766,2 +2002,11 @@ void renderDashboardPage() {
+             break;
++        case DASHBOARD_PAGE_RAD:
++            renderRadPage();
++            break;
++        case DASHBOARD_PAGE_QUEST:
++            renderQuestPage();
++            break;
++        case DASHBOARD_PAGE_SYSTEM:
++            renderSystemPage();
++            break;
+         case DASHBOARD_PAGE_GIF: {
+@@ -1779,2 +2024,4 @@ void renderDashboardPage() {
+     }
++
++    drawScanlines();
+ }
+@@ -2276 +2523,21 @@ void displayToggleBacklight() {
+ }
++
++
++void displayShowVaultBootSplashOnce() {
++    static bool shown = false;
++    if (shown) {
++        return;
++    }
++    shown = true;
++    tft.fillScreen(TFT_BLACK);
++    tft.setTextColor(0xAFE5, TFT_BLACK);
++    tft.setTextDatum(TC_DATUM);
++    tft.setTextFont(FONT_TITLE);
++    tft.drawString("VAULT-TEC", 120, 88, FONT_TITLE);
++    tft.setTextFont(FONT_LABEL);
++    tft.drawString("OS // PLEASE STAND BY", 120, 140, FONT_LABEL);
++    for (uint8_t block = 0; block < 12; ++block) {
++        tft.fillRect(24 + block * 17, 170, 12, 10, (block % 3 == 2) ? 0x07E0 : 0x03E0);
++    }
++    delay(2200);
++}
+diff --git a/src/display.h b/src/display.h
+index 3fcc577..884c336 100644
+--- a/src/display.h
++++ b/src/display.h
+@@ -30,2 +30,3 @@ void displayResumeDynamicResources();
+ void displayUpdate();
++void displayShowVaultBootSplashOnce();
+ void displayRenderClock();
+diff --git a/src/feeds.cpp b/src/feeds.cpp
+index 5d297ce..e81599e 100644
+--- a/src/feeds.cpp
++++ b/src/feeds.cpp
+@@ -2101,2 +2101,60 @@ void applyConfigObject(JsonObjectConst root) {
+ 
++bool syncRadAirQuality(String *error) {
++    if (WiFi.status() != WL_CONNECTED) {
++        return false;
++    }
++
++    RadFeedRuntime &runtime = feedRuntime.rad;
++    runtime.syncing = true;
++    runtime.lastAttemptMs = millis();
++    runtime.lastError[0] = '\0';
++
++    String url = "http://air-quality-api.open-meteo.com/v1/air-quality?latitude=" +
++                 String(feedConfig.weather.latitude, 4) +
++                 "&longitude=" + String(feedConfig.weather.longitude, 4) +
++                 "&current=european_aqi,pm2_5,pm10,grass_pollen,birch_pollen,alder_pollen&timezone=auto";
++
++    JsonDocument doc;
++    String requestError;
++    JsonDocument filter;
++    JsonObject filterCurrent = filter["current"].to<JsonObject>();
++    filterCurrent["european_aqi"] = true;
++    filterCurrent["pm2_5"] = true;
++    filterCurrent["pm10"] = true;
++    filterCurrent["grass_pollen"] = true;
++    filterCurrent["birch_pollen"] = true;
++    filterCurrent["alder_pollen"] = true;
++    if (!httpGetJson(url, doc, &requestError, &filter)) {
++        runtime.syncing = false;
++        copyString(runtime.lastError, sizeof(runtime.lastError), requestError.c_str());
++        if (error != nullptr) {
++            *error = requestError;
++        }
++        return false;
++    }
++
++    JsonObjectConst current = doc["current"].as<JsonObjectConst>();
++    if (current.isNull() || current["european_aqi"].isNull()) {
++        runtime.syncing = false;
++        copyString(runtime.lastError, sizeof(runtime.lastError), "Air quality payload incomplete");
++        if (error != nullptr) {
++            *error = runtime.lastError;
++        }
++        return false;
++    }
++
++    memset(&runtime.data, 0, sizeof(runtime.data));
++    runtime.data.valid = true;
++    runtime.data.europeanAqi = constrain(static_cast<int>(roundf(current["european_aqi"] | 0.0f)), 0, 200);
++    runtime.data.pm25 = static_cast<int>(roundf(current["pm2_5"] | 0.0f));
++    runtime.data.pm10 = static_cast<int>(roundf(current["pm10"] | 0.0f));
++    runtime.data.pollen = static_cast<int>(roundf((current["grass_pollen"] | 0.0f) +
++                                                  (current["birch_pollen"] | 0.0f) +
++                                                  (current["alder_pollen"] | 0.0f)));
++    runtime.hasData = true;
++    runtime.syncing = false;
++    runtime.lastSuccessMs = millis();
++    return true;
++}
++
+ constexpr uint16_t kWeatherJob = 1;
+@@ -2120,2 +2178,5 @@ void runFeedJob() {
+             yield();
++            // Air quality rides along with the weather job, same cadence.
++            syncRadAirQuality(&error);
++            yield();
+         }
+@@ -2579,2 +2640,10 @@ const WeatherData* feedsWeatherData() {
+ 
++bool feedsHasRadData() {
++    return feedRuntime.rad.hasData;
++}
++
++const RadData* feedsRadData() {
++    return feedRuntime.rad.hasData ? &feedRuntime.rad.data : nullptr;
++}
++
+ const MarketData* feedsMarketData(uint8_t index) {
+diff --git a/src/feeds.h b/src/feeds.h
+index 0c3f9dd..896ab19 100644
+--- a/src/feeds.h
++++ b/src/feeds.h
+@@ -112,4 +112,14 @@ struct HomeAssistantRuntime {
+ 
++struct RadFeedRuntime {
++    bool hasData;
++    bool syncing;
++    uint32_t lastAttemptMs;
++    uint32_t lastSuccessMs;
++    char lastError[64];
++    RadData data;
++};
++
+ struct FeedRuntimeState {
+     WeatherFeedRuntime weather;
++    RadFeedRuntime rad;
+     MarketFeedRuntime markets[DASHBOARD_MARKET_COUNT];
+@@ -151,2 +161,4 @@ const WeatherData* feedsWeatherData();
+ const MarketData* feedsMarketData(uint8_t index);
++bool feedsHasRadData();
++const RadData* feedsRadData();
+ 
+diff --git a/src/main.cpp b/src/main.cpp
+index 2bf73b8..1970c17 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -161,2 +161,13 @@ void trackWiFiReconnectAttempt(bool active) {
+ 
++static void updateSystemStatusForDisplay() {
++    dashboardData.systemStatus.rssi = WiFi.status() == WL_CONNECTED ? WiFi.RSSI() : 0;
++    dashboardData.systemStatus.freeHeap = ESP.getFreeHeap();
++    dashboardData.systemStatus.uptimeSeconds = millis() / 1000UL;
++    strncpy(dashboardData.systemStatus.ip, displayState.ipInfo, sizeof(dashboardData.systemStatus.ip) - 1);
++    dashboardData.systemStatus.ip[sizeof(dashboardData.systemStatus.ip) - 1] = '\0';
++    strncpy(dashboardData.systemStatus.version, FIRMWARE_VERSION_STRING,
++            sizeof(dashboardData.systemStatus.version) - 1);
++    dashboardData.systemStatus.version[sizeof(dashboardData.systemStatus.version) - 1] = '\0';
++}
++
+ void setupWiFi() {
+@@ -631,2 +642,3 @@ void setup() {
+ void loop() {
++    displayShowVaultBootSplashOnce();
+ 
+@@ -705,2 +717,3 @@ void loop() {
+     displayServiceTemporaryMessage();
++    updateSystemStatusForDisplay();
+     dashboardSyncRuntimeState();
+diff --git a/src/settings.h b/src/settings.h
+index bdd5470..452bfb1 100644
+--- a/src/settings.h
++++ b/src/settings.h
+@@ -13,3 +13,3 @@
+ #ifndef FIRMWARE_VERSION_STRING
+-#define FIRMWARE_VERSION_STRING "2.3.1"
++#define FIRMWARE_VERSION_STRING "2.4.0"
+ #endif
