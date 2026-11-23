@@ -185,7 +185,7 @@ if "if(bundledAnimationActive && decoder==nullptr && targetDisplay!=nullptr)" no
         }
         if(static_cast<int32_t>(nowMs-nextFrameAtMs)<0)return false;
         const uint8_t frameIndex = bundledFrameIndex;
-        const uint8_t *frame = kBundledVaultBoyFrames[frameIndex];
+        const uint16_t *frame = kBundledVaultBoyFrames[frameIndex];
         uint16_t row[104];
         for(int16_t y=0;y<104;++y) {
             for(int16_t x=0;x<104;++x) {
