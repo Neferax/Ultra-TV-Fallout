@@ -1,0 +1,31 @@
+  const auto&a=textDraws[i];const auto&b=textDraws[j];
+  const bool overlap=a.x<b.x+b.w && b.x<a.x+a.w && a.y<b.y+b.h && b.y<a.y+a.h;
+  if(overlap){fprintf(stderr,"TEXT COLLISION page=%u: [%s] %d,%d %dx%d with [%s] %d,%d %dx%d\n",displayState.currentPage,a.text.c_str(),a.x,a.y,a.w,a.h,b.text.c_str(),b.x,b.y,b.w,b.h);abort();}
+ }
+}
+void checkBounds(){
+ for(auto &d:textDraws){
+  if(d.x<0||d.y<0||d.x+d.w>240||d.y+d.h>240){fprintf(stderr,"Overflow: %s at %d,%d %dx%d\n",d.text.c_str(),d.x,d.y,d.w,d.h);abort();}
+  if(d.h<16){fprintf(stderr,"Too small: %s at %d,%d %dx%d\n",d.text.c_str(),d.x,d.y,d.w,d.h);abort();}
+  if(d.y<212&&d.y+d.h>212){fprintf(stderr,"Footer boundary: %s at %d,%d %dx%d\n",d.text.c_str(),d.x,d.y,d.w,d.h);abort();}
+ }
+ assert(tft.textSize==1&&clockDynamicSprite.textSize==1);
+}
+void fixture(){
+ dashboardConfig.showIp=true;dashboardConfig.use24Hour=true;
+ for(auto &enabled:dashboardConfig.enabledPages)enabled=true;
+ feedConfig.weather.source=WEATHER_FEED_OPEN_METEO;
+ feedRuntime.weather.hasData=true;
+ auto &w=feedRuntime.weather.data;strcpy(w.location,"DUISBURG // RUMELN");strcpy(w.condition,"Partly cloudy");w.temperature=22;w.high=26;w.low=18;w.rainChance=20;w.feelsLike=20;w.humidity=68;w.precipitation=4;w.windSpeed=12;w.windDirection=315;w.windGusts=22;w.uvIndex=2;strcpy(w.sunrise,"07:34");strcpy(w.sunset,"16:42");w.forecastCount=4;strcpy(w.forecast[1].date,"13.11");strcpy(w.forecast[1].condition,"Partly cloudy");w.forecast[1].low=8;w.forecast[1].high=11;w.forecast[1].rainChance=20;strcpy(w.forecast[2].date,"14.11");strcpy(w.forecast[2].condition,"Rain");w.forecast[2].low=7;w.forecast[2].high=10;w.forecast[2].rainChance=65;strcpy(w.forecast[3].date,"15.11");strcpy(w.forecast[3].condition,"Cloudy");w.forecast[3].low=5;w.forecast[3].high=9;w.forecast[3].rainChance=30;
+ const char *symbols[]="BTC","MSFT","NVDA"},*labels[]={"Bitcoin","Microsoft","Nvidia"};
+ const float prices[]={83827,543.45f,228.52f},changes[]={2.54f,-1.2f,0};
+ for(int i=0;i<3;++i){feedConfig.markets[i].source=i==0?MARKET_FEED_COINGECKO:MARKET_FEED_FINNHUB;strcpy(feedConfig.markets[i].currency,"usd");auto&m=feedRuntime.markets[i];m.hasData=true;m.data.enabled=true;strcpy(m.data.symbol,symbols[i]);strcpy(m.data.label,labels[i]);m.data.price=prices[i];m.data.changePercent=changes[i];}
+ feedConfig.homeAssistant.enabled=true;feedRuntime.homeAssistant.hasData=true;
+ for(int i=0;i<4;++i){auto&c=feedConfig.homeAssistant.slots[i];c.enabled=true;strcpy(c.entityId,"sensor.temperature");strcpy(c.label,"Living room");strcpy(c.unit,"C");auto&v=feedRuntime.homeAssistant.slots[i];v.hasData=true;v.numeric=true;strcpy(v.state,"23.4");}
+ auto &f=dashboardData.focus;strcpy(f.label,"Deep work");f.running=true;f.durationMinutes=25;
+ auto &a=dashboardData.worldClocks[0],&b=dashboardData.worldClocks[1];a.enabled=b.enabled=true;strcpy(a.label,"Tokyo");a.offsetSeconds=32400;strcpy(b.label,"New York");b.offsetSeconds=-14400;
+ strcpy(dashboardData.event.title,"Launch day");strcpy(dashboardData.event.subtitle,"Next milestone");
+ strcpy(dashboardData.quote.text,"Make room for what matters.");strcpy(dashboardData.quote.author,"Daily reminder");
+ strcpy(dashboardData.status.line1,"All systems online");strcpy(dashboardData.status.line2,"Have a good day");
+ strcpy(dashboardConfig.questTitles[0],"NEUJAHR");strcpy(dashboardConfig.questDates[0],"2027-01-01");
+ strcpy(dashboardConfig.questTitles[1],"LIAN BDAY");strcpy(dashboardConfig.questDates[1],"2026-12-09");
