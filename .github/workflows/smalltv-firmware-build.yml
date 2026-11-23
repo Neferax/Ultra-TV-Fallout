@@ -326,11 +326,10 @@ jobs:
                       assert gif.info.get("transparency") is None
                       assert gif.tile and gif.tile[0][1] == (0, 0, 104, 104), (index, gif.tile)
                       pixel = gif.convert("RGB").getpixel((52, 52))
-                      assert pixel[0] == 0 and pixel[2] == 0, pixel
-                      observed.append(pixel[1])
-                  assert observed == sorted(observed) and observed[-1] == 255, observed
-                  assert observed[0] == 0 and observed[1] > 0 and observed[2] > observed[1], observed
-              print("GIF converter test passed: 4 full-canvas frames, opaque, ordered green luminance")
+                      observed.append(pixel)
+                  assert observed[0][0] == 0 and observed[-1][0] == 255, observed
+                  assert observed == sorted(observed, key=lambda p: p[0]), observed
+              print("GIF converter test passed: 4 full-canvas frames, opaque, source colors retained")
 
               # A second source contains a transparent background and moving partial frames.
               # The output must flatten transparency to black and expand every frame to 104x104.
@@ -357,22 +356,23 @@ jobs:
                       assert gif.convert("RGB").getpixel((0, 0)) == (0, 0, 0)
               print("GIF transparency test passed: moving partial source frames flattened to opaque full frames")
 
-              # Verify that brightness ordering survives conversion, not merely that
-              # the output palette contains green entries.
-              gradient_source = folder / "gradient.gif"
-              gradient_output = folder / "gradient-compatible.gif"
-              gradient = Image.new("L", (240, 64))
-              for x in range(240):
-                  for y in range(64):
-                      gradient.putpixel((x, y), round(x * 255 / 239))
-              gradient.save(gradient_source, format="GIF")
-              subprocess.run(["python", str(converter), str(gradient_source), str(gradient_output)], check=True)
-              with Image.open(gradient_output) as gif:
+              # Verify that independent color channels survive the converter.
+              color_source = folder / "color.gif"
+              color_output = folder / "color-compatible.gif"
+              color = Image.new("RGB", (240, 240), (0, 0, 0))
+              from PIL import ImageDraw
+              draw = ImageDraw.Draw(color)
+              draw.rectangle((0, 0, 119, 239), fill=(245, 35, 20))
+              draw.rectangle((120, 0, 239, 239), fill=(20, 65, 245))
+              color.save(color_source, format="GIF")
+              subprocess.run(["python", str(converter), str(color_source), str(color_output)], check=True)
+              with Image.open(color_output) as gif:
                   converted = gif.convert("RGB")
-                  samples = [converted.getpixel((x, 52))[1] for x in (0, 10, 21, 31, 42, 52, 62, 73, 83, 94, 103)]
-                  assert samples == sorted(samples), samples
-                  assert samples[0] <= 2 and samples[-1] >= 253, samples
-              print("GIF gradient test passed: increasing source luminance remains increasing green luminance")
+                  red = converted.getpixel((25, 52))
+                  blue = converted.getpixel((78, 52))
+                  assert red[0] > red[2] * 3, red
+                  assert blue[2] > blue[0] * 3, blue
+              print("GIF color test passed: red and blue source regions remain red and blue")
 
               # The decoder has a small archive footprint. Long source animations
               # must be sampled to 36 frames without losing total playback time.
@@ -405,18 +405,14 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          from PIL import Image, ImageOps, ImageEnhance
+          from PIL import Image
           package = Path("fallout/package")
           gif = Image.open(package / "bethesda-vaultboy.gif")
           gif.seek(0)
           frame = gif.convert("RGB")
-          frame = ImageOps.contain(frame, (104, 104), method=Image.Resampling.LANCZOS)
-          gray = ImageOps.grayscale(frame)
-          gray = ImageEnhance.Contrast(gray).enhance(1.35)
-          phosphor = Image.new("RGB", frame.size)
-          phosphor.putdata([(0, value, 0) for value in gray.getdata()])
-          viewport = Image.new("RGB", (104, 104), "#000000")
-          viewport.paste(phosphor, ((104-frame.width)//2, (104-frame.height)//2))
+          if frame.size != (104, 104):
+              raise SystemExit(f"Unexpected bundled GIF size: {frame.size}")
+          viewport = frame
           radio = Image.open(package / "PipBoy-RADIO-240x240.png").convert("RGB")
           radio.paste(viewport, (68, 76))
           radio.save(package / "PipBoy-RADIO-GIF-FRAME-01.png")
@@ -427,7 +423,7 @@ jobs:
           draw.rectangle((600, 8, 840, 29), fill="#050805")
           draw.text((600, 12), "RADIO // GIF FRAME 01", fill="#8cff79")
           board.save(package / "PipBoy-SmallTV-Redesign-Preview.png")
-          print("RADIO preview uses frame 1 from the exact bundled GIF; native renderer capture remains separately available.")
+          print("RADIO preview uses frame 1 from the exact bundled GIF in its original colors; native renderer capture remains separately available.")
           PY
 
       - name: Add minimal OTA loader source and build target
