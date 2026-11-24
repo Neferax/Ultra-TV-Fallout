@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+<rect width="240" height="240" fill="#050b07"/>
+<rect x="5" y="5" width="230" height="230" fill="none" stroke="#75ff83"/>
+<g font-family="monospace" fill="#83ff8e">
+<text x="12" y="18" font-size="9" letter-spacing="1.1">ROBCO // DATA</text>
+<text x="228" y="18" font-size="8" text-anchor="end">ATMOS</text>
+<text x="12" y="39" font-size="14" font-weight="bold">WEATHER FORECAST</text>
+<text x="12" y="51" font-size="8" opacity=".8">FRIEMERSHEIM // 3-DAY OUTLOOK</text>
+</g>
+<g fill="none" stroke="#83ff8e" stroke-width="1">
+<rect x="10" y="61" width="220" height="43"/>
+<rect x="10" y="109" width="220" height="43"/>
+<rect x="10" y="157" width="220" height="43"/>
+<path d="M77 61v139M177 61v139"/>
+</g>
+<g font-family="monospace" fill="#83ff8e">
+<text x="16" y="77" font-size="11" font-weight="bold">TUE</text><text x="16" y="91" font-size="9">10/NOV</text>
+<text x="16" y="125" font-size="11" font-weight="bold">WED</text><text x="16" y="139" font-size="9">11/NOV</text>
+<text x="16" y="173" font-size="11" font-weight="bold">THU</text><text x="16" y="187" font-size="9">12/NOV</text>
+<text x="185" y="79" font-size="13">2/10°</text><text x="185" y="127" font-size="13">5/7°</text><text x="185" y="175" font-size="13">3/9°</text>
+<text x="185" y="91" font-size="7" opacity=".8">MIN/MAX</text><text x="185" y="139" font-size="7" opacity=".8">MIN/MAX</text><text x="185" y="187" font-size="7" opacity=".8">MIN/MAX</text>
+</g>
+<!-- Monochrome weather glyphs -->
+<g fill="none" stroke="#83ff8e" stroke-width="1.5" stroke-linecap="round">
+<circle cx="127" cy="81" r="8"/><path d="M127 67v-4m0 32v-4m-14-10h-4m32 0h-4m-20-10-3-3m26 26-3-3m0-20 3-3m-26 26 3-3"/>
+<path d="M113 132c0-5 4-8 9-8 2-7 13-8 17-1 5-1 9 3 9 8 0 5-4 8-9 8h-18c-5 0-8-3-8-7z"/>
+<path d="M120 143l-3 5m13-5-3 5m13-5-3 5"/>
+<path d="M113 180c0-5 4-8 9-8 2-7 13-8 17-1 5-1 9 3 9 8 0 5-4 8-9 8h-18c-5 0-8-3-8-7z"/>
+</g>
+<g font-family="monospace" fill="#83ff8e">
+<text x="12" y="216" font-size="8">DATA REFRESH: 10:20</text>
+<text x="228" y="216" font-size="8" text-anchor="end">02/05</text>
+<text x="12" y="228" font-size="7" opacity=".65">ROBCO ATMOSPHERIC DIVISION</text>
+</g>
+</svg>

@@ -1,0 +1,39 @@
+ auto &slot=feedRuntime.homeAssistant.slots[0];slot.stale=true;slot.lastSuccessMs=60000;
+ for(int page=0;page<DASHBOARD_PAGE_COUNT;++page){displayState.currentPage=page;normalizeDashboardItem();for(bool buffer:{true,false}){spriteAvailable=buffer;textDraws.clear();renderDashboardPage();checkBounds();}}
+ displayState.currentPage=DASHBOARD_PAGE_HOME;normalizeDashboardItem();selectedItemIndex=0;
+ textDraws.clear();renderHomePage();assert(hasDraw("Stale 1m"));
+ slot.hasData=false;strcpy(slot.lastError,"HTTP 404");textDraws.clear();renderHomePage();assert(hasDraw("Error"));checkBounds();
+ for(auto &d:textDraws)if(d.text=="Error"&&d.y<160)assert(d.h>=52);
+ dashboardConfig.showSeconds=true;dashboardConfig.use24Hour=false;displayState.currentPage=DASHBOARD_PAGE_CLOCK;
+ normalizeDashboardItem();textDraws.clear();renderClockPage();checkBounds();
+ emptyData=true;for(int page=0;page<DASHBOARD_PAGE_COUNT;++page){displayState.currentPage=page;normalizeDashboardItem();textDraws.clear();renderDashboardPage();checkBounds();}
+ puts("Device layouts passed: exact TFT fonts, bounds, readable sizes, item cycling, hidden-feed hashes, long/stale/empty values and buffer fallback");
+}
+'''
+with tempfile.TemporaryDirectory() as folder:
+    temp = Path(folder)
+    (temp / 'Arduino.h').write_text('#pragma once\n#include <cstdint>\n')
+    (temp / 'layout.cpp').write_text(code)
+    subprocess.run(['g++', '-std=c++17', '-O1', '-I'+str(temp), '-I'+str(root/'audit'),
+                    '-I'+str(root/'src'), '-I'+str(root/'.pio/libdeps/nodemcuv2/TFT_eSPI'), '-I'+str(root/'.pio/build/nodemcuv2/generated'),
+                    str(temp/'layout.cpp'), '-o', str(temp/'layout')], check=True)
+    subprocess.run([str(temp/'layout'), str(args.output)], check=True)
+palettes = __import__("json").loads((root / "src/device-themes.json").read_text())["palettes"]
+for theme in range(len(palettes)):
+    board = Image.new('RGB', (752, 1064), '#12151b')
+    draw = ImageDraw.Draw(board)
+    titles = ['Clock','Weather','Markets','Home','Focus','World','Event','Quote','Status','Rad','Quests','System']
+    for page, title in enumerate(titles):
+        x, y = 8 + (page % 3) * 248, 28 + (page // 3) * 260
+        draw.text((x, y-16), title, fill='white')
+        board.paste(Image.open(args.output/f'theme-{theme}-page-{page}.ppm'), (x,y))
+    board.save(args.output/f'device-ui-theme-{theme}.png')
+print('Exact-font preview boards:', args.output)
+
+gallery = Image.new('RGB', (1008, 1088), '#12151b')
+gallery_draw = ImageDraw.Draw(gallery)
+for theme, palette in enumerate(palettes):
+    x, y = 8 + (theme % 4) * 250, 28 + (theme // 4) * 270
+    gallery_draw.text((x, y-18), palette['label'] + ' / ' + palette['mode'], fill='white')
+    gallery.paste(Image.open(args.output / f'theme-{theme}-page-2.ppm'), (x, y))
+gallery.save(args.output / 'device-theme-gallery.png')

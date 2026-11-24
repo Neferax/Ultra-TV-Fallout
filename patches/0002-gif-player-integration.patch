@@ -1,0 +1,455 @@
+diff --git a/src/dashboard.h b/src/dashboard.h
+--- a/src/dashboard.h
++++ b/src/dashboard.h
+@@ -7,18 +7,18 @@
+ #define DASHBOARD_WORLD_CLOCK_COUNT 2
+ #define DASHBOARD_CONFIG_PATH "/dashboard-config.json"
+ #define DASHBOARD_DATA_PATH "/dashboard-data.json"
+-#define DASHBOARD_CONFIG_VERSION 3
++#define DASHBOARD_CONFIG_VERSION 4
+ 
+ enum DashboardPageId : uint8_t {
+     DASHBOARD_PAGE_CLOCK = 0,
+     DASHBOARD_PAGE_WEATHER,
++    DASHBOARD_PAGE_GIF,
+     DASHBOARD_PAGE_MARKETS,
+     DASHBOARD_PAGE_HOME,
+     DASHBOARD_PAGE_FOCUS,
+     DASHBOARD_PAGE_WORLD,
+     DASHBOARD_PAGE_EVENT,
+     DASHBOARD_PAGE_QUOTE,
+-    DASHBOARD_PAGE_STATUS,
+     DASHBOARD_PAGE_COUNT
+ };
+ 
+diff --git a/src/dashboard.cpp b/src/dashboard.cpp
+--- a/src/dashboard.cpp
++++ b/src/dashboard.cpp
+@@ -33,10 +33,13 @@
+     return static_cast<uint16_t>(normalized);
+ }
+ 
+-void enableAllPages() {
++void enableCorePages() {
+     for (uint8_t page = 0; page < DASHBOARD_PAGE_COUNT; ++page) {
+-        dashboardConfig.enabledPages[page] = true;
++        dashboardConfig.enabledPages[page] = false;
+     }
++    dashboardConfig.enabledPages[DASHBOARD_PAGE_CLOCK] = true;
++    dashboardConfig.enabledPages[DASHBOARD_PAGE_WEATHER] = true;
++    dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF] = true;
+ }
+ 
+ bool anyPageEnabled() {
+@@ -121,7 +124,7 @@
+ void setConfigDefaults() {
+     memset(&dashboardConfig, 0, sizeof(dashboardConfig));
+     dashboardConfig.version = DASHBOARD_CONFIG_VERSION;
+-    dashboardConfig.theme = DASHBOARD_THEME_AURORA;
++    dashboardConfig.theme = DASHBOARD_THEME_TERMINAL;
+     dashboardConfig.customThemeEnabled = false;
+     copyString(dashboardConfig.customBackground, sizeof(dashboardConfig.customBackground), kDefaultCustomBackground);
+     copyString(dashboardConfig.customSurface, sizeof(dashboardConfig.customSurface), kDefaultCustomSurface);
+@@ -147,11 +150,11 @@
+                sizeof(dashboardConfig.nightCustomText),
+                kDefaultNightCustomText);
+     dashboardConfig.rotationEnabled = true;
+-    dashboardConfig.rotationIntervalSec = 10;
++    dashboardConfig.rotationIntervalSec = 20;
+     dashboardConfig.use24Hour = true;
+     dashboardConfig.showSeconds = false;
+     dashboardConfig.showIp = false;
+-    enableAllPages();
++    enableCorePages();
+ }
+ 
+ void setDataDefaults() {
+@@ -390,7 +393,7 @@
+     pages["world"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_WORLD];
+     pages["event"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_EVENT];
+     pages["quote"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_QUOTE];
+-    pages["status"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_STATUS];
++    pages["gif"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF];
+ }
+ 
+ void fillDataJson(JsonObject root) {
+@@ -473,8 +476,8 @@
+     if (!pages["quote"].isNull()) {
+         dashboardConfig.enabledPages[DASHBOARD_PAGE_QUOTE] = pages["quote"].as<bool>();
+     }
+-    if (!pages["status"].isNull()) {
+-        dashboardConfig.enabledPages[DASHBOARD_PAGE_STATUS] = pages["status"].as<bool>();
++    if (!pages["gif"].isNull()) {
++        dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF] = pages["gif"].as<bool>();
+     }
+ }
+ 
+@@ -1103,8 +1106,8 @@
+             return "event";
+         case DASHBOARD_PAGE_QUOTE:
+             return "quote";
+-        case DASHBOARD_PAGE_STATUS:
+-            return "status";
++        case DASHBOARD_PAGE_GIF:
++            return "gif";
+         default:
+             return "clock";
+     }
+diff --git a/src/display.cpp b/src/display.cpp
+--- a/src/display.cpp
++++ b/src/display.cpp
+@@ -3,6 +3,7 @@
+ #include "auth.h"
+ #include "config.h"
+ #include "feeds.h"
++#include "gif_player.h"
+ #include "logger.h"
+ #include <ESP8266WiFi.h>
+ #include <time.h>
+@@ -1097,8 +1098,8 @@
+             return hasEventContent();
+         case DASHBOARD_PAGE_QUOTE:
+             return hasQuoteContent();
+-        case DASHBOARD_PAGE_STATUS:
+-            return hasStatusContent();
++        case DASHBOARD_PAGE_GIF:
++            return true;
+         default:
+             return false;
+     }
+@@ -1314,9 +1315,7 @@
+             hashCString(hash, dashboardData.quote.text);
+             hashCString(hash, dashboardData.quote.author);
+             break;
+-        case DASHBOARD_PAGE_STATUS:
+-            hashCString(hash, dashboardData.status.line1);
+-            hashCString(hash, dashboardData.status.line2);
++        case DASHBOARD_PAGE_GIF:
+             break;
+         default:
+             break;
+@@ -1732,9 +1731,15 @@
+         case DASHBOARD_PAGE_QUOTE:
+             renderQuotePage();
+             break;
+-        case DASHBOARD_PAGE_STATUS:
+-            renderStatusPage();
++        case DASHBOARD_PAGE_GIF: {
++            drawScreenChrome("RADIO // GIFS");
++            tft.drawRect(8, 68, 224, 132, 0x07E0);
++            tft.drawRect(11, 71, 218, 126, 0x03E0);
++            drawDisplayLabel(gifPlayerHasFiles() ? "GIF ARCHIVE // READY"
++                                                  : "NO GIF FILES FOUND",
++                             120, 184, 220, TC_DATUM, 0x3DE7, FONT_LABEL);
+             break;
++        }
+         default:
+             renderClockPage();
+             break;
+@@ -1792,7 +1798,7 @@
+         updateDashboardDynamicArea(pageId);
+         renderCache.dynamicHash = dynamicHash;
+     }
+-    updateFooterClock();
++    if (pageId != DASHBOARD_PAGE_GIF) updateFooterClock();
+ }
+ 
+ }  // namespace
+diff --git a/src/display.h b/src/display.h
+--- a/src/display.h
++++ b/src/display.h
+@@ -18,6 +18,7 @@
+ void displaySetBrightness(int brightness);
+ void displayApplyBrightness(int brightness);
+ void displaySetClockSpriteAllowed(bool allowed);
++void displayInvalidateRenderCache();
+ void displaySuspendDynamicResources();
+ void displayResumeDynamicResources();
+ void displayUpdate();
+diff --git a/src/display.cpp b/src/display.cpp
+--- a/src/display.cpp
++++ b/src/display.cpp
+@@ -1862,4 +1862,8 @@
+     }
+ }
+ 
++void displayInvalidateRenderCache() {
++    invalidateRenderCache();
++}
++
+ void displaySuspendDynamicResources() {
+
+diff --git a/src/feeds.cpp b/src/feeds.cpp
+--- a/src/feeds.cpp
++++ b/src/feeds.cpp
+@@ -1,6 +1,7 @@
+ #include "feeds.h"
+ 
+ #include "display.h"
++#include "gif_player.h"
+ #include "logger.h"
+ #include <ArduinoJson.h>
+ #include <ESP8266HTTPClient.h>
+@@ -458,7 +459,11 @@
+     memset(&feedConfig, 0, sizeof(feedConfig));
+     feedConfig.version = FEEDS_CONFIG_VERSION;
+ 
+-    feedConfig.weather.source = WEATHER_FEED_DISABLED;
++    feedConfig.weather.source = WEATHER_FEED_OPEN_METEO;
++    copyString(feedConfig.weather.query, sizeof(feedConfig.weather.query), "47239 Duisburg");
++    copyString(feedConfig.weather.label, sizeof(feedConfig.weather.label), "DUISBURG // RUMELN");
++    feedConfig.weather.latitude = 51.3948f;
++    feedConfig.weather.longitude = 6.65183f;
+     feedConfig.weather.refreshMinutes = 30;
+     feedConfig.weather.useFahrenheit = false;
+ 
+@@ -2390,6 +2395,7 @@
+         if (slot.hasData && (slot.lastError[0] || now - slot.lastSuccessMs > staleAfterMs)) slot.stale = true;
+     }
+     if (feedsBusy()) {
++        gifPlayerStop();
+         pumpFeedJob();
+         return;
+     }
+@@ -2407,7 +2413,10 @@
+         if (feedsMarketConfigured(index) && (feedConfig.markets[index].source == MARKET_FEED_FINNHUB || feedConfig.markets[index].source == MARKET_FEED_COINGECKO) && due(feedRuntime.markets[index].lastAttemptMs, feedConfig.markets[index].refreshMinutes)) pendingSyncMask |= kMarketJobBase << index;
+     }
+     if (feedsHomeAssistantConfigured() && due(feedRuntime.homeAssistant.lastAttemptMs, feedConfig.homeAssistant.refreshMinutes)) pendingSyncMask |= kHomeAssistantJob;
+-    if (pendingSyncMask) feedJobsCancelled = false;
++    if (pendingSyncMask) {
++        feedJobsCancelled = false;
++        gifPlayerStop();
++    }
+     pumpFeedJob();
+ }
+ 
+diff --git a/src/main.cpp b/src/main.cpp
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -10,6 +10,8 @@
+ #include "dashboard.h"
+ #include "display.h"
+ #include "feeds.h"
++#include "gif_player.h"
++#include <TZ.h>
+ #include "auth.h"
+ #include "webserver.h"
+ #include "settings.h"
+@@ -21,6 +23,7 @@
+ unsigned long lastDisplayUpdate = 0;
+ unsigned long lastDisplayProfileCheck = 0;
+ unsigned long lastPageRotation = 0;
++uint32_t lastGifStartAttemptMs = 0;
+ unsigned long lastWiFiReconnectAttempt = 0;
+ bool wifiFailsafeMode = false;  // True when in AP-only mode after connection failures
+ String apPassword = "";  // Generated random AP password
+@@ -270,7 +273,11 @@
+         return;
+     }
+ 
+-    configTime(appSettings.gmtOffset, 0, NTP_SERVER);
++    if (appSettings.gmtOffset == 3600) {
++        configTime(TZ_Europe_Berlin, NTP_SERVER);
++    } else {
++        configTime(appSettings.gmtOffset, 0, NTP_SERVER);
++    }
+     timeServicesStarted = true;
+     logPrint(F("Time services started"));
+     logHeapState("time services init");
+@@ -712,6 +719,25 @@
+         lastPageRotation = millis();
+     }
+ 
++    if (!wifiFailsafeMode &&
++        !networkActionBusy &&
++        !feedsBusy() &&
++        !displayState.apMode &&
++        displayState.currentPage == DASHBOARD_PAGE_GIF) {
++        if (!gifPlayerIsActive() && millis() - lastGifStartAttemptMs >= 1000UL) {
++            lastGifStartAttemptMs = millis();
++            gifPlayerStartNext(tft);
++        }
++        if (gifPlayerIsActive()) gifPlayerTick(millis());
++    } else if (gifPlayerIsActive()) {
++        gifPlayerStop();
++        // GIF frames are drawn directly to TFT. Force a full page redraw
++        // when leaving the archive so the last frame cannot remain over Weather.
++        if (displayState.currentPage != DASHBOARD_PAGE_GIF && !displayState.apMode) {
++            displayInvalidateRenderCache();
++        }
++    }
++
+     maybeEnableClockSprite();
+ 
+     if (millis() - lastDisplayUpdate > DISPLAY_UPDATE_INTERVAL) {
+diff --git a/src/settings.cpp b/src/settings.cpp
+--- a/src/settings.cpp
++++ b/src/settings.cpp
+@@ -318,7 +318,7 @@
+     settings.version = FIRMWARE_VERSION;
+     settings.brightness = 70;
+     settings.theme = 0;
+-    settings.gmtOffset = 0;         // Default to UTC for a neutral out-of-box setup
++    settings.gmtOffset = 3600;     // Default to Central European time with automatic DST
+     settingsDefaultDeviceName(settings.deviceName, sizeof(settings.deviceName));
+     settings.valid = true;
+     settings.crc = settingsCalculateCRC(settings);
+diff --git a/src/webserver.cpp b/src/webserver.cpp
+--- a/src/webserver.cpp
++++ b/src/webserver.cpp
+@@ -4,6 +4,7 @@
+ #include "dashboard.h"
+ #include "display.h"
+ #include "feeds.h"
++#include "gif_player.h"
+ #include "auth.h"
+ #include "logger.h"
+ #include "settings.h"
+@@ -39,6 +40,8 @@
+ bool wifiScanStarted = false;
+ bool otaUploadComplete = false;
+ String otaUploadError;
++bool gifUploadComplete = false;
++String gifUploadError;
+ String authSessionToken;
+ unsigned long authSessionLastSeenMs = 0;
+ int lastEffectiveBrightness = -1;
+@@ -1044,6 +1047,60 @@
+     sendTextResponse(202, F("Factory reset requested. Device will restart shortly."));
+ }
+ 
++void handleGifForm() {
++    static const char html[] PROGMEM =
++        "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>"
++        "<title>ROBCO GIF ARCHIVE</title><style>body{background:#071008;color:#7cff75;font:16px monospace;"
++        "max-width:520px;margin:32px auto;padding:16px}fieldset{border:1px solid #4c9b4a;padding:18px}"
++        "button,input{font:inherit;margin:12px 0}button{background:#17351a;color:#a5ff9a;border:1px solid #7cff75;"
++        "padding:10px 16px}</style></head><body><h2>ROBCO // VISUAL ARCHIVE</h2>"
++        "<p>Upload a GIF to the device album. Maximum 300 KiB per file; up to twelve files are indexed.</p>"
++        "<p>GIF canvas must be 240x240 pixels or smaller and file size must not exceed 300 KiB. Only full-canvas, opaque frames are supported; transparent or partial-frame animations are rejected during playback.</p>"
++        "<form action='/gif/upload' method='post' enctype='multipart/form-data'>"
++        "<fieldset><input type='file' name='file' accept='.gif,image/gif' required><br>"
++        "<button type='submit'>UPLOAD TO ARCHIVE</button></fieldset></form>"
++        "<p>Existing files with the same name are replaced only after a complete upload.</p></body></html>";
++    server.send_P(200, PSTR("text/html"), reinterpret_cast<PGM_P>(html), sizeof(html));
++}
++
++void handleGifUpload() {
++    HTTPUpload &upload = server.upload();
++    if (upload.status == UPLOAD_FILE_START) {
++        gifUploadComplete = false;
++        gifUploadError = "";
++        if (feedsBusy() || webserverHasPendingNetworkAction()) {
++            gifUploadError = "Another network task is running";
++            return;
++        }
++        if (!gifPlayerUploadStart(upload.filename.c_str())) {
++            gifUploadError = "Invalid GIF filename or storage unavailable";
++        }
++    } else if (upload.status == UPLOAD_FILE_WRITE && gifUploadError.isEmpty()) {
++        if (!gifPlayerUploadChunk(upload.buf, upload.currentSize)) {
++            gifUploadError = "GIF write failed or file exceeds 300 KiB";
++            gifPlayerUploadAbort();
++        }
++    } else if (upload.status == UPLOAD_FILE_ABORTED) {
++        gifPlayerUploadAbort();
++        gifUploadError = "GIF upload aborted";
++    } else if (upload.status == UPLOAD_FILE_END && gifUploadError.isEmpty()) {
++        if (gifPlayerUploadEnd()) {
++            gifUploadComplete = true;
++        } else {
++            gifPlayerUploadAbort();
++            gifUploadError = "GIF could not be committed to storage";
++        }
++    }
++}
++
++void handleGifUploadDone() {
++    if (gifUploadComplete && gifUploadError.isEmpty()) {
++        sendTextResponse(200, F("GIF uploaded"));
++    } else {
++        sendTextResponse(400, gifUploadError.length() ? gifUploadError : String("Incomplete GIF upload"));
++    }
++}
++
+ void handleOTAForm() {
+     prepareNoStoreHeaders();
+     server.sendHeader("Content-Encoding", "gzip");
+@@ -1054,6 +1111,7 @@
+     HTTPUpload &upload = server.upload();
+ 
+     if (upload.status == UPLOAD_FILE_START) {
++        gifPlayerStop();
+         otaUploadComplete = false;
+         otaUploadError = "";
+         if (feedsBusy() || webserverHasPendingNetworkAction()) {
+@@ -1229,6 +1287,7 @@
+     registerProtectedRoute("/feeds/sync", HTTP_POST, handleFeedsSync);
+     registerProtectedRoute("/feeds/job", HTTP_GET, handleFeedJob);
+     registerProtectedRoute("/feeds/search", HTTP_GET, handleFeedSearch);
++    registerProtectedRoute("/gif", HTTP_GET, handleGifForm);
+     registerProtectedRoute("/api/update", HTTP_POST, handleApiUpdate);
+     registerProtectedRoute("/api/dashboard", HTTP_POST, handleDashboardDataSave);
+     registerProtectedRoute("/auth/password", HTTP_POST, handleAuthPasswordChange);
+@@ -1255,6 +1314,16 @@
+                   handleOTAUpload();
+               });
+ 
++    server.on("/gif/upload", HTTP_POST,
++              []() {
++                  if (!ensureAuthenticatedRequest()) return;
++                  handleGifUploadDone();
++              },
++              []() {
++                  if (!requestHasValidSession()) return;
++                  handleGifUpload();
++              });
++
+     server.onNotFound([]() {
+         if (wifiFailsafeMode) {
+             server.sendHeader("Location", "http://" + WiFi.softAPIP().toString() + "/");
+@@ -1273,6 +1342,7 @@
+ }
+ 
+ void webserverProcessPendingActions() {
++    if (webserverHasPendingNetworkAction()) gifPlayerStop();
+     if (webserverHasPendingNetworkAction() && feedsBusy()) {
+         feedsCancelJobs();
+         return;
+
+diff --git a/src/dashboard.cpp b/src/dashboard.cpp
+--- a/src/dashboard.cpp
++++ b/src/dashboard.cpp
+@@ -633,2 +633,6 @@
+-    applyPagesObject(root["pages"].as<JsonObjectConst>());
++    // Version 3 stored page IDs before the GIF slot was inserted. Keep the
++    // new core-page defaults when migrating those older configurations.
++    if (root["version"].as<uint8_t>() >= DASHBOARD_CONFIG_VERSION) {
++        applyPagesObject(root["pages"].as<JsonObjectConst>());
++    }
+     normalizeConfig();
+
+diff --git a/src/feeds.h b/src/feeds.h
+--- a/src/feeds.h
++++ b/src/feeds.h
+@@ -7,3 +7,3 @@
+ #define FEEDS_CONFIG_PATH "/feeds-config.json"
+-#define FEEDS_CONFIG_VERSION 2
++#define FEEDS_CONFIG_VERSION 3
+ #define HOME_ASSISTANT_SLOT_COUNT 4
+
+diff --git a/src/feeds.cpp b/src/feeds.cpp
+--- a/src/feeds.cpp
++++ b/src/feeds.cpp
+@@ -2030,6 +2030,10 @@
+ void applyConfigObject(JsonObjectConst root) {
+     applyProvidersObject(root["providers"].as<JsonObjectConst>());
+-    applyWeatherObject(root["weather"].as<JsonObjectConst>());
++    // Version 2 used the old disabled-weather defaults. Retain the new
++    // Open-Meteo defaults when migrating, while preserving other feed settings.
++    if (root["version"].as<uint16_t>() >= FEEDS_CONFIG_VERSION) {
++        applyWeatherObject(root["weather"].as<JsonObjectConst>());
++    }
+     applyMarketsArray(root["markets"].as<JsonArrayConst>());
+     applyHomeAssistantObject(root["homeAssistant"].as<JsonObjectConst>());
+     normalizeConfig();

@@ -1,0 +1,139 @@
+diff --git a/src/dashboard.cpp b/src/dashboard.cpp
+index ca128a9..d37c780 100644
+--- a/src/dashboard.cpp
++++ b/src/dashboard.cpp
+@@ -42,2 +42,5 @@ void enableCorePages() {
+     dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF] = true;
++    dashboardConfig.enabledPages[DASHBOARD_PAGE_RAD] = true;
++    dashboardConfig.enabledPages[DASHBOARD_PAGE_QUEST] = true;
++    dashboardConfig.enabledPages[DASHBOARD_PAGE_SYSTEM] = true;
+ }
+@@ -396,2 +399,12 @@ void fillConfigJson(JsonObject root) {
+     pages["gif"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_GIF];
++    pages["rad"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_RAD];
++    pages["quest"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_QUEST];
++    pages["system"] = dashboardConfig.enabledPages[DASHBOARD_PAGE_SYSTEM];
++
++    JsonArray quests = root["quests"].to<JsonArray>();
++    for (uint8_t questIndex = 0; questIndex < DASHBOARD_QUEST_COUNT; ++questIndex) {
++        JsonObject quest = quests.add<JsonObject>();
++        quest["title"] = dashboardConfig.questTitles[questIndex];
++        quest["date"] = dashboardConfig.questDates[questIndex];
++    }
+ }
+@@ -481,2 +494,11 @@ void applyPagesObject(JsonObjectConst pages) {
+     }
++    if (!pages["rad"].isNull()) {
++        dashboardConfig.enabledPages[DASHBOARD_PAGE_RAD] = pages["rad"].as<bool>();
++    }
++    if (!pages["quest"].isNull()) {
++        dashboardConfig.enabledPages[DASHBOARD_PAGE_QUEST] = pages["quest"].as<bool>();
++    }
++    if (!pages["system"].isNull()) {
++        dashboardConfig.enabledPages[DASHBOARD_PAGE_SYSTEM] = pages["system"].as<bool>();
++    }
+ }
+@@ -569,2 +569,3 @@ bool loadJsonFile(const char *path, TObject object) {
+ 
++void applyQuestsConfig(JsonArrayConst quests);
+ void applyConfigObject(JsonObjectConst root) {
+@@ -640,2 +662,3 @@ void applyConfigObject(JsonObjectConst root) {
+     }
++    applyQuestsConfig(root["quests"].as<JsonArrayConst>());
+     normalizeConfig();
+@@ -643,2 +666,27 @@ void applyConfigObject(JsonObjectConst root) {
+ 
++void applyQuestsConfig(JsonArrayConst quests) {
++    if (quests.isNull()) {
++        return;
++    }
++
++    uint8_t questIndex = 0;
++    for (JsonObjectConst quest : quests) {
++        if (questIndex >= DASHBOARD_QUEST_COUNT) {
++            break;
++        }
++
++        if (!quest["title"].isNull()) {
++            copyString(dashboardConfig.questTitles[questIndex],
++                       sizeof(dashboardConfig.questTitles[questIndex]),
++                       quest["title"]);
++        }
++        if (!quest["date"].isNull()) {
++            copyString(dashboardConfig.questDates[questIndex],
++                       sizeof(dashboardConfig.questDates[questIndex]),
++                       quest["date"]);
++        }
++        ++questIndex;
++    }
++}
++
+ void applyWeatherObject(JsonObjectConst weather) {
+@@ -1114,2 +1162,8 @@ const char* dashboardPageName(uint8_t pageId) {
+             return "gif";
++        case DASHBOARD_PAGE_RAD:
++            return "rad";
++        case DASHBOARD_PAGE_QUEST:
++            return "quest";
++        case DASHBOARD_PAGE_SYSTEM:
++            return "system";
+         default:
+diff --git a/src/dashboard.h b/src/dashboard.h
+index d42f92b..a36b03f 100644
+--- a/src/dashboard.h
++++ b/src/dashboard.h
+@@ -21,2 +21,5 @@ enum DashboardPageId : uint8_t {
+     DASHBOARD_PAGE_QUOTE,
++    DASHBOARD_PAGE_RAD,
++    DASHBOARD_PAGE_QUEST,
++    DASHBOARD_PAGE_SYSTEM,
+     DASHBOARD_PAGE_COUNT
+@@ -111,3 +114,7 @@ struct StatusData {
+ 
++#define DASHBOARD_QUEST_COUNT 3
++
+ struct DashboardConfig {
++    char questTitles[DASHBOARD_QUEST_COUNT][24];
++    char questDates[DASHBOARD_QUEST_COUNT][11];
+     uint16_t version;
+@@ -138,3 +145,22 @@ struct DashboardConfig {
+ 
++struct RadData {
++    bool valid;
++    int europeanAqi;
++    int pm25;
++    int pm10;
++    int pollen;
++    char updatedAt[6];
++};
++
++struct SystemStatusData {
++    int rssi;
++    uint32_t freeHeap;
++    uint32_t uptimeSeconds;
++    char ip[16];
++    char version[12];
++};
++
+ struct DashboardData {
++    RadData rad;
++    SystemStatusData systemStatus;
+     WeatherData weather;
+diff --git a/src/display.cpp b/src/display.cpp
+index 469f605..abfbf23 100644
+--- a/src/display.cpp
++++ b/src/display.cpp
+@@ -121,2 +121,4 @@ uint8_t selectedItemIndex = 0;
+ uint8_t dashboardItemCount(uint8_t pageId);
++bool hasRadContent();
++bool hasQuestContent();
+ uint8_t dashboardItemSlot(uint8_t pageId);
+@@ -1106,2 +1108,8 @@ bool dashboardPageHasRenderableContent(uint8_t pageId) {
+             return true;
++        case DASHBOARD_PAGE_RAD:
++            return hasRadContent();
++        case DASHBOARD_PAGE_QUEST:
++            return hasQuestContent();
++        case DASHBOARD_PAGE_SYSTEM:
++            return true;
+         default:

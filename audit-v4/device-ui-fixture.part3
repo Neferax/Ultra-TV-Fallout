@@ -1,0 +1,50 @@
+            }
+        }
+    }
+    void drawString(const String&s,int x,int y,int f) {
+        int w=textWidth(s,f),h=fontHeight(f);
+        if(datum==TC_DATUM||datum==MC_DATUM)x-=w/2;
+        else if(datum==TR_DATUM)x-=w;
+        if(datum==MC_DATUM)y-=h/2;
+        if(collectDraws)textDraws.push_back({s,x,y,w,h,f,textSize,foreground});
+        for(unsigned char c:s){glyph(c,x,y,f);x+=charWidth(c,f)*textSize;}
+    }
+    void save(const std::string&path) {
+        std::ofstream out(path,std::ios::binary);out<<"P6\n"<<width<<" "<<height<<"\n255\n";
+        for(uint16_t c:pixels){char rgb[]={char(((c>>11)&31)*255/31),char(((c>>5)&63)*255/63),char((c&31)*255/31)};out.write(rgb,3);}
+    }
+} tft;
+struct Sprite : Canvas {
+    uint16_t mappedForeground=0xffff,mappedBackground=0;
+    std::vector<TextDraw> spriteDraws;
+    Sprite(){width=216;height=64;pixels.resize(width*height);}
+    void setBitmapColor(uint16_t f,uint16_t b){mappedForeground=f;mappedBackground=b;}
+    void fillSprite(int c){fillScreen(c);spriteDraws.clear();}
+    void drawString(const String&s,int x,int y,int f) {
+        size_t before=textDraws.size();Canvas::drawString(s,x,y,f);
+        if(collectDraws){spriteDraws.push_back(textDraws.back());textDraws.resize(before);}
+    }
+    bool pushSprite(int x,int y,int sx=0,int sy=0,int w=216,int h=64) {
+        for(int yy=0;yy<h;++yy)for(int xx=0;xx<w;++xx)tft.pixel(x+xx,y+yy,pixels[(sy+yy)*width+sx+xx]?mappedForeground:mappedBackground);
+        for(auto draw:spriteDraws){draw.x+=x-sx;draw.y+=y-sy;textDraws.push_back(draw);}return true;
+    }
+} clockDynamicSprite;
+DashboardConfig dashboardConfig{};
+DashboardData dashboardData{};
+FeedConfig feedConfig{};
+FeedRuntimeState feedRuntime{};
+struct {char ipInfo[24]="192.168.16.218";bool apMode=false;uint8_t currentPage=0;} displayState;
+uint8_t selectedItemPage=DASHBOARD_PAGE_COUNT,selectedItemIndex=0;
+bool spriteAvailable=true,emptyData=false;
+uint32_t fixtureMillis=120000;uint32_t millis(){return fixtureMillis;}
+bool feedsHomeAssistantConfigured(){return feedConfig.homeAssistant.enabled;}
+bool feedsHasHomeAssistantData(){return feedRuntime.homeAssistant.hasData;}
+bool feedsWeatherConfigured(){return true;}
+bool feedsMarketConfigured(uint8_t i){return feedConfig.markets[i].source!=MARKET_FEED_DISABLED;}
+uint8_t feedsWeatherSource(){return feedConfig.weather.source;}
+uint8_t feedsMarketSource(uint8_t i){return feedConfig.markets[i].source;}
+bool feedsWeatherUsesFahrenheit(){return feedConfig.weather.useFahrenheit;}
+bool feedsHasWeatherData(){return feedRuntime.weather.hasData;}
+bool feedsHasMarketData(uint8_t i){return feedRuntime.markets[i].hasData;}
+const WeatherData *feedsWeatherData(){return feedRuntime.weather.hasData?&feedRuntime.weather.data:nullptr;}
+const MarketData *feedsMarketData(uint8_t i){return feedRuntime.markets[i].hasData?&feedRuntime.markets[i].data:nullptr;}

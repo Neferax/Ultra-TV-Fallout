@@ -1,0 +1,57 @@
+diff --git a/src/display.cpp b/src/display.cpp
+index 1596b3f..5c65068 100644
+--- a/src/display.cpp
++++ b/src/display.cpp
+@@ -1242,12 +1242,18 @@ void renderRadPage() {
+ 
+     const char *level = "GUT";
+     uint16_t levelColor = 0x07E0;
+-    if (rad->europeanAqi > 60) {
++    if (rad->europeanAqi > 100) {
++        level = "EXTREM";
++        levelColor = 0xF800;
++    } else if (rad->europeanAqi > 80) {
+         level = "KRITISCH";
+         levelColor = 0xF800;
+-    } else if (rad->europeanAqi > 40) {
++    } else if (rad->europeanAqi > 60) {
+         level = "SCHLECHT";
+         levelColor = 0xFD20;
++    } else if (rad->europeanAqi > 40) {
++        level = "MITTEL";
++        levelColor = 0xFD20;
+     } else if (rad->europeanAqi > 20) {
+         level = "MAESSIG";
+         levelColor = 0xFFE0;
+@@ -1347,7 +1353,7 @@ void renderSystemPage() {
+     drawDisplayLabel(line, 12, 118, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+     snprintf(line, sizeof(line), "IP %s", status.ip[0] ? status.ip : "...");
+     drawDisplayLabel(line, 12, 144, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+-    snprintf(line, sizeof(line), "OS %s", status.version[0] ? status.version : "2.4.1");
++    snprintf(line, sizeof(line), "OS %s", status.version[0] ? status.version : "2.4.2");
+     drawDisplayLabel(line, 12, 170, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
+ }
+ 
+@@ -1851,7 +1857,8 @@ void renderWeatherPage() {
+                 12,y,216,TL_DATUM,theme.accent,FONT_LABEL);
+             String c=day.condition; c.toLowerCase();
+             if(c.indexOf("partly")>=0)c="WOLKIG";
+-            else if(c.indexOf("cloud")>=0||c.indexOf("overcast")>=0)c="WOLKIG";
++            else if(c.indexOf("overcast")>=0)c="BEWOELKT";
++            else if(c.indexOf("cloud")>=0)c="WOLKIG";
+             else if(c.indexOf("clear")>=0)c="KLAR";
+             else if(c.indexOf("rain")>=0||c.indexOf("shower")>=0)c="REGEN";
+             else if(c.indexOf("drizzle")>=0)c="NIESEL";
+diff --git a/src/settings.h b/src/settings.h
+index 5199474..d98ca26 100644
+--- a/src/settings.h
++++ b/src/settings.h
+@@ -11,7 +11,7 @@
+ 
+ // Semantic firmware release version
+ #ifndef FIRMWARE_VERSION_STRING
+-#define FIRMWARE_VERSION_STRING "2.4.1"
++#define FIRMWARE_VERSION_STRING "2.4.2"
+ #endif
+ 
+ struct Settings {

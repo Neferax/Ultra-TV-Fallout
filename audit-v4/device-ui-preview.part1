@@ -1,0 +1,42 @@
+"""Run actual screen layouts with TFT font bitmaps; verify bounds and save previews."""
+from pathlib import Path
+import argparse
+import re
+import subprocess
+import tempfile
+from PIL import Image, ImageDraw
+
+root = Path(__file__).resolve().parents[1]
+parser = argparse.ArgumentParser()
+parser.add_argument('--output', type=Path, default=Path('/tmp/geekmagic-device-ui'))
+args = parser.parse_args()
+args.output.mkdir(parents=True, exist_ok=True)
+source = (root / 'src/display.cpp').read_text()
+
+def function(name):
+    match = re.search(r'^(?:std::vector<String>|String|bool|void|int|char|uint8_t|uint32_t|const WeatherData\*|const MarketData\*|const RadData\*)\s*' + name + r'\([^;{]*\)\s*\{', source, re.M)
+    assert match, name
+    start = source.index('{', match.start())
+    end, depth = start + 1, 1
+    while depth:
+        depth += (source[end] == '{') - (source[end] == '}')
+        end += 1
+    prefix = 'template <typename TCanvas>\n' if name in ['chooseCanvasFittingFont', 'drawClockTime'] else ''
+    if name == 'hashValue':
+        prefix = 'template <typename TValue>\n'
+    return match.start(), prefix + source[match.start():end]
+
+names = '''formatPipboyGermanDate trimTrailingZeros groupThousands formatDuration focusProgressWidth
+formatRelativeCountdown formatUtcOffset formatClockMetaLine updateClockMetaCache
+fontSupportsText chooseCanvasFittingFont drawClockTime headerSubtitle wrapText
+drawWrappedCenteredText chooseFittingFont drawAdaptiveText fitDisplayLabel
+drawDisplayLabel drawHeroText drawItemPosition footerClockText updateFooterClock drawScreenChrome drawPlaceholder
+effectiveWeatherData weatherWaitingForSync weatherUnitSymbol formatWeatherTemperature
+effectiveMarketData marketCurrencyPrefix formatMarketPriceValue formatMarketPrice
+marketChangeWindowLabel marketWaitingForSync anyMarketsWaitingForSync
+dashboardPageHasRenderableContent dashboardPageAvailable firstAvailableDashboardPage
+nextAvailableDashboardPage dashboardItemEnabled dashboardItemLimit dashboardItemCount
+normalizeDashboardItem dashboardItemSlot hashBytes hashValue hashCString hashMarketData
+hashHomeAssistantData hashWorldClockData dashboardDynamicHash updateClockDynamicArea drawDynamicText
+updateFocusDynamicArea updateWorldDynamicArea updateEventDynamicArea renderClockPage
+renderWeatherPage renderMarketsPage drawHomeAssistantValue renderHomePage renderFocusPage

@@ -1,0 +1,420 @@
+name: SmallTV Ultra Fallout firmware build
+
+on:
+  push:
+    branches:
+      - planning/initial-architecture
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Fallout patch repository
+        uses: actions/checkout@v4
+        with:
+          path: fallout
+
+      - name: Checkout verified SmallTV Ultra upstream
+        uses: actions/checkout@v4
+        with:
+          repository: iodn/geekmagic-tv-esp8266
+          ref: 6113fb9c86e2e2024883253fd99a3d2550ffccb2
+          path: firmware
+          fetch-depth: 1
+
+      - name: Verify expected upstream renderer
+        working-directory: firmware
+        run: |
+          ACTUAL="$(git rev-parse HEAD:src/display.cpp)"
+          EXPECTED="ef482ea3cc556eb414fff6178fcc7a4d136563a9"
+          echo "display.cpp blob: $ACTUAL"
+          test "$ACTUAL" = "$EXPECTED"
+
+      - name: Apply full Fallout Pip-Boy clock and weather renderers
+        run: python fallout/scripts/apply_pipboy_renderer.py firmware/src/display.cpp
+
+      - name: Add constrained GIF decoder compile probe
+        working-directory: firmware
+        run: |
+          mkdir -p lib/AnimatedGIF
+          cp -R ../fallout/lib/AnimatedGIF/* lib/AnimatedGIF/
+          cp ../fallout/firmware/gif_decoder_probe.cpp src/gif_decoder_probe.cpp
+          cp ../fallout/firmware/gif_player.cpp src/gif_player.cpp
+          cp ../fallout/firmware/gif_player.h src/gif_player.h
+
+      - name: Integrate GIF album page, upload route and feed-safe scheduling
+        working-directory: firmware
+        run: git apply --check ../fallout/patches/0002-gif-player-integration.patch && git apply ../fallout/patches/0002-gif-player-integration.patch
+
+      - name: Add multi-day weather forecast and stable RADIO rendering
+        run: python fallout/scripts/apply_forecast_and_stable_radio.py firmware
+      - name: Add detailed current weather data for DATA page 1/2
+        run: python fallout/scripts/apply_weather_detail_fields.py firmware
+
+      - name: Improve weather readability and add built-in Pip-Boy animation
+        run: python fallout/scripts/apply_readable_ui_and_builtin_animation.py firmware
+      - name: Apply v7 readable weather and real GIF transitions
+        run: python fallout/scripts/apply_readable_weather_and_real_gif_transitions.py firmware
+
+      - name: Apply complete Pip-Boy V2 display redesign
+        run: python fallout/scripts/apply_pipboy_v2.py firmware
+
+      - name: Apply Pip-Boy V3 German date and readable weather typography
+        run: python fallout/scripts/apply_pipboy_v3.py firmware
+
+      - name: Apply Build 382 weather layout and RADIO animation recovery
+        run: python fallout/scripts/apply_build382_fixes.py firmware
+      - name: Fix native preview extraction for the German date formatter
+        run: python fallout/scripts/fix_native_date_preview.py firmware
+
+      - name: Apply Pip-Boy V4 pages, boot splash and system telemetry
+        run: |
+          for part in 0003-pipboy-v4-pages-01 0003-pipboy-v4-pages-02 0003-pipboy-v4-pages-03 0003-pipboy-v4-pages-04 0003-pipboy-v4-pages-05 0003-pipboy-v4-pages-06 0003-pipboy-v4-pages-07; do
+            git -C firmware apply --check "../fallout/patches/$part.patch"
+            git -C firmware apply "../fallout/patches/$part.patch"
+          done
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PlatformIO and preview dependencies
+        run: python -m pip install --upgrade platformio Pillow
+
+      - name: Download and normalize a Vault Boy animation for the constrained GIF decoder
+        run: |
+          mkdir -p firmware/data/gif
+          curl --fail --location --retry 3 \
+            'https://media3.giphy.com/media/W4dICb7X8m8bpl3mIY/200.gif' \
+            --output firmware/data/gif/bethesda-vaultboy.gif
+          test -s firmware/data/gif/bethesda-vaultboy.gif
+          mkdir -p fallout/package
+          python fallout/scripts/prepare_compatible_gif.py firmware/data/gif/bethesda-vaultboy.gif fallout/package/bethesda-vaultboy.gif
+          file fallout/package/bethesda-vaultboy.gif
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          path = Path("fallout/package/bethesda-vaultboy.gif")
+          with Image.open(path) as gif:
+              if gif.size != (104, 104) or gif.n_frames < 2:
+                  raise SystemExit("Bundled Vault Boy must be a multi-frame 104x104 GIF")
+              if gif.info.get("transparency") is not None:
+                  raise SystemExit("Bundled Vault Boy GIF must be opaque")
+              frames = set()
+              duration = 0
+              for index in range(gif.n_frames):
+                  gif.seek(index)
+                  if gif.info.get("transparency") is not None:
+                      raise SystemExit(f"Bundled GIF frame {index} is transparent")
+                  if not gif.tile or gif.tile[0][1] != (0, 0, 104, 104):
+                      raise SystemExit(f"Bundled GIF frame {index} is not full-canvas")
+                  frames.add(gif.convert("RGB").tobytes())
+                  duration += gif.info.get("duration", 0)
+              if len(frames) < 2 or duration <= 0:
+                  raise SystemExit("Bundled Vault Boy animation has no visible frame changes")
+              print(f"Bundled GIF verified: {gif.n_frames} full-canvas frames, {len(frames)} unique, {duration} ms")
+          PY
+          python fallout/scripts/embed_bundled_gif.py firmware fallout/package/bethesda-vaultboy.gif
+
+      - name: Compile ESP8266 firmware before native renderer audit
+        working-directory: firmware
+        run: pio run -e nodemcuv2
+
+      - name: Stage compiled ESP8266 application firmware
+        run: |
+          mkdir -p fallout/package
+          test -s firmware/.pio/build/nodemcuv2/firmware.bin
+          cp firmware/.pio/build/nodemcuv2/firmware.bin fallout/package/smalltv-ultra-fallout.bin
+          ls -lh fallout/package/smalltv-ultra-fallout.bin
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          gif_path = Path("fallout/package/bethesda-vaultboy.gif")
+          gif = gif_path.read_bytes()
+          firmware = Path("fallout/package/smalltv-ultra-fallout.bin").read_bytes()
+          if gif not in firmware:
+              raise SystemExit("Firmware image does not contain the exact bundled GIF payload")
+          with Image.open(gif_path) as animation:
+              for index in range(animation.n_frames):
+                  animation.seek(index)
+                  rgb = animation.convert("RGB")
+                  frame = bytearray()
+                  for red, green, blue in rgb.getdata():
+                      value = ((red >> 3) << 11) | ((green >> 2) << 5) | (blue >> 3)
+                      frame.extend((value & 0xFF, value >> 8))
+                  if bytes(frame) not in firmware:
+                      raise SystemExit(f"Firmware image is missing predecoded RGB565 RADIO frame {index}")
+          print(f"Firmware verified: {len(gif)} GIF bytes and all predecoded frames embedded in {len(firmware)} bytes")
+          PY
+
+      - name: Verify bundled GIF is embedded and installed at boot
+        working-directory: firmware
+        run: |
+          test -s src/bundled_gif.h
+          grep -q 'gifPlayerInstallBundledAsset' src/gif_player.cpp
+          grep -q 'gifPlayerInstallBundledAsset()' src/main.cpp
+          grep -q 'kBundledVaultBoyGifCrc32' src/gif_player.cpp
+          echo "Verified: GIF payload is compiled into the application and copied into LittleFS at boot."
+
+      - name: Render and test native 240x240 firmware pages
+        run: |
+          cat fallout/audit-v4/device-ui-preview.part* > firmware/audit/device-ui-preview.py
+          cat fallout/audit-v4/device-ui-fixture.part* > firmware/audit/device-ui-fixture.h
+          set +e
+          python firmware/audit/device-ui-preview.py --output firmware/pipboy-preview 2>&1 | tee /tmp/preview.log
+          preview_status=${PIPESTATUS[0]}
+          set -e
+          if [ "$preview_status" -ne 0 ]; then
+            echo "::error::Pip-Boy V4 preview failed with exit code $preview_status"
+            python3 -c "import pathlib,urllib.parse;log=pathlib.Path('/tmp/preview.log').read_text(errors='replace');print('::error::'+urllib.parse.quote(log[-3400:],safe=' '))"
+            exit 1
+          fi
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageDraw
+          src = Path("firmware/pipboy-preview")
+          out = Path("fallout/package")
+          out.mkdir(parents=True, exist_ok=True)
+          pages = [("STAT", 0), ("DATA", 1), ("RADIO", 2), ("MARKETS", 3), ("HOME", 4), ("FOCUS", 5), ("WORLD", 6), ("EVENT", 7), ("QUOTE", 8), ("RAD", 9), ("QUESTS", 10), ("SYSTEM", 11)]
+          board = Image.new("RGB", (3 * 240 + 6 * 24, 4 * 300), "#050805")
+          draw = ImageDraw.Draw(board)
+          for i, (label, page) in enumerate(pages):
+              ppm = src / f"theme-0-page-{page}.ppm"
+              image = Image.open(ppm).convert("RGB")
+              if image.size != (240, 240):
+                  raise SystemExit(f"{label}: unexpected render size {image.size}")
+              image.save(out / f"PipBoy-{label}-240x240.png")
+              x = 24 + (i % 3) * 288
+              y = 36 + (i // 3) * 300
+              board.paste(image, (x, y))
+              draw.text((x, y - 24), label, fill="#8cff79")
+          forecast = Image.open(src / "pipboy-weather-forecast.ppm").convert("RGB")
+          if forecast.size != (240, 240):
+              raise SystemExit(f"DATA forecast: unexpected render size {forecast.size}")
+          forecast.save(out / "PipBoy-DATA-3-Day-Forecast-240x240.png")
+          board.save(out / "PipBoy-SmallTV-Redesign-Preview.png")
+          print("Native firmware preview saved: 12 pages plus DATA 3-day forecast")
+          PY
+
+      - name: Verify compact GIF viewport and page transitions
+        working-directory: firmware
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          gif = Path("src/gif_player.cpp").read_text()
+          main = Path("src/main.cpp").read_text()
+          display = Path("src/display.cpp").read_text()
+          feeds = Path("src/feeds.cpp").read_text()
+          required = [
+              "kGifViewportWidth = 104",
+              "kGifViewportHeight = 104",
+              "canvasOriginY = static_cast<int16_t>(76 + (104 - scaledCanvasHeight) / 2)",
+          ]
+          for token in required:
+              if token not in gif:
+                  raise SystemExit(f"GIF viewport check failed: {token}")
+          if "displayState.currentPage == DASHBOARD_PAGE_GIF" not in main:
+              raise SystemExit("GIF playback is not restricted to the archive page")
+          if "displayInvalidateRenderCache();" not in main:
+              raise SystemExit("Leaving the GIF archive does not force a clean page redraw")
+          if "gifTransitionUntilMs" in main or "gifTransitionActive" in main:
+              raise SystemExit("GIF page-transition overlay must remain disabled")
+          if "void renderWeatherPage()" not in display or "DATA // HEUTE" not in display or "DATA // 3 TAGE" not in display:
+              raise SystemExit("Split German weather renderer missing")
+          for token in ["GEF.", "FEUCHTE", "BOEEN", "KM/H", "REGEN ", "CHANCE ", "SONNE "]:
+              if token not in display:
+                  raise SystemExit(f"Current weather detail missing: {token}")
+          if "drawDisplayLabel(windValue" in display or "drawDisplayLabel(gustValue" in display:
+              raise SystemExit("Legacy weather cell layout unexpectedly returned")
+          if "SONNE " not in display or "weather->sunrise" not in display or "weather->sunset" not in display:
+              raise SystemExit("Sunrise/sunset row is missing from the current weather layout")
+          if "clearPreviousGifFrame" in gif or "gifLoopClearPending" in gif or "previousFrameDisposal" in gif:
+              raise SystemExit("Opaque full-frame GIF renderer must not clear between frames")
+          if "line->iWidth != canvasWidth" not in gif or "line->ucHasTransparency" not in gif:
+              raise SystemExit("Strict opaque full-frame GIF validation missing")
+          if "rejectedGifPaths[currentGifIndex]=true" not in gif or "if(rejectedGifPaths[selected])continue;" not in gif:
+              raise SystemExit("Unsupported GIF entries are not skipped safely")
+          if "fallbackAnimationActive" in gif and "fallbackFrameAtMs" not in gif:
+              raise SystemExit("RADIO fallback animation has no frame scheduler")
+          if "&wind_speed_unit=kmh&precipitation_unit=mm" not in feeds:
+              raise SystemExit("Weather API units must be explicitly pinned to km/h and mm")
+          if "return decoder != nullptr || fallbackAnimationActive || bundledAnimationActive;" not in gif:
+              raise SystemExit("GIF activity state must include bundled sprites and RADIO fallback")
+          if "kBundledVaultBoyFrames" not in gif or "pushImage(68,76+y,104,1,row)" not in gif:
+              raise SystemExit("Heap-free bundled RADIO sprite playback is missing")
+          if "Bundled Vault Boy sprite animation started" not in gif:
+              raise SystemExit("Bundled RADIO GIF is not selected for predecoded playback")
+          if "gifPlayerStartNext(*d)" not in gif:
+              raise SystemExit("RADIO fallback must advance to the next archive entry")
+          if '120, 184, 220, TC_DATUM' not in display:
+              raise SystemExit("RADIO archive label must remain below the 104px GIF viewport")
+          print("Verified: embedded GIF asset, heap-free bundled sprite playback, uploaded-GIF decoder, compact viewport and weather renderer")
+          PY
+
+      - name: Test GIF conversion with synthetic multi-frame animation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import subprocess
+          import tempfile
+
+          converter = Path("fallout/scripts/prepare_compatible_gif.py")
+          with tempfile.TemporaryDirectory() as folder:
+              folder = Path(folder)
+              source = folder / "source.gif"
+              output = folder / "compatible.gif"
+              frames = [Image.new("RGB", (240, 240), (v, v, v)) for v in (0, 64, 128, 255)]
+              frames[0].save(source, format="GIF", save_all=True, append_images=frames[1:],
+                             duration=[80, 100, 120, 140], loop=0, disposal=2, optimize=False)
+              subprocess.run(["python", str(converter), str(source), str(output)], check=True)
+              with Image.open(output) as gif:
+                  assert gif.size == (104, 104), gif.size
+                  assert gif.n_frames == 4, gif.n_frames
+                  assert gif.info.get("transparency") is None
+                  observed = []
+                  for index in range(gif.n_frames):
+                      gif.seek(index)
+                      assert gif.info.get("transparency") is None
+                      assert gif.tile and gif.tile[0][1] == (0, 0, 104, 104), (index, gif.tile)
+                      pixel = gif.convert("RGB").getpixel((52, 52))
+                      observed.append(pixel)
+                  assert observed[0][0] == 0 and observed[-1][0] == 255, observed
+                  assert observed == sorted(observed, key=lambda p: p[0]), observed
+              print("GIF converter test passed: 4 full-canvas frames, opaque, source colors retained")
+
+              # A second source contains a transparent background and moving partial frames.
+              # The output must flatten transparency to black and expand every frame to 104x104.
+              transparent_source = folder / "transparent.gif"
+              flattened_output = folder / "flattened.gif"
+              partial_frames = []
+              for x in (20, 60, 100, 140):
+                  frame = Image.new("P", (240, 240), 0)
+                  frame.putpalette([0, 0, 0, 255, 255, 255] + [0, 0, 0] * 254)
+                  from PIL import ImageDraw
+                  ImageDraw.Draw(frame).rectangle((x, 50, x + 40, 190), fill=1)
+                  partial_frames.append(frame)
+              partial_frames[0].save(transparent_source, format="GIF", save_all=True,
+                                     append_images=partial_frames[1:], duration=[100] * 4,
+                                     loop=0, transparency=0, disposal=2, optimize=False)
+              subprocess.run(["python", str(converter), str(transparent_source), str(flattened_output)], check=True)
+              with Image.open(flattened_output) as gif:
+                  assert gif.size == (104, 104) and gif.n_frames == 4
+                  assert gif.info.get("transparency") is None
+                  for index in range(gif.n_frames):
+                      gif.seek(index)
+                      assert gif.tile and gif.tile[0][1] == (0, 0, 104, 104), (index, gif.tile)
+                      assert gif.info.get("transparency") is None
+                      assert gif.convert("RGB").getpixel((0, 0)) == (0, 0, 0)
+              print("GIF transparency test passed: moving partial source frames flattened to opaque full frames")
+
+              # Verify that independent color channels survive the converter.
+              color_source = folder / "color.gif"
+              color_output = folder / "color-compatible.gif"
+              color = Image.new("RGB", (240, 240), (0, 0, 0))
+              from PIL import ImageDraw
+              draw = ImageDraw.Draw(color)
+              draw.rectangle((0, 0, 119, 239), fill=(245, 35, 20))
+              draw.rectangle((120, 0, 239, 239), fill=(20, 65, 245))
+              color.save(color_source, format="GIF")
+              subprocess.run(["python", str(converter), str(color_source), str(color_output)], check=True)
+              with Image.open(color_output) as gif:
+                  converted = gif.convert("RGB")
+                  red = converted.getpixel((25, 52))
+                  blue = converted.getpixel((78, 52))
+                  assert red[0] > red[2] * 3, red
+                  assert blue[2] > blue[0] * 3, blue
+              print("GIF color test passed: red and blue source regions remain red and blue")
+
+              # The decoder has a small archive footprint. Long source animations
+              # must be sampled to 36 frames without losing total playback time.
+              long_source = folder / "long-animation.gif"
+              long_output = folder / "long-animation-compatible.gif"
+              long_frames = []
+              for index in range(40):
+                  frame = Image.new("RGB", (240, 240), (0, 0, 0))
+                  from PIL import ImageDraw
+                  ImageDraw.Draw(frame).rectangle((index * 5, 80, index * 5 + 24, 160),
+                                                  fill=(255, 255, 255))
+                  long_frames.append(frame)
+              long_frames[0].save(long_source, format="GIF", save_all=True,
+                                  append_images=long_frames[1:], duration=[100] * 40,
+                                  loop=0, disposal=2, optimize=False)
+              subprocess.run([ "python", str(converter), str(long_source), str(long_output) ],
+                             check=True)
+              with Image.open(long_output) as gif:
+                  assert gif.n_frames == 36, gif.n_frames
+                  total_duration = 0
+                  for index in range(gif.n_frames):
+                      gif.seek(index)
+                      total_duration += gif.info.get("duration", 0)
+                  assert total_duration == 4000, total_duration
+              assert long_output.stat().st_size <= 300 * 1024
+              print("GIF frame-cap test passed: 40 source frames sampled to 36, 4-second duration preserved")
+          PY
+
+      - name: Create an honest RADIO preview from the decoder-compatible bundled GIF frame
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          package = Path("fallout/package")
+          gif = Image.open(package / "bethesda-vaultboy.gif")
+          gif.seek(0)
+          frame = gif.convert("RGB")
+          if frame.size != (104, 104):
+              raise SystemExit(f"Unexpected bundled GIF size: {frame.size}")
+          viewport = frame
+          radio = Image.open(package / "PipBoy-RADIO-240x240.png").convert("RGB")
+          radio.paste(viewport, (68, 76))
+          radio.save(package / "PipBoy-RADIO-GIF-FRAME-01.png")
+          board = Image.open(package / "PipBoy-SmallTV-Redesign-Preview.png").convert("RGB")
+          board.paste(radio, (600, 36))
+          from PIL import ImageDraw
+          draw = ImageDraw.Draw(board)
+          draw.rectangle((600, 8, 840, 29), fill="#050805")
+          draw.text((600, 12), "RADIO // GIF FRAME 01", fill="#8cff79")
+          board.save(package / "PipBoy-SmallTV-Redesign-Preview.png")
+          print("RADIO preview uses frame 1 from the exact bundled GIF in its original colors; native renderer capture remains separately available.")
+          PY
+
+      - name: Add minimal OTA loader source and build target
+        working-directory: firmware
+        run: |
+          cp ../fallout/firmware/loader.cpp src/loader.cpp
+          cat >> platformio.ini <<'EOF'
+
+          [env:nodemcuv2_loader]
+          platform = espressif8266@4.2.1
+          board = nodemcuv2
+          framework = arduino
+          build_flags = -D LOADER_BUILD
+          build_src_filter = -<*> +<loader.cpp>
+          monitor_speed = 115200
+          EOF
+
+      - name: Compile OTA loader
+        working-directory: firmware
+        run: pio run -e nodemcuv2_loader
+
+      - name: Upload loader, firmware and native display previews
+        uses: actions/upload-artifact@v4
+        with:
+          name: smalltv-ultra-fallout-install-package
+          path: |
+            firmware/.pio/build/nodemcuv2_loader/firmware.bin
+            fallout/package/smalltv-ultra-fallout.bin
+            fallout/package/bethesda-vaultboy.gif
+            fallout/package/PipBoy-STAT-240x240.png
+            fallout/package/PipBoy-DATA-240x240.png
+            fallout/package/PipBoy-DATA-3-Day-Forecast-240x240.png
+            fallout/package/PipBoy-RADIO-240x240.png
+            fallout/package/PipBoy-RADIO-GIF-FRAME-01.png
+            fallout/package/PipBoy-SmallTV-Redesign-Preview.png
+          if-no-files-found: error
+          retention-days: 14

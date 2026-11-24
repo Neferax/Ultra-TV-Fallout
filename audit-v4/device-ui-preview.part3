@@ -1,0 +1,42 @@
+ strcpy(dashboardConfig.questTitles[0],"NEUJAHR");strcpy(dashboardConfig.questDates[0],"2027-01-01");
+ strcpy(dashboardConfig.questTitles[1],"LIAN BDAY");strcpy(dashboardConfig.questDates[1],"2026-12-09");
+ dashboardData.systemStatus.rssi=-62;dashboardData.systemStatus.freeHeap=18800;dashboardData.systemStatus.uptimeSeconds=8721;
+ strcpy(dashboardData.systemStatus.ip,"192.168.16.218");strcpy(dashboardData.systemStatus.version,"2.4.0");
+}
+int main(int argc,char**argv){
+ assert(argc==2);fixture();
+ for(int theme=0;theme<DASHBOARD_THEME_COUNT;++theme){dashboardConfig.theme=theme;
+  for(int page=0;page<DASHBOARD_PAGE_COUNT;++page){displayState.currentPage=page;normalizeDashboardItem();textDraws.clear();renderDashboardPage();checkBounds();checkTextCollisions();
+   if(page == DASHBOARD_PAGE_CLOCK) assert(hasDraw("12:34"));
+   // Pip-Boy V2 intentionally has no footer clock.
+   tft.save(std::string(argv[1])+"/theme-"+std::to_string(theme)+"-page-"+std::to_string(page)+".ppm");
+   if(page==DASHBOARD_PAGE_WEATHER){fixtureMillis=132000;textDraws.clear();renderDashboardPage();checkBounds();checkTextCollisions();tft.save(std::string(argv[1])+"/pipboy-weather-forecast.ppm");fixtureMillis=120000;}
+   if(page==DASHBOARD_PAGE_MARKETS){assert(hasDraw("Bitcoin")&&!hasDraw("Microsoft"));for(auto&d:textDraws){if(d.text=="Bitcoin")assert(d.x==8&&d.y==8&&d.font==FONT_BODY&&d.color==activeTheme().accent);if(d.text=="BTC")assert(d.y==40&&d.font==FONT_LABEL&&d.color==activeTheme().muted);}for(auto&d:textDraws)if(d.text=="+2.54%")assert(d.h>=52);}
+   if(page==DASHBOARD_PAGE_WEATHER){assert(hasDraw("DATA"));}
+   if(page==DASHBOARD_PAGE_RAD)assert(hasDraw("23"));
+   if(page==DASHBOARD_PAGE_QUEST)assert(hasDraw("NEUJAHR"));
+   if(page==DASHBOARD_PAGE_SYSTEM)assert(hasDraw("UPTIME 02:25:21"));
+  }
+ }
+ // Legacy footer-clock cache tests are not applicable to Pip-Boy V2.
+ // Every available item is visited before advancing sections, including a single-section setup.
+ for(auto &e:dashboardConfig.enabledPages)e=false;dashboardConfig.enabledPages[DASHBOARD_PAGE_MARKETS]=true;
+ displayState.currentPage=DASHBOARD_PAGE_MARKETS;normalizeDashboardItem();selectedItemIndex=0;
+ for(int expected:{1,2,0}){displayCycleNextPage(false);assert(displayState.currentPage==DASHBOARD_PAGE_MARKETS&&selectedItemIndex==expected);}
+ uint32_t before=2166136261;hashMarketData(before);
+ feedRuntime.markets[1].data.price+=100;uint32_t after=2166136261;hashMarketData(after);assert(before==after);
+ feedRuntime.markets[0].data.price+=100;after=2166136261;hashMarketData(after);assert(before!=after);
+ feedRuntime.markets[0].data.enabled=false;feedRuntime.markets[1].data.enabled=false;selectedItemIndex=2;normalizeDashboardItem();assert(selectedItemIndex==0&&dashboardItemSlot(DASHBOARD_PAGE_MARKETS)==2);
+ displayState.currentPage=DASHBOARD_PAGE_HOME;normalizeDashboardItem();feedConfig.homeAssistant.slots[0].enabled=false;feedConfig.homeAssistant.slots[2].enabled=false;
+ assert(dashboardItemCount(DASHBOARD_PAGE_HOME)==2);assert(dashboardItemSlot(DASHBOARD_PAGE_HOME)==1);selectedItemIndex=1;assert(dashboardItemSlot(DASHBOARD_PAGE_HOME)==3);
+ displayState.currentPage=DASHBOARD_PAGE_WORLD;normalizeDashboardItem();
+ uint32_t worldBefore=dashboardDynamicHash(DASHBOARD_PAGE_WORLD);
+ dashboardData.worldClocks[1].offsetSeconds=32400;assert(dashboardDynamicHash(DASHBOARD_PAGE_WORLD)==worldBefore);
+ dashboardData.worldClocks[0].offsetSeconds=0;assert(dashboardDynamicHash(DASHBOARD_PAGE_WORLD)!=worldBefore);
+ // Empty, long, negative and stale values stay within the panel at readable font sizes.
+ fixture();dashboardConfig.theme=0;strcpy(displayState.ipInfo,"255.255.255.255");
+ strcpy(feedRuntime.weather.data.location,"A very long city name");feedRuntime.weather.data.temperature=-148;feedConfig.weather.useFahrenheit=true;
+ strcpy(feedConfig.markets[0].currency,"nzd");feedRuntime.markets[0].data.price=999999999;feedRuntime.markets[0].data.changePercent=-123.45f;
+ memset(dashboardData.quote.text,'W',sizeof(dashboardData.quote.text)-1);
+ memset(dashboardData.event.title,'W',sizeof(dashboardData.event.title)-1);memset(dashboardData.event.subtitle,'W',sizeof(dashboardData.event.subtitle)-1);
+ memset(dashboardData.status.line1,'W',sizeof(dashboardData.status.line1)-1);memset(dashboardData.status.line2,'W',sizeof(dashboardData.status.line2)-1);

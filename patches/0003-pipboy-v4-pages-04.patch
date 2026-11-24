@@ -1,0 +1,108 @@
+diff --git a/src/webserver.cpp b/src/webserver.cpp
+index 3681671..cefd9fe 100644
+--- a/src/webserver.cpp
++++ b/src/webserver.cpp
+@@ -1238,2 +1238,98 @@ void handleWiFiConnect() {
+ 
++static bool questsHaveArguments() {
++    for (uint8_t index = 0; index < DASHBOARD_QUEST_COUNT; ++index) {
++        if (server.hasArg("quest" + String(index + 1) + "title") ||
++            server.hasArg("quest" + String(index + 1) + "date")) {
++            return true;
++        }
++    }
++    return false;
++}
++
++static bool questsApplyArguments() {
++    bool changed = false;
++    for (uint8_t index = 0; index < DASHBOARD_QUEST_COUNT; ++index) {
++        const String titleArg = "quest" + String(index + 1) + "title";
++        const String dateArg = "quest" + String(index + 1) + "date";
++        if (server.hasArg(titleArg)) {
++            strncpy(dashboardConfig.questTitles[index], server.arg(titleArg).c_str(),
++                    sizeof(dashboardConfig.questTitles[index]) - 1);
++            dashboardConfig.questTitles[index][sizeof(dashboardConfig.questTitles[index]) - 1] = '\0';
++            changed = true;
++        }
++        if (server.hasArg(dateArg)) {
++            strncpy(dashboardConfig.questDates[index], server.arg(dateArg).c_str(),
++                    sizeof(dashboardConfig.questDates[index]) - 1);
++            dashboardConfig.questDates[index][sizeof(dashboardConfig.questDates[index]) - 1] = '\0';
++            changed = true;
++        }
++    }
++    return changed;
++}
++
++void handleQuestsGet() {
++    if (questsHaveArguments() && questsApplyArguments()) {
++        if (!dashboardSaveConfig()) {
++            sendTextResponse(500, F("Failed to save quests"));
++            return;
++        }
++        displayInvalidateRenderCache();
++    }
++
++    String json;
++    JsonDocument doc;
++    JsonArray quests = doc["quests"].to<JsonArray>();
++    for (uint8_t index = 0; index < DASHBOARD_QUEST_COUNT; ++index) {
++        JsonObject quest = quests.add<JsonObject>();
++        quest["title"] = dashboardConfig.questTitles[index];
++        quest["date"] = dashboardConfig.questDates[index];
++    }
++    serializeJson(doc, json);
++    sendJsonResponse(200, json);
++}
++
++void handleQuestsSave() {
++    if (!server.hasArg("plain")) {
++        sendTextResponse(400, F("Missing JSON body"));
++        return;
++    }
++
++    JsonDocument doc;
++    if (deserializeJson(doc, server.arg("plain"))) {
++        sendTextResponse(400, F("Invalid JSON"));
++        return;
++    }
++
++    JsonArrayConst quests = doc["quests"].as<JsonArrayConst>();
++    if (quests.isNull()) {
++        sendTextResponse(400, F("Missing quests array"));
++        return;
++    }
++
++    uint8_t index = 0;
++    for (JsonObjectConst quest : quests) {
++        if (index >= DASHBOARD_QUEST_COUNT) {
++            break;
++        }
++        if (!quest["title"].isNull()) {
++            strncpy(dashboardConfig.questTitles[index], quest["title"].as<const char *>(),
++                    sizeof(dashboardConfig.questTitles[index]) - 1);
++            dashboardConfig.questTitles[index][sizeof(dashboardConfig.questTitles[index]) - 1] = '\0';
++        }
++        if (!quest["date"].isNull()) {
++            strncpy(dashboardConfig.questDates[index], quest["date"].as<const char *>(),
++                    sizeof(dashboardConfig.questDates[index]) - 1);
++            dashboardConfig.questDates[index][sizeof(dashboardConfig.questDates[index]) - 1] = '\0';
++        }
++        ++index;
++    }
++
++    if (!dashboardSaveConfig()) {
++        sendTextResponse(500, F("Failed to save quests"));
++        return;
++    }
++    displayInvalidateRenderCache();
++    sendTextResponse(200, F("OK"));
++}
++
+ void handleRoot() {
+@@ -1277,2 +1373,4 @@ void webserverInit() {
+     registerProtectedRoute("/dashboard/config", HTTP_POST, handleDashboardConfigSave);
++    registerProtectedRoute("/api/quests", HTTP_GET, handleQuestsGet);
++    registerProtectedRoute("/api/quests", HTTP_POST, handleQuestsSave);
+     registerProtectedRoute("/dashboard/data", HTTP_POST, handleDashboardDataSave);

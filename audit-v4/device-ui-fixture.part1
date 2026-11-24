@@ -1,0 +1,50 @@
+#define TFT_BLACK 0x0000
+// Host canvas for the actual firmware layout functions and TFT font bitmaps.
+#include <algorithm>
+#include <cassert>
+#include <cmath>
+#include <cstdio>
+#include <cstdint>
+#include <cstring>
+#include <fstream>
+#include <string>
+#include <type_traits>
+#include <vector>
+using std::min;
+using std::max;
+class String : public std::string {
+public:
+    using std::string::string;
+    String(const std::string &s) : std::string(s) {}
+    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
+    String(T n) : std::string(std::to_string(n)) {}
+    String(float n, uint8_t precision) { char b[80]; snprintf(b, sizeof b, "%.*f", precision, n); assign(b); }
+    bool isEmpty() const { return empty(); }
+    int indexOf(char c) const { auto n=find(c); return n==npos ? -1 : int(n); }
+    int indexOf(const char *s) const { auto n=find(s); return n==npos ? -1 : int(n); }
+    bool startsWith(const char *s) const { return rfind(s,0)==0; }
+    bool endsWith(const char *s) const { return size()>=strlen(s) && compare(size()-strlen(s),strlen(s),s)==0; }
+    char charAt(size_t i) const { return at(i); }
+    void remove(size_t i) { erase(i); }
+    void trim() { auto a=find_first_not_of(" \t\n"); if(a==npos){clear();return;} assign(substr(a,find_last_not_of(" \t\n")-a+1)); }
+    void toLowerCase() { for(auto &c:*this)c=std::tolower(c); }
+    void toUpperCase() { for(auto &c:*this)c=std::toupper(c); }
+};
+#define PROGMEM
+#define F(x) x
+#include "Fonts/glcdfont.c"
+#include "Fonts/Font16.c"
+#include "Fonts/Font32rle.c"
+#include "Fonts/Font64rle.c"
+#include "Fonts/Font7srle.c"
+#include "dashboard.h"
+#include "feeds.h"
+constexpr int FONT_INFO=1, FONT_LABEL=2, FONT_BODY=4, FONT_TITLE=6, FONT_HUGE=7;
+constexpr int TL_DATUM=0, TC_DATUM=1, TR_DATUM=2, MC_DATUM=4;
+constexpr int DISPLAY_WIDTH=240, DISPLAY_HEIGHT=240;
+constexpr uint32_t kFnvPrime=16777619UL,kFnvOffset=2166136261UL;
+struct TextDraw {String text; int x,y,w,h,font,size;uint16_t color;};
+std::vector<TextDraw> textDraws;
+bool collectDraws=true;
+struct Canvas {
+    int width=240,height=240,currentFont=1,textSize=1,datum=TL_DATUM;
