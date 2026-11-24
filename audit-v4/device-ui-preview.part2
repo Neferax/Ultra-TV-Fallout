@@ -1,3 +1,16 @@
+renderWorldPage renderEventPage renderQuotePage renderStatusPage effectiveRadData questDaysUntil weatherIconId drawWeatherIcon renderRadPage renderQuestPage renderSystemPage drawScanlines renderDashboardPage
+displayCycleNextPage pageUsesDynamicRefresh updateDashboardDynamicArea renderDashboardPageCached'''.split()
+functions = sorted(function(name) for name in names)
+palette = source[source.index('constexpr uint16_t rgb565'):source.index('int savedBrightness')]
+code = '#include "device-ui-fixture.h"\n#include <ctime>\n' + palette
+code += '\nconst ThemePalette &activeTheme(){return kThemes[dashboardConfig.theme];}\n'
+code += '\n'.join(body for _, body in functions)
+code += r'''
+void displayUpdate(){++renders;normalizeDashboardItem();renderDashboardPage();}
+bool hasDraw(const std::string&s){for(auto&d:textDraws)if(d.text==s)return true;return false;}
+void checkTextCollisions(){
+ if(displayState.currentPage!=DASHBOARD_PAGE_CLOCK && displayState.currentPage!=DASHBOARD_PAGE_WEATHER && displayState.currentPage!=DASHBOARD_PAGE_GIF && displayState.currentPage!=DASHBOARD_PAGE_RAD && displayState.currentPage!=DASHBOARD_PAGE_QUEST)return;
+ for(size_t i=0;i<textDraws.size();++i)for(size_t j=i+1;j<textDraws.size();++j){
   const auto&a=textDraws[i];const auto&b=textDraws[j];
   const bool overlap=a.x<b.x+b.w && b.x<a.x+a.w && a.y<b.y+b.h && b.y<a.y+a.h;
   if(overlap){fprintf(stderr,"TEXT COLLISION page=%u: [%s] %d,%d %dx%d with [%s] %d,%d %dx%d\n",displayState.currentPage,a.text.c_str(),a.x,a.y,a.w,a.h,b.text.c_str(),b.x,b.y,b.w,b.h);abort();}
@@ -27,5 +40,3 @@ void fixture(){
  strcpy(dashboardData.event.title,"Launch day");strcpy(dashboardData.event.subtitle,"Next milestone");
  strcpy(dashboardData.quote.text,"Make room for what matters.");strcpy(dashboardData.quote.author,"Daily reminder");
  strcpy(dashboardData.status.line1,"All systems online");strcpy(dashboardData.status.line2,"Have a good day");
- strcpy(dashboardConfig.questTitles[0],"NEUJAHR");strcpy(dashboardConfig.questDates[0],"2027-01-01");
- strcpy(dashboardConfig.questTitles[1],"LIAN BDAY");strcpy(dashboardConfig.questDates[1],"2026-12-09");

@@ -1,8 +1,3 @@
- strcpy(feedRuntime.weather.data.location,"A very long city name");feedRuntime.weather.data.temperature=-148;feedConfig.weather.useFahrenheit=true;
- strcpy(feedConfig.markets[0].currency,"nzd");feedRuntime.markets[0].data.price=999999999;feedRuntime.markets[0].data.changePercent=-123.45f;
- memset(dashboardData.quote.text,'W',sizeof(dashboardData.quote.text)-1);
- memset(dashboardData.event.title,'W',sizeof(dashboardData.event.title)-1);memset(dashboardData.event.subtitle,'W',sizeof(dashboardData.event.subtitle)-1);
- memset(dashboardData.status.line1,'W',sizeof(dashboardData.status.line1)-1);memset(dashboardData.status.line2,'W',sizeof(dashboardData.status.line2)-1);
  auto &slot=feedRuntime.homeAssistant.slots[0];slot.stale=true;slot.lastSuccessMs=60000;
  for(int page=0;page<DASHBOARD_PAGE_COUNT;++page){displayState.currentPage=page;normalizeDashboardItem();for(bool buffer:{true,false}){spriteAvailable=buffer;textDraws.clear();renderDashboardPage();checkBounds();}}
  displayState.currentPage=DASHBOARD_PAGE_HOME;normalizeDashboardItem();selectedItemIndex=0;
@@ -41,3 +36,4 @@ for theme, palette in enumerate(palettes):
     x, y = 8 + (theme % 4) * 250, 28 + (theme // 4) * 270
     gallery_draw.text((x, y-18), palette['label'] + ' / ' + palette['mode'], fill='white')
     gallery.paste(Image.open(args.output / f'theme-{theme}-page-2.ppm'), (x, y))
+gallery.save(args.output / 'device-theme-gallery.png')

@@ -1,3 +1,5 @@
+ strcpy(dashboardConfig.questTitles[0],"NEUJAHR");strcpy(dashboardConfig.questDates[0],"2027-01-01");
+ strcpy(dashboardConfig.questTitles[1],"LIAN BDAY");strcpy(dashboardConfig.questDates[1],"2026-12-09");
  dashboardData.systemStatus.rssi=-62;dashboardData.systemStatus.freeHeap=18800;dashboardData.systemStatus.uptimeSeconds=8721;
  strcpy(dashboardData.systemStatus.ip,"192.168.16.218");strcpy(dashboardData.systemStatus.version,"2.4.0");
 }
@@ -33,3 +35,8 @@ int main(int argc,char**argv){
  dashboardData.worldClocks[0].offsetSeconds=0;assert(dashboardDynamicHash(DASHBOARD_PAGE_WORLD)!=worldBefore);
  // Empty, long, negative and stale values stay within the panel at readable font sizes.
  fixture();dashboardConfig.theme=0;strcpy(displayState.ipInfo,"255.255.255.255");
+ strcpy(feedRuntime.weather.data.location,"A very long city name");feedRuntime.weather.data.temperature=-148;feedConfig.weather.useFahrenheit=true;
+ strcpy(feedConfig.markets[0].currency,"nzd");feedRuntime.markets[0].data.price=999999999;feedRuntime.markets[0].data.changePercent=-123.45f;
+ memset(dashboardData.quote.text,'W',sizeof(dashboardData.quote.text)-1);
+ memset(dashboardData.event.title,'W',sizeof(dashboardData.event.title)-1);memset(dashboardData.event.subtitle,'W',sizeof(dashboardData.event.subtitle)-1);
+ memset(dashboardData.status.line1,'W',sizeof(dashboardData.status.line1)-1);memset(dashboardData.status.line2,'W',sizeof(dashboardData.status.line2)-1);
