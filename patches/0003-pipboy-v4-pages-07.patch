@@ -1,0 +1,213 @@
+--- a/src/display.cpp
++++ b/src/display.cpp
+@@ -1234,12 +1234,10 @@
+         return;
+     }
+ 
+-    drawDisplayLabel("EU-AQI", 12, 66, 120, TL_DATUM, 0x3DE7, FONT_LABEL);
+-    const int aqiFonts[] = {FONT_TITLE, FONT_BODY};
+-    char aqiText[8];
+-    snprintf(aqiText, sizeof(aqiText), "%d", rad->europeanAqi);
+-    drawAdaptiveText(String(aqiText), 12, 82, 110, TL_DATUM, aqiFonts, 2, 0xAFE5, activeTheme().background);
++    char line[40];
+ 
++    // Section 1: air quality. One value, one band word, one scale bar.
++    drawDisplayLabel("LUFT (EU-AQI)", 12, 74, 130, TL_DATUM, 0x3DE7, FONT_LABEL);
+     const char *level = "GUT";
+     uint16_t levelColor = 0x07E0;
+     if (rad->europeanAqi > 100) {
+@@ -1258,27 +1256,49 @@
+         level = "MAESSIG";
+         levelColor = 0xFFE0;
+     }
+-    drawDisplayLabel(level, 228, 96, 110, TR_DATUM, levelColor, FONT_LABEL);
++    drawDisplayLabel(level, 228, 74, 110, TR_DATUM, levelColor, FONT_LABEL);
+ 
+-    tft.drawRect(12, 134, 216, 18, levelColor);
+-    int fillWidth = rad->europeanAqi * 216 / 150;
+-    if (fillWidth < 0) {
+-        fillWidth = 0;
+-    }
+-    if (fillWidth > 214) {
+-        fillWidth = 214;
+-    }
+-    if (fillWidth > 0) {
+-        tft.fillRect(13, 135, fillWidth, 16, levelColor);
+-    }
++    const int aqiFonts[] = {FONT_TITLE, FONT_BODY};
++    snprintf(line, sizeof(line), "%d", rad->europeanAqi);
++    drawAdaptiveText(String(line), 12, 90, 100, TL_DATUM, aqiFonts, 2, 0xAFE5, activeTheme().background);
+ 
+-    char line[24];
+-    snprintf(line, sizeof(line), "PM2.5 %d UG/M3", rad->pm25);
+-    drawDisplayLabel(line, 12, 160, 110, TL_DATUM, 0xAFE5, FONT_LABEL);
+-    snprintf(line, sizeof(line), "PM10 %d UG/M3", rad->pm10);
+-    drawDisplayLabel(line, 228, 160, 110, TR_DATUM, 0xAFE5, FONT_LABEL);
+-    snprintf(line, sizeof(line), "POLLEN %d /D", rad->pollen);
+-    drawDisplayLabel(line, 12, 180, 200, TL_DATUM, 0x3DE7, FONT_LABEL);
++    // Segmented EU-AQI scale, 0..120 in six colored bands, marker at the value.
++    const uint16_t bandColors[6] = {0x07E0, 0xFFE0, 0xFD20, 0xF800, 0xA800, 0x7808};
++    for (uint8_t band = 0; band < 6; ++band) {
++        tft.fillRect(118 + band * 18, 104, 17, 17, bandColors[band]);
++    }
++    int markerValue = rad->europeanAqi < 0 ? 0 : (rad->europeanAqi > 120 ? 120 : rad->europeanAqi);
++    int markerX = 118 + markerValue * 108 / 120;
++    tft.fillRect(markerX - 1, 100, 3, 25, 0xFFFF);
++
++    // Section 2: fine dust, each value colored by its own limit.
++    tft.drawFastHLine(12, 142, 216, 0x03E0);
++    uint16_t pm25Color = rad->pm25 > 25 ? 0xF800 : (rad->pm25 > 15 ? 0xFD20 : 0x07E0);
++    uint16_t pm10Color = rad->pm10 > 45 ? 0xF800 : (rad->pm10 > 25 ? 0xFD20 : 0x07E0);
++    drawDisplayLabel("PM2.5", 12, 148, 44, TL_DATUM, 0x3DE7, FONT_LABEL);
++    snprintf(line, sizeof(line), "%d", rad->pm25);
++    drawDisplayLabel(line, 54, 148, 36, TL_DATUM, pm25Color, FONT_LABEL);
++    drawDisplayLabel("PM10", 104, 148, 44, TL_DATUM, 0x3DE7, FONT_LABEL);
++    snprintf(line, sizeof(line), "%d", rad->pm10);
++    drawDisplayLabel(line, 146, 148, 36, TL_DATUM, pm10Color, FONT_LABEL);
++
++    // Section 3: pollen, level word plus the per-species breakdown.
++    drawDisplayLabel("POLLEN", 12, 170, 70, TL_DATUM, 0x3DE7, FONT_LABEL);
++    const char *pollenLevel = "KEINE";
++    uint16_t pollenColor = 0x07E0;
++    if (rad->pollen > 50) {
++        pollenLevel = "HOCH";
++        pollenColor = 0xF800;
++    } else if (rad->pollen > 20) {
++        pollenLevel = "MITTEL";
++        pollenColor = 0xFD20;
++    } else if (rad->pollen > 0) {
++        pollenLevel = "WENIG";
++        pollenColor = 0xFFE0;
++    }
++    drawDisplayLabel(pollenLevel, 228, 170, 110, TR_DATUM, pollenColor, FONT_LABEL);
++    snprintf(line, sizeof(line), "GRAS %d BIRKE %d ERLE %d", rad->grass, rad->birch, rad->alder);
++    drawDisplayLabel(line, 12, 188, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+ }
+ 
+ void renderQuestPage() {
+@@ -1296,20 +1316,32 @@
+         return;
+     }
+ 
++    const int questFonts[] = {FONT_BODY, FONT_LABEL};
+     uint8_t row = 0;
+     for (uint8_t index = 0; index < DASHBOARD_QUEST_COUNT; ++index) {
+         if (dashboardConfig.questTitles[index][0] == '\0' || dashboardConfig.questDates[index][0] == '\0') {
+             continue;
+         }
+-        if (row >= 4) {
++        if (row >= 3) {
+             break;
+         }
+-        const int y = 70 + row * 38;
+-        if (row > 0) {
+-            tft.drawFastHLine(12, y - 6, 216, 0x03E0);
+-        }
+-        drawDisplayLabel(dashboardConfig.questTitles[index], 12, y, 140, TL_DATUM, 0xAFE5, FONT_BODY);
++        const int y = 78 + row * 46;
+         const int days = questDaysUntil(dashboardConfig.questDates[index]);
++        uint16_t urgencyColor = 0x07E0;
++        if (days <= 0) {
++            urgencyColor = 0xF800;
++        } else if (days <= 7) {
++            urgencyColor = 0xFD20;
++        }
++
++        // Pip-Boy quest marker on the left edge, colored by urgency.
++        tft.drawRect(12, y + 3, 14, 14, urgencyColor);
++        tft.fillRect(17, y + 8, 4, 4, urgencyColor);
++
++        // Title shrinks instead of colliding with the countdown column.
++        drawAdaptiveText(String(dashboardConfig.questTitles[index]), 34, y, 104, TL_DATUM,
++                         questFonts, 2, 0xAFE5, activeTheme().background);
++
+         char countdown[16];
+         if (days <= -32000) {
+             snprintf(countdown, sizeof(countdown), "?");
+@@ -1322,8 +1354,18 @@
+         } else {
+             snprintf(countdown, sizeof(countdown), "%d TAGE", days);
+         }
+-        drawDisplayLabel(countdown, 228, y, 104, TR_DATUM, 0x07E0, FONT_BODY);
+-        drawDisplayLabel(dashboardConfig.questDates[index], 12, y + 24, 140, TL_DATUM, 0x3DE7, FONT_LABEL);
++        drawAdaptiveText(String(countdown), 228, y, 88, TR_DATUM, questFonts, 2,
++                         urgencyColor, activeTheme().background);
++
++        // Date below the title, ISO input shown in German order.
++        char dateText[16];
++        int year = 0, month = 0, day = 0;
++        if (sscanf(dashboardConfig.questDates[index], "%d-%d-%d", &year, &month, &day) == 3) {
++            snprintf(dateText, sizeof(dateText), "%02d.%02d.%04d", day, month, year);
++        } else {
++            snprintf(dateText, sizeof(dateText), "%.10s", dashboardConfig.questDates[index]);
++        }
++        drawDisplayLabel(dateText, 34, y + 26, 116, TL_DATUM, 0x3DE7, FONT_LABEL);
+         ++row;
+     }
+ }
+@@ -1353,7 +1395,7 @@
+     drawDisplayLabel(line, 12, 118, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+     snprintf(line, sizeof(line), "IP %s", status.ip[0] ? status.ip : "...");
+     drawDisplayLabel(line, 12, 144, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+-    snprintf(line, sizeof(line), "OS %s", status.version[0] ? status.version : "2.4.2");
++    snprintf(line, sizeof(line), "OS %s", status.version[0] ? status.version : "2.4.3");
+     drawDisplayLabel(line, 12, 170, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
+ }
+ 
+--- a/src/dashboard.h
++++ b/src/dashboard.h
+@@ -149,6 +149,9 @@
+     int pm25;
+     int pm10;
+     int pollen;
++    int grass;
++    int birch;
++    int alder;
+     char updatedAt[6];
+ };
+ 
+--- a/src/feeds.cpp
++++ b/src/feeds.cpp
+@@ -2153,6 +2153,9 @@
+     runtime.data.pollen = static_cast<int>(roundf((current["grass_pollen"] | 0.0f) +
+                                                   (current["birch_pollen"] | 0.0f) +
+                                                   (current["alder_pollen"] | 0.0f)));
++    runtime.data.grass = static_cast<int>(roundf(current["grass_pollen"] | 0.0f));
++    runtime.data.birch = static_cast<int>(roundf(current["birch_pollen"] | 0.0f));
++    runtime.data.alder = static_cast<int>(roundf(current["alder_pollen"] | 0.0f));
+     runtime.hasData = true;
+     runtime.syncing = false;
+     runtime.lastSuccessMs = millis();
+--- a/src/settings.h
++++ b/src/settings.h
+@@ -11,7 +11,7 @@
+ 
+ // Semantic firmware release version
+ #ifndef FIRMWARE_VERSION_STRING
+-#define FIRMWARE_VERSION_STRING "2.4.2"
++#define FIRMWARE_VERSION_STRING "2.4.3"
+ #endif
+ 
+ struct Settings {
+--- a/audit/device-ui-fixture.h
++++ b/audit/device-ui-fixture.h
+@@ -162,7 +162,7 @@
+ bool hasStatusContent(){return !emptyData;}
+ bool gifPlayerHasFiles(){return true;}
+ bool feedsHasRadData(){return true;}
+-const RadData *feedsRadData(){static RadData r=[](){RadData v{};v.valid=true;v.europeanAqi=23;v.pm25=12;v.pm10=18;v.pollen=35;return v;}();return &r;}
++const RadData *feedsRadData(){static RadData r=[](){RadData v{};v.valid=true;v.europeanAqi=23;v.pm25=12;v.pm10=18;v.pollen=35;v.grass=5;v.birch=20;v.alder=10;return v;}();return &r;}
+ bool hasRadContent(){return !emptyData&&feedsHasRadData();}
+ bool hasQuestContent(){return !emptyData;}
+ bool homeAssistantWaitingForSync(){return false;}
+--- a/audit/device-ui-preview.py
++++ b/audit/device-ui-preview.py
+@@ -51,7 +51,7 @@
+ void displayUpdate(){++renders;normalizeDashboardItem();renderDashboardPage();}
+ bool hasDraw(const std::string&s){for(auto&d:textDraws)if(d.text==s)return true;return false;}
+ void checkTextCollisions(){
+- if(displayState.currentPage!=DASHBOARD_PAGE_CLOCK && displayState.currentPage!=DASHBOARD_PAGE_WEATHER && displayState.currentPage!=DASHBOARD_PAGE_GIF)return;
++ if(displayState.currentPage!=DASHBOARD_PAGE_CLOCK && displayState.currentPage!=DASHBOARD_PAGE_WEATHER && displayState.currentPage!=DASHBOARD_PAGE_GIF && displayState.currentPage!=DASHBOARD_PAGE_RAD && displayState.currentPage!=DASHBOARD_PAGE_QUEST)return;
+  for(size_t i=0;i<textDraws.size();++i)for(size_t j=i+1;j<textDraws.size();++j){
+   const auto&a=textDraws[i];const auto&b=textDraws[j];
+   const bool overlap=a.x<b.x+b.w && b.x<a.x+a.w && a.y<b.y+b.h && b.y<a.y+a.h;
