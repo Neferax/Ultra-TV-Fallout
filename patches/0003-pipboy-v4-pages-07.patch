@@ -189,25 +189,3 @@
  #endif
  
  struct Settings {
---- a/audit/device-ui-fixture.h
-+++ b/audit/device-ui-fixture.h
-@@ -162,7 +162,7 @@
- bool hasStatusContent(){return !emptyData;}
- bool gifPlayerHasFiles(){return true;}
- bool feedsHasRadData(){return true;}
--const RadData *feedsRadData(){static RadData r=[](){RadData v{};v.valid=true;v.europeanAqi=23;v.pm25=12;v.pm10=18;v.pollen=35;return v;}();return &r;}
-+const RadData *feedsRadData(){static RadData r=[](){RadData v{};v.valid=true;v.europeanAqi=23;v.pm25=12;v.pm10=18;v.pollen=35;v.grass=5;v.birch=20;v.alder=10;return v;}();return &r;}
- bool hasRadContent(){return !emptyData&&feedsHasRadData();}
- bool hasQuestContent(){return !emptyData;}
- bool homeAssistantWaitingForSync(){return false;}
---- a/audit/device-ui-preview.py
-+++ b/audit/device-ui-preview.py
-@@ -51,7 +51,7 @@
- void displayUpdate(){++renders;normalizeDashboardItem();renderDashboardPage();}
- bool hasDraw(const std::string&s){for(auto&d:textDraws)if(d.text==s)return true;return false;}
- void checkTextCollisions(){
-- if(displayState.currentPage!=DASHBOARD_PAGE_CLOCK && displayState.currentPage!=DASHBOARD_PAGE_WEATHER && displayState.currentPage!=DASHBOARD_PAGE_GIF)return;
-+ if(displayState.currentPage!=DASHBOARD_PAGE_CLOCK && displayState.currentPage!=DASHBOARD_PAGE_WEATHER && displayState.currentPage!=DASHBOARD_PAGE_GIF && displayState.currentPage!=DASHBOARD_PAGE_RAD && displayState.currentPage!=DASHBOARD_PAGE_QUEST)return;
-  for(size_t i=0;i<textDraws.size();++i)for(size_t j=i+1;j<textDraws.size();++j){
-   const auto&a=textDraws[i];const auto&b=textDraws[j];
-   const bool overlap=a.x<b.x+b.w && b.x<a.x+a.w && a.y<b.y+b.h && b.y<a.y+a.h;
