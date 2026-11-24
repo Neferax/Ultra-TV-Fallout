@@ -1,0 +1,26 @@
+diff --git a/src/display.cpp b/src/display.cpp
+index b6f9653..b33d447 100644
+--- a/src/display.cpp
++++ b/src/display.cpp
+@@ -1395,7 +1395,7 @@ void renderSystemPage() {
+     drawDisplayLabel(line, 12, 118, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+     snprintf(line, sizeof(line), "IP %s", status.ip[0] ? status.ip : "...");
+     drawDisplayLabel(line, 12, 144, 216, TL_DATUM, 0xAFE5, FONT_LABEL);
+-    snprintf(line, sizeof(line), "OS %s", status.version[0] ? status.version : "2.4.3");
++    snprintf(line, sizeof(line), "OS %s", status.version[0] ? status.version : "2.4.4");
+     drawDisplayLabel(line, 12, 170, 216, TL_DATUM, 0x3DE7, FONT_LABEL);
+ }
+ 
+diff --git a/src/settings.h b/src/settings.h
+index a51430a..73ebf3d 100644
+--- a/src/settings.h
++++ b/src/settings.h
+@@ -11,7 +11,7 @@
+ 
+ // Semantic firmware release version
+ #ifndef FIRMWARE_VERSION_STRING
+-#define FIRMWARE_VERSION_STRING "2.4.3"
++#define FIRMWARE_VERSION_STRING "2.4.4"
+ #endif
+ 
+ struct Settings {
