@@ -73,7 +73,7 @@ jobs:
 
       - name: Apply Pip-Boy V4 pages, boot splash and system telemetry
         run: |
-          for part in 0003-pipboy-v4-pages-01 0003-pipboy-v4-pages-02 0003-pipboy-v4-pages-03 0003-pipboy-v4-pages-04 0003-pipboy-v4-pages-05 0003-pipboy-v4-pages-06 0003-pipboy-v4-pages-07; do
+          for part in 0003-pipboy-v4-pages-01 0003-pipboy-v4-pages-02 0003-pipboy-v4-pages-03 0003-pipboy-v4-pages-04 0003-pipboy-v4-pages-05 0003-pipboy-v4-pages-06 0003-pipboy-v4-pages-07 0003-pipboy-v4-pages-08; do
             git -C firmware apply --check "../fallout/patches/$part.patch"
             git -C firmware apply "../fallout/patches/$part.patch"
           done
@@ -119,7 +119,13 @@ jobs:
                   raise SystemExit("Bundled Vault Boy animation has no visible frame changes")
               print(f"Bundled GIF verified: {gif.n_frames} full-canvas frames, {len(frames)} unique, {duration} ms")
           PY
-          python fallout/scripts/embed_bundled_gif.py firmware fallout/package/bethesda-vaultboy.gif
+          mkdir -p fallout/assets/bundled-gifs
+          python fallout/scripts/build_bundled_extras.py \
+            fallout/assets/bundled-gifs/nuka-cola.gif \
+            fallout/assets/bundled-gifs/vault-boy-clap.gif
+          python fallout/scripts/embed_bundled_gif.py firmware fallout/package/bethesda-vaultboy.gif \
+            nuka-cola fallout/assets/bundled-gifs/nuka-cola.gif \
+            vault-boy-clap fallout/assets/bundled-gifs/vault-boy-clap.gif
 
       - name: Compile ESP8266 firmware before native renderer audit
         working-directory: firmware
@@ -139,6 +145,10 @@ jobs:
           firmware = Path("fallout/package/smalltv-ultra-fallout.bin").read_bytes()
           if gif not in firmware:
               raise SystemExit("Firmware image does not contain the exact bundled GIF payload")
+          for extra_path in ("fallout/assets/bundled-gifs/nuka-cola.gif",
+                             "fallout/assets/bundled-gifs/vault-boy-clap.gif"):
+              if Path(extra_path).read_bytes() not in firmware:
+                  raise SystemExit(f"Firmware image is missing bundled animation {extra_path}")
           with Image.open(gif_path) as animation:
               for index in range(animation.n_frames):
                   animation.seek(index)
@@ -158,6 +168,9 @@ jobs:
           test -s src/bundled_gif.h
           grep -q 'gifPlayerInstallBundledAsset' src/gif_player.cpp
           grep -q 'gifPlayerInstallBundledAsset()' src/main.cpp
+          grep -q 'gifPlayerInstallBundledExtras' src/gif_player.cpp
+          grep -q 'gifPlayerInstallBundledExtras();' src/main.cpp
+          grep -q 'kBundledGifCount' src/bundled_gifs.h
           grep -q 'kBundledVaultBoyGifCrc32' src/gif_player.cpp
           echo "Verified: GIF payload is compiled into the application and copied into LittleFS at boot."
 
