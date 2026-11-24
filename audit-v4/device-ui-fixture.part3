@@ -1,3 +1,29 @@
+            }
+        }
+    }
+    void drawString(const String&s,int x,int y,int f) {
+        int w=textWidth(s,f),h=fontHeight(f);
+        if(datum==TC_DATUM||datum==MC_DATUM)x-=w/2;
+        else if(datum==TR_DATUM)x-=w;
+        if(datum==MC_DATUM)y-=h/2;
+        if(collectDraws)textDraws.push_back({s,x,y,w,h,f,textSize,foreground});
+        for(unsigned char c:s){glyph(c,x,y,f);x+=charWidth(c,f)*textSize;}
+    }
+    void save(const std::string&path) {
+        std::ofstream out(path,std::ios::binary);out<<"P6\n"<<width<<" "<<height<<"\n255\n";
+        for(uint16_t c:pixels){char rgb[]={char(((c>>11)&31)*255/31),char(((c>>5)&63)*255/63),char((c&31)*255/31)};out.write(rgb,3);}
+    }
+} tft;
+struct Sprite : Canvas {
+    uint16_t mappedForeground=0xffff,mappedBackground=0;
+    std::vector<TextDraw> spriteDraws;
+    Sprite(){width=216;height=64;pixels.resize(width*height);}
+    void setBitmapColor(uint16_t f,uint16_t b){mappedForeground=f;mappedBackground=b;}
+    void fillSprite(int c){fillScreen(c);spriteDraws.clear();}
+    void drawString(const String&s,int x,int y,int f) {
+        size_t before=textDraws.size();Canvas::drawString(s,x,y,f);
+        if(collectDraws){spriteDraws.push_back(textDraws.back());textDraws.resize(before);}
+    }
     bool pushSprite(int x,int y,int sx=0,int sy=0,int w=216,int h=64) {
         for(int yy=0;yy<h;++yy)for(int xx=0;xx<w;++xx)tft.pixel(x+xx,y+yy,pixels[(sy+yy)*width+sx+xx]?mappedForeground:mappedBackground);
         for(auto draw:spriteDraws){draw.x+=x-sx;draw.y+=y-sy;textDraws.push_back(draw);}return true;
@@ -22,26 +48,3 @@ bool feedsHasWeatherData(){return feedRuntime.weather.hasData;}
 bool feedsHasMarketData(uint8_t i){return feedRuntime.markets[i].hasData;}
 const WeatherData *feedsWeatherData(){return feedRuntime.weather.hasData?&feedRuntime.weather.data:nullptr;}
 const MarketData *feedsMarketData(uint8_t i){return feedRuntime.markets[i].hasData?&feedRuntime.markets[i].data:nullptr;}
-const HomeAssistantSlotData *feedsHomeAssistantSlotData(uint8_t i){return &feedRuntime.homeAssistant.slots[i];}
-bool homeAssistantSlotConfigured(uint8_t i){return feedConfig.homeAssistant.slots[i].enabled && feedConfig.homeAssistant.slots[i].entityId[0];}
-String homeAssistantSlotLabel(uint8_t i){return feedConfig.homeAssistant.slots[i].label;}
-String homeAssistantSlotUnit(uint8_t i){return feedConfig.homeAssistant.slots[i].unit;}
-bool hasWeatherContent(){return !emptyData&&feedsHasWeatherData();}
-bool hasMarketContent(){return !emptyData&&std::any_of(std::begin(feedRuntime.markets),std::end(feedRuntime.markets),[](auto&m){return m.hasData&&m.data.enabled;});}
-bool hasHomeAssistantContent(){return !emptyData&&feedsHasHomeAssistantData();}
-bool hasWorldClockContent(){return !emptyData;}
-bool hasFocusContent(){return !emptyData;}
-bool hasEventContent(){return !emptyData;}
-bool hasQuoteContent(){return !emptyData;}
-bool hasStatusContent(){return !emptyData;}
-bool gifPlayerHasFiles(){return true;}
-bool feedsHasRadData(){return true;}
-const RadData *feedsRadData(){static RadData r=[](){RadData v{};v.valid=true;v.europeanAqi=23;v.pm25=12;v.pm10=18;v.pollen=35;return v;}();return &r;}
-bool hasRadContent(){return !emptyData&&feedsHasRadData();}
-bool hasQuestContent(){return !emptyData;}
-bool homeAssistantWaitingForSync(){return false;}
-const char *activeClockMessage(){return nullptr;}
-String safeCString(const char*s){return s?s:"";}
-String localClockText="12:34";
-bool localClockPm=false,timeSynced=true;
-char footerClockCache[16]={};

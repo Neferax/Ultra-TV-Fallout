@@ -1,3 +1,26 @@
+const HomeAssistantSlotData *feedsHomeAssistantSlotData(uint8_t i){return &feedRuntime.homeAssistant.slots[i];}
+bool homeAssistantSlotConfigured(uint8_t i){return feedConfig.homeAssistant.slots[i].enabled && feedConfig.homeAssistant.slots[i].entityId[0];}
+String homeAssistantSlotLabel(uint8_t i){return feedConfig.homeAssistant.slots[i].label;}
+String homeAssistantSlotUnit(uint8_t i){return feedConfig.homeAssistant.slots[i].unit;}
+bool hasWeatherContent(){return !emptyData&&feedsHasWeatherData();}
+bool hasMarketContent(){return !emptyData&&std::any_of(std::begin(feedRuntime.markets),std::end(feedRuntime.markets),[](auto&m){return m.hasData&&m.data.enabled;});}
+bool hasHomeAssistantContent(){return !emptyData&&feedsHasHomeAssistantData();}
+bool hasWorldClockContent(){return !emptyData;}
+bool hasFocusContent(){return !emptyData;}
+bool hasEventContent(){return !emptyData;}
+bool hasQuoteContent(){return !emptyData;}
+bool hasStatusContent(){return !emptyData;}
+bool gifPlayerHasFiles(){return true;}
+bool feedsHasRadData(){return true;}
+const RadData *feedsRadData(){static RadData r=[](){RadData v{};v.valid=true;v.europeanAqi=23;v.pm25=12;v.pm10=18;v.pollen=35;v.grass=5;v.birch=20;v.alder=10;return v;}();return &r;}
+bool hasRadContent(){return !emptyData&&feedsHasRadData();}
+bool hasQuestContent(){return !emptyData;}
+bool homeAssistantWaitingForSync(){return false;}
+const char *activeClockMessage(){return nullptr;}
+String safeCString(const char*s){return s?s:"";}
+String localClockText="12:34";
+bool localClockPm=false,timeSynced=true;
+char footerClockCache[16]={};
 String formatLocalTime(bool seconds,bool,bool *pm){*pm=localClockPm;return timeSynced ? localClockText+(seconds?":56":"") : "--:--";}
 String formatLocalDate(){return "Wed 14 Oct 2026";}
 String formatWorldTime(long offset){return offset==32400?"12:34":"08:34";}

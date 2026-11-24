@@ -1,3 +1,21 @@
+    uint16_t foreground=0xffff,background=0;
+    std::vector<uint16_t> pixels=std::vector<uint16_t>(240*240);
+    void setTextSize(int n) {textSize=n;}
+    void setTextFont(int n) {currentFont=n;}
+    void setTextDatum(int n) {datum=n;}
+    void setTextColor(uint16_t f,uint16_t b) {foreground=f;background=b;}
+    void setTextPadding(int) {}
+    int fontHeight(int f=0) const {if(!f)f=currentFont;return (f==1?8:f==2?16:f==4?26:48)*textSize;}
+    int charWidth(unsigned char c,int f) const {
+        if(f==1)return 6;
+        if(c<32 || c>127)c=32;
+        return (f==2?widtbl_f16:f==4?widtbl_f32:f==6?widtbl_f64:widtbl_f7s)[c-32];
+    }
+    int textWidth(const String&s,int f=0) const {if(!f)f=currentFont;int w=0;for(unsigned char c:s)w+=charWidth(c,f)*textSize;return w;}
+    void pixel(int x,int y,uint16_t c) {if(x>=0&&x<width&&y>=0&&y<height)pixels[y*width+x]=c;}
+    void fillRect(int x,int y,int w,int h,uint16_t c) {for(int yy=max(y,0);yy<min(y+h,height);++yy)for(int xx=max(x,0);xx<min(x+w,width);++xx)pixel(xx,yy,c);}
+    int fullScreens=0;
+    void fillScreen(uint16_t c) {++fullScreens;std::fill(pixels.begin(),pixels.end(),c);}
     void fillRoundRect(int x,int y,int w,int h,int r,uint16_t c) {
         for(int yy=0;yy<h;++yy)for(int xx=0;xx<w;++xx){
             int dx=xx<r?r-xx-1:xx>=w-r?xx-(w-r):0;
@@ -30,29 +48,3 @@ void drawCircle(int x,int y,int r,uint16_t c){drawFastHLine(x-r+1,y-r,2*r-1,c);d
                 unsigned char run=*bits++;int n=(run&127)+1;
                 for(int j=0;j<n && position<w*h;++j,++position)
                     fillRect(x+(position%w)*textSize,y+(position/w)*textSize,textSize,textSize,(run&128)?foreground:background);
-            }
-        }
-    }
-    void drawString(const String&s,int x,int y,int f) {
-        int w=textWidth(s,f),h=fontHeight(f);
-        if(datum==TC_DATUM||datum==MC_DATUM)x-=w/2;
-        else if(datum==TR_DATUM)x-=w;
-        if(datum==MC_DATUM)y-=h/2;
-        if(collectDraws)textDraws.push_back({s,x,y,w,h,f,textSize,foreground});
-        for(unsigned char c:s){glyph(c,x,y,f);x+=charWidth(c,f)*textSize;}
-    }
-    void save(const std::string&path) {
-        std::ofstream out(path,std::ios::binary);out<<"P6\n"<<width<<" "<<height<<"\n255\n";
-        for(uint16_t c:pixels){char rgb[]={char(((c>>11)&31)*255/31),char(((c>>5)&63)*255/63),char((c&31)*255/31)};out.write(rgb,3);}
-    }
-} tft;
-struct Sprite : Canvas {
-    uint16_t mappedForeground=0xffff,mappedBackground=0;
-    std::vector<TextDraw> spriteDraws;
-    Sprite(){width=216;height=64;pixels.resize(width*height);}
-    void setBitmapColor(uint16_t f,uint16_t b){mappedForeground=f;mappedBackground=b;}
-    void fillSprite(int c){fillScreen(c);spriteDraws.clear();}
-    void drawString(const String&s,int x,int y,int f) {
-        size_t before=textDraws.size();Canvas::drawString(s,x,y,f);
-        if(collectDraws){spriteDraws.push_back(textDraws.back());textDraws.resize(before);}
-    }
