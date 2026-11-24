@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """Embed verified GIFs in the application image and seed them into LittleFS at boot."""
 from pathlib import Path
 import re
@@ -246,10 +247,10 @@ bool gifPlayerInstallBundledExtras() {
     bool allInstalled = true;
     for (uint8_t index = 0; index < kBundledGifCount; ++index) {
         char path[40];
-        strcpy_P(path, reinterpret_cast<PGM_P>(pgm_read_word(&kBundledGifPaths[index])));
+        strcpy_P(path, reinterpret_cast<PGM_P>(pgm_read_ptr(&kBundledGifPaths[index])));
         path[sizeof(path) - 1] = '\0';
         const uint8_t *asset = reinterpret_cast<const uint8_t *>(
-            pgm_read_word(&kBundledGifData[index]));
+            pgm_read_ptr(&kBundledGifData[index]));
         const uint32_t size = kBundledGifSizes[index];
         const uint32_t crc = kBundledGifCrcs[index];
 
